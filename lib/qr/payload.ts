@@ -33,8 +33,8 @@ function parseLocationType(value: string | null): QrLocationType | null {
 export function buildAssetQrUrl(assetId: string, baseUrl?: string): string {
   const root = normalizeBaseUrl(baseUrl ?? process.env.NEXT_PUBLIC_APP_URL);
   if (!isCuidLike(assetId)) return assetId;
-  if (!root) return `/locations/scan?asset=${encodeURIComponent(assetId)}`;
-  return `${root}/locations/scan?asset=${encodeURIComponent(assetId)}`;
+  if (!root) return `/scan?asset=${encodeURIComponent(assetId)}`;
+  return `${root}/scan?asset=${encodeURIComponent(assetId)}`;
 }
 
 export function buildLocationQrUrl(locationType: QrLocationType, locationId: string, baseUrl?: string): string {

@@ -154,5 +154,6 @@ export async function createAssetMovementAction(formData: FormData) {
   });
 
   revalidatePath(APP_ROUTES.LOCATIONS);
+  revalidatePath(APP_ROUTES.SCAN);
   revalidatePath(`/assets/${asset.id}`);
 }
