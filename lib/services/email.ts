@@ -191,7 +191,7 @@ export async function sendPasswordResetEmail(
                 Hi ${name},
               </p>
               <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
-                We received a request to reset your password for your Ordex account. Click the button below to create a new password.
+                We received a request to reset your password for your Assetify account. Click the button below to create a new password.
               </p>
               
               <!-- CTA Button -->
@@ -224,7 +224,7 @@ export async function sendPasswordResetEmail(
           <tr>
             <td style="padding: 20px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
               <p style="margin: 0; color: #9ca3af; font-size: 12px;">
-                © ${new Date().getFullYear()} Ordex. All rights reserved.
+                © ${new Date().getFullYear()} Assetify. All rights reserved.
               </p>
             </td>
           </tr>
@@ -241,7 +241,7 @@ Reset Your Password
 
 Hi ${name},
 
-We received a request to reset your password for your Ordex account.
+We received a request to reset your password for your Assetify account.
 
 Reset your password here: ${resetUrl}
 
@@ -252,7 +252,7 @@ If you didn't request a password reset, you can safely ignore this email.
 
   return sendEmail({
     to: email,
-    subject: "Reset your Ordex password",
+    subject: "Reset your Assetify password",
     html,
     text,
   });

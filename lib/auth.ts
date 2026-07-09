@@ -4,6 +4,7 @@ import { nextCookies } from "better-auth/next-js";
 import bcrypt from "bcryptjs";
 import { db } from "./db";
 import { sendPasswordResetEmail } from "./services/email";
+import { USER_ROLES } from "@/constants";
 
 export const auth = betterAuth({
     database: prismaAdapter(db, {
@@ -54,9 +55,13 @@ export const auth = betterAuth({
             role: {
                 type: "string",
                 required: false,
-                defaultValue: "GATE_OFFICER",
+                defaultValue: USER_ROLES.STAFF,
             },
             branchId: {
+                type: "string",
+                required: false,
+            },
+            organizationId: {
                 type: "string",
                 required: false,
             },
