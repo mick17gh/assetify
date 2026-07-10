@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { MoreHorizontal, PencilLine, PlusCircle, RefreshCw, Trash2, Upload } from "lucide-react";
 import {
   createWorkOrderAction,
@@ -35,7 +36,10 @@ export function AssetDetailsActions({
   initialStatus: string;
   initialCondition: string;
 }) {
+  const router = useRouter();
   const [docType, setDocType] = useState<string>(DOCUMENT_TYPE.OTHER);
+  const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
+  const [documentDialogOpen, setDocumentDialogOpen] = useState(false);
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -132,7 +136,7 @@ export function AssetDetailsActions({
             </DialogContent>
           </Dialog>
 
-          <Dialog>
+          <Dialog open={photoDialogOpen} onOpenChange={setPhotoDialogOpen}>
             <DialogTrigger asChild>
               <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
                 <Upload className="mr-2 h-4 w-4" />
@@ -143,7 +147,14 @@ export function AssetDetailsActions({
               <DialogHeader>
                 <DialogTitle>Upload Asset Photo</DialogTitle>
               </DialogHeader>
-              <form action={uploadAssetPhotoAction} className="space-y-3">
+              <form
+                action={async (formData) => {
+                  await uploadAssetPhotoAction(formData);
+                  setPhotoDialogOpen(false);
+                  router.refresh();
+                }}
+                className="space-y-3"
+              >
                 <input type="hidden" name="assetId" value={assetId} />
                 <div className="space-y-1">
                   <Label htmlFor="photo">Photo</Label>
@@ -154,7 +165,7 @@ export function AssetDetailsActions({
             </DialogContent>
           </Dialog>
 
-          <Dialog>
+          <Dialog open={documentDialogOpen} onOpenChange={setDocumentDialogOpen}>
             <DialogTrigger asChild>
               <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
                 <Upload className="mr-2 h-4 w-4" />
@@ -165,7 +176,14 @@ export function AssetDetailsActions({
               <DialogHeader>
                 <DialogTitle>Upload Asset Document</DialogTitle>
               </DialogHeader>
-              <form action={uploadAssetDocumentAction} className="space-y-3">
+              <form
+                action={async (formData) => {
+                  await uploadAssetDocumentAction(formData);
+                  setDocumentDialogOpen(false);
+                  router.refresh();
+                }}
+                className="space-y-3"
+              >
                 <input type="hidden" name="assetId" value={assetId} />
                 <EnumSelect
                   name="documentType"
