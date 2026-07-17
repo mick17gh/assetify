@@ -50,15 +50,17 @@ export async function GET(request: Request) {
       metadata: { format, count: rows.length, report },
     });
 
+    const columns = [
+      { header: "Department", key: "department", width: 28 },
+      { header: "Branch", key: "branch", width: 24 },
+      { header: "Assets", key: "assets", width: 12 },
+      { header: "Total Cost (GHS)", key: "cost", width: 20 },
+    ];
+
     if (format === "excel") {
       const buffer = await buildExcelReport(
         "Department Cost",
-        [
-          { header: "Department", key: "department", width: 28 },
-          { header: "Branch", key: "branch", width: 24 },
-          { header: "Assets", key: "assets", width: 12 },
-          { header: "Total Cost (GHS)", key: "cost", width: 20 },
-        ],
+        columns,
         rows.map((r) => ({
           department: r.departmentName,
           branch: r.branchName,
@@ -69,10 +71,16 @@ export async function GET(request: Request) {
       return fileResponse(buffer, `department-cost-${dateStamp}.xlsx`, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     }
 
-    const lines = rows.map(
-      (r) => `${r.departmentName} | ${r.branchName} | ${r.assetCount} assets | GHS ${r.totalCost.toLocaleString()}`,
+    const buffer = await buildPdfReport(
+      "Assetify Department Cost Report",
+      columns,
+      rows.map((r) => ({
+        department: r.departmentName,
+        branch: r.branchName,
+        assets: r.assetCount,
+        cost: r.totalCost.toLocaleString(),
+      })),
     );
-    const buffer = await buildPdfReport("Assetify Department Cost Report", lines);
     return fileResponse(buffer, `department-cost-${dateStamp}.pdf`, "application/pdf");
   }
 
@@ -106,16 +114,25 @@ export async function GET(request: Request) {
       return fileResponse(buffer, `disposal-summary-${dateStamp}.xlsx`, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     }
 
-    const lines = [
-      ...summary.map(
-        (r) => `${r.method}: ${r.count} assets | removed GHS ${r.totalPurchaseValue.toLocaleString()} | sales GHS ${r.totalSaleProceeds.toLocaleString()}`,
-      ),
-      "---",
-      ...records.map(
-        (r) => `${r.asset.ain} | ${r.method} | ${r.disposalDate.toISOString().slice(0, 10)} | ${r.reason.slice(0, 40)}`,
-      ),
+    const columns = [
+      { header: "AIN", key: "ain", width: 18 },
+      { header: "Asset", key: "asset", width: 24 },
+      { header: "Method", key: "method", width: 14 },
+      { header: "Date", key: "date", width: 14 },
+      { header: "Purchase Value", key: "purchase", width: 16 },
+      { header: "Sale Price", key: "sale", width: 14 },
+      { header: "Reason", key: "reason", width: 28 },
     ];
-    const buffer = await buildPdfReport("Assetify Disposal Summary", lines);
+    const data = records.map((r) => ({
+      ain: r.asset.ain,
+      asset: r.asset.name,
+      method: r.method,
+      date: r.disposalDate.toISOString().slice(0, 10),
+      purchase: Number(r.asset.purchaseCost).toLocaleString(),
+      sale: r.salePrice != null ? Number(r.salePrice).toLocaleString() : "—",
+      reason: r.reason,
+    }));
+    const buffer = await buildPdfReport("Assetify Disposal Summary", columns, data);
     return fileResponse(buffer, `disposal-summary-${dateStamp}.pdf`, "application/pdf");
   }
 
@@ -130,36 +147,40 @@ export async function GET(request: Request) {
       metadata: { format, count: rows.length, report },
     });
 
+    const columns = [
+      { header: "Asset", key: "asset", width: 28 },
+      { header: "AIN", key: "ain", width: 18 },
+      { header: "Branch", key: "branch", width: 20 },
+      { header: "State", key: "state", width: 14 },
+      { header: "Purchase Cost", key: "purchase", width: 16 },
+      { header: "Current Value", key: "current", width: 16 },
+      { header: "Recommended Sale", key: "sale", width: 18 },
+    ];
+    const excelData = rows.map((r) => ({
+      asset: r.assetName,
+      ain: r.ain,
+      branch: r.branchName,
+      state: r.state,
+      purchase: r.purchaseCost,
+      current: r.currentValue,
+      sale: r.recommendedSalePrice,
+    }));
+
     if (format === "excel") {
-      const buffer = await buildExcelReport(
-        "End of Life Valuation",
-        [
-          { header: "Asset", key: "asset", width: 28 },
-          { header: "AIN", key: "ain", width: 18 },
-          { header: "Branch", key: "branch", width: 20 },
-          { header: "State", key: "state", width: 14 },
-          { header: "Purchase Cost", key: "purchase", width: 16 },
-          { header: "Current Value", key: "current", width: 16 },
-          { header: "Recommended Sale", key: "sale", width: 18 },
-        ],
-        rows.map((r) => ({
-          asset: r.assetName,
-          ain: r.ain,
-          branch: r.branchName,
-          state: r.state,
-          purchase: r.purchaseCost,
-          current: r.currentValue,
-          sale: r.recommendedSalePrice,
-        })),
-      );
+      const buffer = await buildExcelReport("End of Life Valuation", columns, excelData);
       return fileResponse(buffer, `end-of-life-valuation-${dateStamp}.xlsx`, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     }
 
-    const lines = rows.map(
-      (r) =>
-        `${r.ain} | ${r.assetName} | ${r.state} | purchase GHS ${r.purchaseCost.toLocaleString()} | FMV GHS ${r.currentValue.toLocaleString()}`,
+    const buffer = await buildPdfReport(
+      "Assetify End-of-Life Valuation Report",
+      columns,
+      excelData.map((r) => ({
+        ...r,
+        purchase: Number(r.purchase).toLocaleString(),
+        current: Number(r.current).toLocaleString(),
+        sale: Number(r.sale).toLocaleString(),
+      })),
     );
-    const buffer = await buildPdfReport("Assetify End-of-Life Valuation Report", lines);
     return fileResponse(buffer, `end-of-life-valuation-${dateStamp}.pdf`, "application/pdf");
   }
 
@@ -168,44 +189,47 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const rows = await getReplacementDueReport(session);
+  const stateFilter = url.searchParams.get("state") ?? undefined;
+  const qFilter = url.searchParams.get("q") ?? undefined;
+  const rows = await getReplacementDueReport(session, { state: stateFilter, q: qFilter });
   await writeAuditLog({
     actorUserId: session.userId,
     organizationId: session.organizationId,
     branchId: session.branchId,
     action: "reports.export",
     entityType: "ReplacementEvaluation",
-    metadata: { format, count: rows.length, report: "replacement" },
+    metadata: { format, count: rows.length, report: "replacement", state: stateFilter ?? null, q: qFilter ?? null },
   });
 
+  const columns = [
+    { header: "Asset", key: "asset", width: 28 },
+    { header: "AIN", key: "ain", width: 18 },
+    { header: "Branch", key: "branch", width: 20 },
+    { header: "State", key: "state", width: 14 },
+    { header: "Replace Date", key: "replaceDate", width: 16 },
+    { header: "Estimated Cost (GHS)", key: "cost", width: 18 },
+  ];
+  const excelData = rows.map((row) => ({
+    asset: row.asset.name,
+    ain: row.asset.ain,
+    branch: row.asset.branch.name,
+    state: row.state,
+    replaceDate: row.recommendedReplaceDate.toISOString().slice(0, 10),
+    cost: Number(row.estimatedReplacementCost),
+  }));
+
+  const titleSuffix = stateFilter ? ` (${stateFilter})` : "";
+
   if (format === "excel") {
-    const buffer = await buildExcelReport(
-      "Replacement Due",
-      [
-        { header: "Asset", key: "asset", width: 30 },
-        { header: "AIN", key: "ain", width: 20 },
-        { header: "Branch", key: "branch", width: 24 },
-        { header: "State", key: "state", width: 14 },
-        { header: "Recommended Replace Date", key: "replaceDate", width: 24 },
-        { header: "Estimated Cost (GHS)", key: "cost", width: 20 },
-      ],
-      rows.map((row) => ({
-        asset: row.asset.name,
-        ain: row.asset.ain,
-        branch: row.asset.branch.name,
-        state: row.state,
-        replaceDate: row.recommendedReplaceDate.toISOString().slice(0, 10),
-        cost: Number(row.estimatedReplacementCost),
-      })),
-    );
+    const buffer = await buildExcelReport("Replacement Due", columns, excelData);
     return fileResponse(buffer, `replacement-report-${dateStamp}.xlsx`, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
   }
 
-  const lines = rows.map(
-    (row) =>
-      `${row.asset.ain} | ${row.asset.name} | ${row.state} | GHS ${Number(row.estimatedReplacementCost).toLocaleString()}`,
+  const buffer = await buildPdfReport(
+    `Assetify Replacement Report${titleSuffix}`,
+    columns,
+    excelData.map((r) => ({ ...r, cost: Number(r.cost).toLocaleString() })),
   );
-  const buffer = await buildPdfReport("Assetify Replacement Report", lines);
   return fileResponse(buffer, `replacement-report-${dateStamp}.pdf`, "application/pdf");
 }
 

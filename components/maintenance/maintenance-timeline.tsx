@@ -19,11 +19,13 @@ export function MaintenanceTimeline({
   totalCost,
   purchaseCost,
   isHighCost,
+  canUpload = false,
 }: {
   items: MaintenanceTimelineItem[];
   totalCost: number;
   purchaseCost: number;
   isHighCost: boolean;
+  canUpload?: boolean;
 }) {
   return (
     <div className="space-y-4">
@@ -47,7 +49,7 @@ export function MaintenanceTimeline({
                   <span className="text-sm font-medium text-purple-950">{item.serviceDate}</span>
                   <Badge variant="secondary">{ENUM_LABELS.maintenanceStatus[item.status] ?? item.status}</Badge>
                   {item.cost !== "N/A" ? <span className="text-sm text-purple-900/70">GHS {item.cost}</span> : null}
-                  <MaintenanceDocumentUpload recordId={item.id} />
+                  <MaintenanceDocumentUpload recordId={item.id} canUpload={canUpload} />
                 </div>
                 <p className="text-sm text-purple-900/80">{item.description}</p>
                 {item.vendorName ? <p className="mt-1 text-xs text-purple-900/60">Vendor: {item.vendorName}</p> : null}

@@ -48,12 +48,16 @@ export function AssetDetailsActions({
 }) {
   const router = useRouter();
   const [docType, setDocType] = useState<string>(DOCUMENT_TYPE.OTHER);
+  const [workOrderOpen, setWorkOrderOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [depreciationOpen, setDepreciationOpen] = useState(false);
+  const [statusOpen, setStatusOpen] = useState(false);
   const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
   const [documentDialogOpen, setDocumentDialogOpen] = useState(false);
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Dialog>
+      <Dialog open={workOrderOpen} onOpenChange={setWorkOrderOpen}>
         <DialogTrigger asChild>
           <Button className="cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]">
             <PlusCircle className="mr-2 h-4 w-4" />
@@ -80,6 +84,11 @@ export function AssetDetailsActions({
               }
               await createWorkOrderAction(formData);
             }}
+            successMessage="Work order created."
+            onSuccess={() => {
+              setWorkOrderOpen(false);
+              router.refresh();
+            }}
             className="space-y-3"
           >
             <input type="hidden" name="assetId" value={assetId} />
@@ -101,7 +110,7 @@ export function AssetDetailsActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <Dialog>
+          <Dialog open={editOpen} onOpenChange={setEditOpen}>
             <DialogTrigger asChild>
               <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
                 <PencilLine className="mr-2 h-4 w-4" />
@@ -113,7 +122,15 @@ export function AssetDetailsActions({
                 <DialogTitle>Edit Asset</DialogTitle>
                 <DialogDescription>Update core asset profile fields.</DialogDescription>
               </DialogHeader>
-              <form action={updateAssetDetailsAction} className="space-y-3">
+              <PendingForm
+                action={updateAssetDetailsAction}
+                successMessage="Asset updated."
+                onSuccess={() => {
+                  setEditOpen(false);
+                  router.refresh();
+                }}
+                className="space-y-3"
+              >
                 <input type="hidden" name="assetId" value={assetId} />
                 <SetupTextField name="name" label="Name" required defaultValue={initialName} />
                 <div className="space-y-1">
@@ -121,11 +138,11 @@ export function AssetDetailsActions({
                   <Textarea id="description" name="description" defaultValue={initialDescription} />
                 </div>
                 <SubmitButton idleLabel="Save changes" pendingLabel="Saving..." className="w-full cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]" />
-              </form>
+              </PendingForm>
             </DialogContent>
           </Dialog>
 
-          <Dialog>
+          <Dialog open={depreciationOpen} onOpenChange={setDepreciationOpen}>
             <DialogTrigger asChild>
               <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
                 <Calculator className="mr-2 h-4 w-4" />
@@ -139,7 +156,15 @@ export function AssetDetailsActions({
                   Override category depreciation rules for this asset. Leave blank to use category defaults.
                 </DialogDescription>
               </DialogHeader>
-              <form action={updateAssetDepreciationAction} className="space-y-3">
+              <PendingForm
+                action={updateAssetDepreciationAction}
+                successMessage="Depreciation overrides saved."
+                onSuccess={() => {
+                  setDepreciationOpen(false);
+                  router.refresh();
+                }}
+                className="space-y-3"
+              >
                 <input type="hidden" name="assetId" value={assetId} />
                 <SetupTextField
                   name="depreciationUsefulLifeYears"
@@ -160,11 +185,11 @@ export function AssetDetailsActions({
                   defaultValue={depreciationMethodOverride || DEPRECIATION_METHOD.STRAIGHT_LINE}
                 />
                 <SubmitButton idleLabel="Save overrides" pendingLabel="Saving..." className="w-full cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]" />
-              </form>
+              </PendingForm>
             </DialogContent>
           </Dialog>
 
-          <Dialog>
+          <Dialog open={statusOpen} onOpenChange={setStatusOpen}>
             <DialogTrigger asChild>
               <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
                 <RefreshCw className="mr-2 h-4 w-4" />
@@ -175,13 +200,21 @@ export function AssetDetailsActions({
               <DialogHeader>
                 <DialogTitle>Change Status</DialogTitle>
               </DialogHeader>
-              <form action={updateAssetStatusAction} className="space-y-3">
+              <PendingForm
+                action={updateAssetStatusAction}
+                successMessage="Status updated."
+                onSuccess={() => {
+                  setStatusOpen(false);
+                  router.refresh();
+                }}
+                className="space-y-3"
+              >
                 <input type="hidden" name="assetId" value={assetId} />
                 <EnumSelect name="status" label="Status" labelKey="assetStatus" values={ASSET_STATUS} defaultValue={initialStatus} required />
                 <EnumSelect name="condition" label="Condition" labelKey="assetCondition" values={ASSET_CONDITION} defaultValue={initialCondition} required />
                 <SetupTextField name="note" label="Note" />
                 <SubmitButton idleLabel="Update status" pendingLabel="Updating..." className="w-full cursor-pointer" />
-              </form>
+              </PendingForm>
             </DialogContent>
           </Dialog>
 
@@ -198,6 +231,7 @@ export function AssetDetailsActions({
               </DialogHeader>
               <PendingForm
                 action={uploadAssetPhotoAction}
+                successMessage="Photo uploaded."
                 onSuccess={() => {
                   setPhotoDialogOpen(false);
                   router.refresh();
@@ -227,6 +261,7 @@ export function AssetDetailsActions({
               </DialogHeader>
               <PendingForm
                 action={uploadAssetDocumentAction}
+                successMessage="Document uploaded."
                 onSuccess={() => {
                   setDocumentDialogOpen(false);
                   router.refresh();

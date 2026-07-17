@@ -88,4 +88,10 @@ export const ENUM_LABELS: Record<string, Record<string, string>> = {
   depreciationMethod: {
     [DEPRECIATION_METHOD.STRAIGHT_LINE]: "Straight-Line",
   },
+  conditionSeverity: {
+    LOW: "Low",
+    MEDIUM: "Medium",
+    HIGH: "High",
+    CRITICAL: "Critical",
+  },
 };

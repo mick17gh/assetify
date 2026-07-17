@@ -8,6 +8,7 @@ import { getRequiredSession } from "@/lib/session";
 import { writeAuditLog } from "@/lib/audit";
 import { recomputeReplacementForOrg } from "@/lib/replacement-service";
 import { acknowledgeDisposalSchema, recomputeReplacementSchema } from "@/lib/validation/replacement";
+import { formatZodError } from "@/lib/validation/helpers";
 
 export async function recomputeReplacementAction(formData: FormData) {
   const session = await getRequiredSession();
@@ -15,10 +16,10 @@ export async function recomputeReplacementAction(formData: FormData) {
   if (!session.organizationId) throw new Error(ERROR_MESSAGES.FORBIDDEN);
 
   const parsed = recomputeReplacementSchema.safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
+  if (!parsed.success) throw new Error(formatZodError(parsed.error));
 
   const targetBranchId =
-    parsed.data.branchId?.trim() ||
+    parsed.data.branchId ||
     (session.role === USER_ROLES.ADMIN ? undefined : session.branchId || undefined);
   await recomputeReplacementForOrg(session.organizationId, targetBranchId);
 
@@ -41,7 +42,7 @@ export async function acknowledgeDisposalAction(formData: FormData) {
   assertPermission(session.role, PERMISSION_KEYS.ASSET_WRITE);
 
   const parsed = acknowledgeDisposalSchema.safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
+  if (!parsed.success) throw new Error(formatZodError(parsed.error));
 
   const asset = await db.asset.findFirst({
     where: { id: parsed.data.assetId, organizationId: session.organizationId ?? undefined },
@@ -54,12 +55,14 @@ export async function acknowledgeDisposalAction(formData: FormData) {
     data: { status: ASSET_STATUS.DISPOSED, isActive: false },
   });
 
+  await db.replacementEvaluation.deleteMany({ where: { assetId: asset.id } });
+
   await db.disposalRecommendation.create({
     data: {
       assetId: asset.id,
       state: "OVERDUE",
       recommendedAt: new Date(),
-      reason: parsed.data.reason?.trim() || "Disposal acknowledgement captured from replacement workflow.",
+      reason: parsed.data.reason || "Disposal acknowledgement captured from replacement workflow.",
     },
   });
 

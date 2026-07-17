@@ -2,12 +2,19 @@ import { db } from "@/lib/db";
 import { ASSET_STATUS, RECOMMENDATION_STATE } from "@/constants";
 import { evaluateReplacement } from "@/lib/replacement";
 
+const TERMINAL_STATUSES = [ASSET_STATUS.DISPOSED, ASSET_STATUS.DONATED, ASSET_STATUS.SOLD] as const;
+
 export async function syncReplacementForAsset(assetId: string) {
   const asset = await db.asset.findUnique({
     where: { id: assetId },
     include: { category: true },
   });
   if (!asset) return;
+
+  if (!asset.isActive || TERMINAL_STATUSES.includes(asset.status as (typeof TERMINAL_STATUSES)[number])) {
+    await db.replacementEvaluation.deleteMany({ where: { assetId: asset.id } });
+    return;
+  }
 
   const policy =
     (await db.replacementPolicy.findFirst({
@@ -30,6 +37,7 @@ export async function syncReplacementForAsset(assetId: string) {
     estimatedReplacementCost: Number(asset.purchaseCost),
   });
 
+  await db.replacementEvaluation.deleteMany({ where: { assetId: asset.id } });
   await db.replacementEvaluation.create({
     data: {
       assetId: asset.id,
@@ -57,17 +65,6 @@ export async function syncReplacementForAsset(assetId: string) {
       });
     }
   }
-
-  if (asset.status === ASSET_STATUS.DISPOSED) {
-    await db.disposalRecommendation.create({
-      data: {
-        assetId: asset.id,
-        state: RECOMMENDATION_STATE.OVERDUE,
-        recommendedAt: new Date(),
-        reason: "Asset marked as disposed.",
-      },
-    });
-  }
 }
 
 export async function recomputeReplacementForOrg(organizationId: string, branchId?: string | null) {
@@ -75,6 +72,7 @@ export async function recomputeReplacementForOrg(organizationId: string, branchI
     where: {
       organizationId,
       isActive: true,
+      status: { notIn: [...TERMINAL_STATUSES] },
       ...(branchId ? { branchId } : {}),
     },
     select: { id: true },

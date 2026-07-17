@@ -13,10 +13,12 @@ import { Prisma } from "@/lib/generated/prisma/client";
 import { ImportAssetsModal } from "@/components/assets/import-assets-modal";
 import { AssetFilters } from "@/components/assets/asset-filters";
 import { isQrLocationScanningEnabled } from "@/lib/organization-settings";
-import { ASSET_STATUS } from "@/constants";
+import { ASSET_STATUS, PERMISSION_KEYS } from "@/constants";
+import { hasPermission } from "@/lib/permissions";
 
 export default async function AssetsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const session = await getRequiredSession();
+  const canWriteAssets = hasPermission(session.role, PERMISSION_KEYS.ASSET_WRITE);
   const qrEnabled = session.organizationId ? await isQrLocationScanningEnabled(session.organizationId) : false;
   const params = await searchParams;
   const q = getOptionalQuery(params, "q");
@@ -71,20 +73,22 @@ export default async function AssetsPage({ searchParams }: { searchParams: Promi
         title="Digital Asset Register"
         description="Centralized AIN registry with branch, category, and custodian indexing."
         action={
-          <div className="flex flex-wrap items-center gap-2">
-            <ImportAssetsModal />
-            <CreateAssetModal
-              branches={refs.branches}
-              categories={refs.categories}
-              vendors={refs.vendors}
-              custodians={refs.custodians}
-              locations={{
-                departments: refs.departments,
-                rooms: refs.rooms,
-                shelves: refs.shelves,
-              }}
-            />
-          </div>
+          canWriteAssets ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <ImportAssetsModal />
+              <CreateAssetModal
+                branches={refs.branches}
+                categories={refs.categories}
+                vendors={refs.vendors}
+                custodians={refs.custodians}
+                locations={{
+                  departments: refs.departments,
+                  rooms: refs.rooms,
+                  shelves: refs.shelves,
+                }}
+              />
+            </div>
+          ) : null
         }
       />
       <AssetTable

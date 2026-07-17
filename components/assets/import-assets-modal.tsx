@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FileSpreadsheet, Loader2, Download, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { API_ROUTES } from "@/constants";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -36,17 +37,24 @@ export function ImportAssetsModal() {
       });
       const payload = (await response.json()) as Partial<ImportResponse> & { error?: string };
       if (!response.ok) {
-        setError(payload.error ?? "Import failed.");
+        const message = payload.error ?? "Import failed.";
+        setError(message);
+        toast.error(message);
         return;
       }
-      setResult({
+      const summary = {
         totalRows: payload.totalRows ?? 0,
         successRows: payload.successRows ?? 0,
         failedRows: payload.failedRows ?? 0,
-      });
+      };
+      setResult(summary);
+      toast.success(`Imported ${summary.successRows} of ${summary.totalRows} rows.`);
       router.refresh();
+      if (!summary.failedRows) setOpen(false);
     } catch {
-      setError("Import failed. Please try again.");
+      const message = "Import failed. Please try again.";
+      setError(message);
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }

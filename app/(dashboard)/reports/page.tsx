@@ -1,5 +1,6 @@
 import { ReportCenter } from "@/components/reports/report-center";
 import { ReportCharts } from "@/components/reports/report-charts";
+import { ReportExportButtons } from "@/components/reports/report-export-buttons";
 import { RecommendationStateFilter } from "@/components/shared/recommendation-state-filter";
 import { PageHeader } from "@/components/shared/page-header";
 import { db } from "@/lib/db";
@@ -32,32 +33,32 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       ? state.toUpperCase()
       : undefined;
   const whereBase: Prisma.ReplacementEvaluationWhereInput = {
-    asset: getAssetScopeWhere(session),
-    ...(stateQuery ? { state: stateQuery as Prisma.ReplacementEvaluationWhereInput["state"] } : {}),
-    ...(q
-      ? {
-          asset: {
-            ...getAssetScopeWhere(session),
+    asset: {
+      ...getAssetScopeWhere(session),
+      isActive: true,
+      ...(q
+        ? {
             OR: [
               { name: { contains: q, mode: "insensitive" } },
               { ain: { contains: q, mode: "insensitive" } },
             ],
-          },
-        }
-      : {}),
+          }
+        : {}),
+    },
+    ...(stateQuery ? { state: stateQuery as Prisma.ReplacementEvaluationWhereInput["state"] } : {}),
   };
 
   const [dueCount, dueCost, departmentRows, disposalData, valuationRows] = await Promise.all([
     db.replacementEvaluation.count({
       where: {
-        ...whereBase,
+        asset: { ...getAssetScopeWhere(session), isActive: true },
         state: { in: [RECOMMENDATION_STATE.APPROACHING, RECOMMENDATION_STATE.OVERDUE] },
       },
     }),
     db.replacementEvaluation.aggregate({
       _sum: { estimatedReplacementCost: true },
       where: {
-        ...whereBase,
+        asset: { ...getAssetScopeWhere(session), isActive: true },
         state: { in: [RECOMMENDATION_STATE.APPROACHING, RECOMMENDATION_STATE.OVERDUE] },
       },
     }),
@@ -108,10 +109,16 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       </div>
       <Card className="mt-4 border-purple-200">
         <CardContent className="pt-6">
-          <TableToolbar searchPlaceholder="Search by asset name or AIN" defaultLimit={limit} />
-          <div className="mb-4 flex justify-end">
-            <RecommendationStateFilter />
-          </div>
+          <TableToolbar
+            searchPlaceholder="Search by asset name or AIN"
+            defaultLimit={limit}
+            filters={
+              <>
+                <RecommendationStateFilter />
+                <ReportExportButtons report="replacement" />
+              </>
+            }
+          />
           <Table>
             <TableHeader>
               <TableRow>

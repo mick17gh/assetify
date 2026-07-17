@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Boxes,
+  ClipboardList,
   FileText,
   MapPin,
   Wrench,
@@ -37,6 +38,7 @@ import {
 const iconMap = {
   Dashboard: LayoutDashboard,
   Assets: Boxes,
+  Requests: ClipboardList,
   Documents: FileText,
   Locations: MapPin,
   Maintenance: Wrench,
@@ -65,7 +67,7 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
             <SidebarGroupContent>
               <SidebarMenu>
                 {links.map((link) => {
-                  const Icon = iconMap[link.label as keyof typeof iconMap];
+                  const Icon = iconMap[link.label as keyof typeof iconMap] ?? Boxes;
                   return (
                     <SidebarMenuItem key={link.href}>
                       <SidebarMenuButton

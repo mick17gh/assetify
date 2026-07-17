@@ -63,6 +63,7 @@ export function AssetDetailsTabs({
   history,
   files,
   disposalRecord,
+  canUploadDocuments = false,
 }: {
   overview: OverviewData;
   maintenance: MaintenanceItem[];
@@ -70,6 +71,7 @@ export function AssetDetailsTabs({
   history: HistoryItem[];
   files: FileItem[];
   disposalRecord: { method: string; disposalDate: string; reason: string; salePrice: string | null } | null;
+  canUploadDocuments?: boolean;
 }) {
   const statusMeta: Record<string, { badge: string; dot: string; icon: React.ComponentType<{ className?: string }> }> = {
     ACTIVE: {
@@ -235,6 +237,7 @@ export function AssetDetailsTabs({
               totalCost={maintenanceSummary.totalCost}
               purchaseCost={maintenanceSummary.purchaseCost}
               isHighCost={maintenanceSummary.isHighCost}
+              canUpload={canUploadDocuments}
             />
           </CardContent>
         </Card>

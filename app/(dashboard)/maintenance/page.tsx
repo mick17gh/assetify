@@ -1,4 +1,5 @@
 import { MaintenanceBoard, MaintenanceRowActions, MaintenanceStatusBadge } from "@/components/maintenance/maintenance-board";
+import { MaintenancePageActions } from "@/components/maintenance/maintenance-page-actions";
 import { MaintenanceStatusFilter } from "@/components/maintenance/maintenance-status-filter";
 import { PageHeader } from "@/components/shared/page-header";
 import { db } from "@/lib/db";
@@ -10,11 +11,14 @@ import { TableToolbar } from "@/components/shared/table-toolbar";
 import { PaginationControls } from "@/components/shared/pagination-controls";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { MAINTENANCE_STATUS } from "@/constants";
+import { MAINTENANCE_STATUS, PERMISSION_KEYS } from "@/constants";
+import { hasPermission } from "@/lib/permissions";
 import { Prisma } from "@/lib/generated/prisma/client";
 
 export default async function MaintenancePage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const session = await getRequiredSession();
+  const canUpload = hasPermission(session.role, PERMISSION_KEYS.DOCUMENT_WRITE);
+  const canWrite = hasPermission(session.role, PERMISSION_KEYS.ASSET_WRITE);
   const assetScope = getAssetScopeWhere(session);
   const params = await searchParams;
   const q = getOptionalQuery(params, "q");
@@ -33,7 +37,10 @@ export default async function MaintenancePage({ searchParams }: { searchParams: 
   const [records, assets, totalRecords, openFlags, criticalFlags, latestFlags] = await Promise.all([
     db.maintenanceRecord.findMany({
       where,
-      include: { asset: true },
+      include: {
+        asset: true,
+        documents: { select: { id: true, fileName: true, fileUrl: true }, orderBy: { createdAt: "desc" } },
+      },
       orderBy: { serviceDate: "desc" },
       ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
       take,
@@ -65,9 +72,9 @@ export default async function MaintenancePage({ searchParams }: { searchParams: 
       <PageHeader
         title="Status and Maintenance"
         description="Lifecycle flow from purchased through disposal with service history."
+        action={canWrite ? <MaintenancePageActions assets={assetOptions} /> : null}
       />
       <MaintenanceBoard
-        assets={assetOptions}
         totalRecords={totalRecords}
         openFlags={openFlags}
         criticalFlags={criticalFlags}
@@ -116,6 +123,8 @@ export default async function MaintenancePage({ searchParams }: { searchParams: 
                       nextServiceDate={record.nextServiceDate ? record.nextServiceDate.toISOString().slice(0, 10) : ""}
                       status={record.status}
                       assets={assetOptions}
+                      documents={record.documents}
+                      canUpload={canUpload}
                     />
                   </TableCell>
                 </TableRow>

@@ -63,6 +63,7 @@ export function CreateAssetModal({
         <PendingForm
           action={createAssetAction}
           onSuccess={() => setOpen(false)}
+          successMessage="Asset created."
           className="grid gap-4 md:grid-cols-2"
         >
           <SetupTextField name="ain" label="AIN" placeholder="AIN-NY-000123" required />

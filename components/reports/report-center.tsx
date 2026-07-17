@@ -1,12 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { Loader2 } from "lucide-react";
-import { API_ROUTES } from "@/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ReportExportButtons } from "@/components/reports/report-export-buttons";
 
 type DepartmentRow = {
   departmentId: string | null;
@@ -49,52 +46,6 @@ export function ReportCenter({
   valuationRows: ValuationRow[];
   canViewFinance: boolean;
 }) {
-  const [exporting, setExporting] = useState<string | null>(null);
-
-  const handleExport = async (report: string, format: "pdf" | "excel") => {
-    const key = `${report}-${format}`;
-    setExporting(key);
-    try {
-      const response = await fetch(`${API_ROUTES.EXPORT_REPORTS}?report=${report}&format=${format}`);
-      if (!response.ok) return;
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `${report}-report.${format === "excel" ? "xlsx" : "pdf"}`;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      URL.revokeObjectURL(url);
-    } finally {
-      setExporting(null);
-    }
-  };
-
-  const ExportButtons = ({ report }: { report: string }) => (
-    <div className="flex gap-2">
-      <Button
-        variant="secondary"
-        size="sm"
-        disabled={exporting !== null}
-        onClick={() => handleExport(report, "pdf")}
-        className="cursor-pointer"
-      >
-            {exporting === `${report}-pdf` ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-        {exporting === `${report}-pdf` ? "Exporting..." : "PDF"}
-      </Button>
-      <Button
-        size="sm"
-        disabled={exporting !== null}
-        onClick={() => handleExport(report, "excel")}
-        className="cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]"
-      >
-        {exporting === `${report}-excel` ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-        {exporting === `${report}-excel` ? "Exporting..." : "Excel"}
-      </Button>
-    </div>
-  );
-
   return (
     <Card className="border-purple-200 shadow-sm">
       <CardHeader>
@@ -122,12 +73,16 @@ export function ReportCenter({
                 <p className="text-purple-900/70">Estimated replacement cost</p>
               </div>
             </div>
-            <ExportButtons report="replacement" />
+            <p className="text-sm text-purple-900/65">
+              Use PDF / Excel next to the table below. Exports respect the current state and search filters.
+            </p>
           </TabsContent>
 
           {canViewFinance ? (
             <TabsContent value="department" className="space-y-4">
-              <ExportButtons report="department-cost" />
+              <div className="flex justify-end">
+                <ReportExportButtons report="department-cost" />
+              </div>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -153,7 +108,9 @@ export function ReportCenter({
 
           {canViewFinance ? (
             <TabsContent value="disposal" className="space-y-4">
-              <ExportButtons report="disposal-summary" />
+              <div className="flex justify-end">
+                <ReportExportButtons report="disposal-summary" />
+              </div>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -179,7 +136,9 @@ export function ReportCenter({
 
           {canViewFinance ? (
             <TabsContent value="valuation" className="space-y-4">
-              <ExportButtons report="end-of-life-valuation" />
+              <div className="flex justify-end">
+                <ReportExportButtons report="end-of-life-valuation" />
+              </div>
               <Table>
                 <TableHeader>
                   <TableRow>

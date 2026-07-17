@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { optionalCuid } from "./helpers";
+import { entityId, optionalEntityId, optionalText } from "./helpers";
 
 export const recomputeReplacementSchema = z.object({
-  branchId: optionalCuid,
+  branchId: optionalEntityId,
 });
 
 export const acknowledgeDisposalSchema = z.object({
-  assetId: z.string().cuid(),
-  reason: z.string().max(500).optional(),
+  assetId: entityId,
+  reason: optionalText,
 });

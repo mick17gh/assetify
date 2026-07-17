@@ -129,6 +129,7 @@ export function AssetMovementForm({
             router.push(redirectTo);
             router.refresh();
           }}
+          successMessage="Movement recorded."
           className="space-y-3"
         >
           {showAssetSelect ? (
@@ -159,13 +160,24 @@ export function AssetMovementForm({
             required
           />
           <ReferenceSelect name="toBranchId" label="Target branch" options={branches} value={branchId} onValueChange={setBranchId} required />
-          <OptionalReferenceSelect
-            name="toDepartmentId"
-            label="Target department"
-            options={departmentOptions}
-            value={departmentId}
-            onValueChange={setDepartmentId}
-          />
+          {movementType === MOVEMENT_TYPE.DEPARTMENT_TRANSFER ? (
+            <ReferenceSelect
+              name="toDepartmentId"
+              label="Target department"
+              options={departmentOptions}
+              value={departmentId}
+              onValueChange={setDepartmentId}
+              required
+            />
+          ) : (
+            <OptionalReferenceSelect
+              name="toDepartmentId"
+              label="Target department"
+              options={departmentOptions}
+              value={departmentId}
+              onValueChange={setDepartmentId}
+            />
+          )}
           <OptionalReferenceSelect name="toRoomId" label="Target room" options={roomOptions} value={roomId} onValueChange={setRoomId} />
           <OptionalReferenceSelect name="toShelfId" label="Target shelf" options={shelfOptions} value={shelfId} onValueChange={setShelfId} />
           <OptionalReferenceSelect name="toCustodianId" label="Target custodian" options={userOptions} value={custodianId} onValueChange={setCustodianId} />

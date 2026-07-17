@@ -16,9 +16,12 @@ import { AssetQrPreview } from "@/components/assets/asset-qr-preview";
 import { isQrLocationScanningEnabled } from "@/lib/organization-settings";
 import { calculateAssetValuation } from "@/lib/depreciation-service";
 import { getTotalMaintenanceCost, isHighMaintenanceAsset } from "@/lib/maintenance-service";
+import { hasPermission } from "@/lib/permissions";
+import { PERMISSION_KEYS } from "@/constants";
 
 export default async function AssetDetailsPage({ params }: { params: Promise<{ assetId: string }> }) {
   const session = await getRequiredSession();
+  const canUploadDocuments = hasPermission(session.role, PERMISSION_KEYS.DOCUMENT_WRITE);
   const qrEnabled = session.organizationId ? await isQrLocationScanningEnabled(session.organizationId) : false;
   const { assetId } = await params;
   const scope = getAssetScopeWhere(session);
@@ -246,6 +249,7 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
                   }
                 : null
             }
+            canUploadDocuments={canUploadDocuments}
           />
         </div>
 

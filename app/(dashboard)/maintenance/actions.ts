@@ -220,9 +220,10 @@ export async function uploadMaintenanceDocumentAction(formData: FormData) {
   const session = await getRequiredSession();
   assertPermission(session.role, PERMISSION_KEYS.DOCUMENT_WRITE);
 
-  const recordId = String(formData.get("recordId") ?? "");
+  const recordId = String(formData.get("recordId") ?? "").trim();
   const file = formData.get("document");
-  if (!recordId || !(file instanceof File)) throw new Error("Invalid document upload payload.");
+  if (!recordId) throw new Error("Maintenance record is required.");
+  if (!(file instanceof File) || file.size === 0) throw new Error("Please choose an invoice file to upload.");
 
   const record = await db.maintenanceRecord.findFirst({
     where: { id: recordId, asset: { organizationId: session.organizationId ?? undefined } },
@@ -230,13 +231,14 @@ export async function uploadMaintenanceDocumentAction(formData: FormData) {
   });
   if (!record) throw new Error("Maintenance record not found.");
 
-  const { fileName, publicUrl } = await uploadAssetFileToSpaces(record.asset.id, file, "documents");
+  const { fileName: storedFileName, publicUrl } = await uploadAssetFileToSpaces(record.asset.id, file, "documents");
+  const displayName = file.name?.trim() || storedFileName;
   await db.assetDocument.create({
     data: {
       assetId: record.asset.id,
       maintenanceRecordId: record.id,
       documentType: DOCUMENT_TYPE.MAINTENANCE_INVOICE,
-      fileName,
+      fileName: displayName,
       fileUrl: publicUrl,
       mimeType: file.type || "application/octet-stream",
       uploadedByUserId: session.userId,
@@ -250,7 +252,7 @@ export async function uploadMaintenanceDocumentAction(formData: FormData) {
     action: "maintenance.document.upload",
     entityType: "MaintenanceRecord",
     entityId: record.id,
-    metadata: { fileName },
+    metadata: { fileName: displayName },
   });
 
   revalidatePath(APP_ROUTES.MAINTENANCE);

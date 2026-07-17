@@ -14,12 +14,12 @@ import {
 import { assertPermission, canAccessBranch } from "@/lib/permissions";
 import { getRequiredSession } from "@/lib/session";
 import { writeAuditLog } from "@/lib/audit";
+import { parseOptionalCuid, formatZodError } from "@/lib/validation/helpers";
 import {
   createAssetRequestSchema,
   reviewAssetRequestSchema,
   fulfillAssetRequestSchema,
 } from "@/lib/validation/asset-request";
-import { parseOptionalCuid } from "@/lib/validation/helpers";
 import { syncReplacementForAsset } from "@/lib/replacement-service";
 import {
   sendAssetRequestDecisionEmail,
@@ -36,7 +36,7 @@ export async function createAssetRequestAction(formData: FormData) {
   assertPermission(session.role, PERMISSION_KEYS.ASSET_REQUEST);
 
   const parsed = createAssetRequestSchema.safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
+  if (!parsed.success) throw new Error(formatZodError(parsed.error));
 
   const branchId = session.branchId;
   if (!branchId) throw new Error("Branch is required to submit a request.");
@@ -50,7 +50,7 @@ export async function createAssetRequestAction(formData: FormData) {
       categoryId: parsed.data.categoryId,
       reason: parsed.data.reason,
       urgency: parsed.data.urgency,
-      notes: parsed.data.notes?.trim() || null,
+      notes: parsed.data.notes ?? null,
       status: ASSET_REQUEST_STATUS.PENDING,
     },
     include: {
@@ -111,7 +111,7 @@ export async function reviewAssetRequestAction(formData: FormData) {
   assertPermission(session.role, PERMISSION_KEYS.ASSET_APPROVE);
 
   const parsed = reviewAssetRequestSchema.safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
+  if (!parsed.success) throw new Error(formatZodError(parsed.error));
 
   const request = await db.assetRequest.findFirst({
     where: {
@@ -235,7 +235,7 @@ export async function fulfillAssetRequestAction(formData: FormData) {
   assertPermission(session.role, PERMISSION_KEYS.ASSET_WRITE);
 
   const parsed = fulfillAssetRequestSchema.safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
+  if (!parsed.success) throw new Error(formatZodError(parsed.error));
 
   const request = await db.assetRequest.findFirst({
     where: {

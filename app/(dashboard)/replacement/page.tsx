@@ -3,9 +3,10 @@ import { acknowledgeDisposalAction, recomputeReplacementAction } from "@/app/(da
 import { ReplacementOverview } from "@/components/replacement/replacement-overview";
 import { RecommendationStateFilter } from "@/components/shared/recommendation-state-filter";
 import { SubmitButton } from "@/components/shared/submit-button";
+import { PendingForm } from "@/components/shared/pending-form";
 import { PageHeader } from "@/components/shared/page-header";
 import { db } from "@/lib/db";
-import { RECOMMENDATION_STATE } from "@/constants";
+import { ASSET_STATUS, RECOMMENDATION_STATE } from "@/constants";
 import { getRequiredSession } from "@/lib/session";
 import { getAssetScopeWhere } from "@/lib/scoping";
 import { getOptionalQuery, SearchParams } from "@/lib/filters/query";
@@ -27,20 +28,25 @@ export default async function ReplacementPage({ searchParams }: { searchParams: 
       ? state.toUpperCase()
       : undefined;
 
+  const activeAssetScope: Prisma.AssetWhereInput = {
+    ...getAssetScopeWhere(session),
+    isActive: true,
+    status: { notIn: [ASSET_STATUS.DISPOSED, ASSET_STATUS.DONATED, ASSET_STATUS.SOLD] },
+  };
+
   const whereBase: Prisma.ReplacementEvaluationWhereInput = {
-    asset: getAssetScopeWhere(session),
-    ...(stateQuery ? { state: stateQuery as Prisma.ReplacementEvaluationWhereInput["state"] } : {}),
-    ...(q
-      ? {
-          asset: {
-            ...getAssetScopeWhere(session),
+    asset: {
+      ...activeAssetScope,
+      ...(q
+        ? {
             OR: [
               { name: { contains: q, mode: "insensitive" } },
               { ain: { contains: q, mode: "insensitive" } },
             ],
-          },
-        }
-      : {}),
+          }
+        : {}),
+    },
+    ...(stateQuery ? { state: stateQuery as Prisma.ReplacementEvaluationWhereInput["state"] } : {}),
   };
 
   const [healthy, approaching, overdue, rows] = await Promise.all([
@@ -64,16 +70,15 @@ export default async function ReplacementPage({ searchParams }: { searchParams: 
         title="Replacement Planning"
         description="Policy-driven replacement timelines, indicators, and disposal recommendations."
         action={
-          <form action={recomputeReplacementAction}>
-            <SubmitButton idleLabel="Recompute Engine" pendingLabel="Recomputing..." className="cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]" />
-          </form>
+          <PendingForm action={recomputeReplacementAction} successMessage="Replacement evaluations recomputed.">
+            <SubmitButton idleLabel="Recompute" pendingLabel="Recomputing..." className="cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]" />
+          </PendingForm>
         }
       />
       <ReplacementOverview
         healthy={healthy}
         approaching={approaching}
         overdue={overdue}
-        recomputeAction={recomputeReplacementAction}
       />
       <Card className="mt-4 border-purple-200 shadow-sm">
         <CardContent className="pt-6">
@@ -104,14 +109,14 @@ export default async function ReplacementPage({ searchParams }: { searchParams: 
                   <TableCell>{Number(row.estimatedReplacementCost).toLocaleString()}</TableCell>
                   <TableCell className="text-right">
                     {row.state === RECOMMENDATION_STATE.OVERDUE ? (
-                      <form action={acknowledgeDisposalAction}>
+                      <PendingForm action={acknowledgeDisposalAction} successMessage="Disposal acknowledged.">
                         <input type="hidden" name="assetId" value={row.assetId} />
                         <SubmitButton
                           idleLabel="Acknowledge disposal"
                           pendingLabel="Acknowledging..."
                           className="h-7 cursor-pointer border-purple-200 bg-white px-2.5 text-xs text-purple-800 shadow-none hover:bg-purple-50"
                         />
-                      </form>
+                      </PendingForm>
                     ) : (
                       "-"
                     )}

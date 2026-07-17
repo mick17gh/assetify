@@ -263,15 +263,17 @@ export function UsageManualContent() {
         </p>
         <p>
           Upload from the Documents page or from an asset&apos;s detail page (More → Upload Document). Maintenance
-          invoices can also be attached from the Maintenance board or asset maintenance timeline via{" "}
-          <strong>Invoice</strong>. Files are stored in cloud storage; open or delete based on your permissions.
+          invoices can also be attached from the Maintenance board via <strong>⋯ → Attachments</strong> (then
+          Invoice), or from the asset maintenance timeline. Files are stored in cloud storage; open or delete based
+          on your permissions.
         </p>
       </Section>
 
       <Section id="maintenance" title="Maintenance">
         <p>
-          Use <strong>Maintenance</strong> to log service work and monitor condition flags. Each record includes
-          date, description, vendor, cost, next service date, and status:
+          Use <strong>Maintenance</strong> to log service work and monitor condition flags. Use{" "}
+          <strong>Log Service</strong> and <strong>Flag Condition</strong> in the page header (top right) to create
+          records. Each maintenance record includes date, description, vendor, cost, next service date, and status:
         </p>
         <ul className="list-disc space-y-1 pl-5">
           <li>
@@ -285,7 +287,8 @@ export function UsageManualContent() {
           </li>
         </ul>
         <p>
-          Filter the table by status, edit records (including status), and upload invoices per row. On the asset
+          Filter the table by status and edit records (including status) from the row menu. Open{" "}
+          <strong>⋯ → Attachments</strong> to view invoices with file icons or upload a new invoice. On the asset
           detail page, the Maintenance tab shows a timeline, total maintenance cost vs purchase cost, and a warning
           when spend is high.
         </p>
@@ -334,9 +337,9 @@ export function UsageManualContent() {
           </li>
         </ul>
         <p>
-          On the Replacement page, recompute evaluations as needed. For overdue assets, you can acknowledge disposal
-          recommendations. Configure default years and grace periods under <strong>Settings → Categories</strong> and{" "}
-          <strong>Settings → Policies</strong>.
+          On the Replacement page, use <strong>Recompute</strong> in the page header to refresh evaluations. For
+          overdue assets, you can acknowledge disposal recommendations from the list. Configure default years and
+          grace periods under <strong>Settings → Categories</strong> and <strong>Settings → Policies</strong>.
         </p>
       </Section>
 
@@ -362,9 +365,12 @@ export function UsageManualContent() {
           </li>
         </ul>
         <p>
-          Export each report to Excel or PDF from the tab. Department costs update when assets are transferred
-          between departments. The page also includes a replacement cost trend chart and a searchable evaluation
-          table.
+          The page includes a replacement cost trend chart and a searchable evaluation table with a state filter
+          (Healthy / Approaching / Overdue). For the Replacement report, use <strong>PDF</strong> and{" "}
+          <strong>Excel</strong> beside the Rows control — exports include only rows matching the current state and
+          search filters (for example, Healthy downloads healthy assets only). For Department Cost, Disposal, and
+          End-of-Life FMV, export from the buttons on each tab. Department costs update when assets are transferred
+          between departments.
         </p>
       </Section>
 
@@ -449,6 +455,10 @@ export function UsageManualContent() {
           </li>
           <li>
             Department cost reports only include active assets; disposed/donated/sold items appear under Disposal.
+          </li>
+          <li>
+            On Reports, filter Replacement by state (or search) before downloading — PDF and Excel beside Rows use
+            those same filters.
           </li>
           <li>
             For CSV import, download the template first, fill rows carefully, then upload from Assets → Import CSV.

@@ -7,12 +7,30 @@ function branchFilter(session: AppSession) {
   return session.role === USER_ROLES.ADMIN ? {} : { branchId: session.branchId ?? undefined };
 }
 
-export async function getReplacementDueReport(session: AppSession) {
+export async function getReplacementDueReport(
+  session: AppSession,
+  filters?: { state?: string; q?: string },
+) {
+  const state = filters?.state?.toUpperCase();
+  const q = filters?.q?.trim();
+
   return db.replacementEvaluation.findMany({
     where: {
+      ...(state && ["HEALTHY", "APPROACHING", "OVERDUE"].includes(state)
+        ? { state: state as "HEALTHY" | "APPROACHING" | "OVERDUE" }
+        : {}),
       asset: {
         organizationId: session.organizationId ?? undefined,
+        isActive: true,
         ...branchFilter(session),
+        ...(q
+          ? {
+              OR: [
+                { name: { contains: q, mode: "insensitive" as const } },
+                { ain: { contains: q, mode: "insensitive" as const } },
+              ],
+            }
+          : {}),
       },
     },
     include: { asset: { include: { branch: true } } },

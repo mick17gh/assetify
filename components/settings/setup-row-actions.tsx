@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { SubmitButton } from "@/components/shared/submit-button";
@@ -42,7 +43,12 @@ export function SetupRowActions({
           <DialogHeader>
             <DialogTitle>{editTitle}</DialogTitle>
           </DialogHeader>
-          <PendingForm action={updateAction} onSuccess={() => setOpen(false)} className="space-y-3">
+          <PendingForm
+            action={updateAction}
+            onSuccess={() => setOpen(false)}
+            successMessage="Updated."
+            className="space-y-3"
+          >
             <input type="hidden" name="id" value={recordId} />
             {editFields}
             <SubmitButton idleLabel="Update" pendingLabel="Updating..." className="w-full cursor-pointer" />
@@ -71,6 +77,9 @@ export function SetupRowActions({
                   formData.set("id", recordId);
                   await deleteAction(formData);
                   setDeleteOpen(false);
+                  toast.success("Deleted.");
+                } catch (error) {
+                  toast.error(error instanceof Error ? error.message : "Delete failed.");
                 } finally {
                   setDeleting(false);
                 }

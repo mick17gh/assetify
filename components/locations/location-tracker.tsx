@@ -72,6 +72,7 @@ export function LocationTracker({
         <PendingForm
           action={createAssetMovementAction}
           onSuccess={() => setOpen(false)}
+          successMessage="Movement recorded."
           className="space-y-3"
         >
           <ReferenceSelect name="assetId" label="Asset" options={assets} required />
@@ -92,7 +93,16 @@ export function LocationTracker({
             onValueChange={setBranchId}
             required={movementType === MOVEMENT_TYPE.BRANCH_TRANSFER}
           />
-          <OptionalReferenceSelect name="toDepartmentId" label="Target department" options={departmentOptions} />
+          {movementType === MOVEMENT_TYPE.DEPARTMENT_TRANSFER ? (
+            <ReferenceSelect
+              name="toDepartmentId"
+              label="Target department"
+              options={departmentOptions}
+              required
+            />
+          ) : (
+            <OptionalReferenceSelect name="toDepartmentId" label="Target department" options={departmentOptions} />
+          )}
           <OptionalReferenceSelect name="toRoomId" label="Target room" options={roomOptions} value={roomId} onValueChange={setRoomId} />
           <OptionalReferenceSelect name="toShelfId" label="Target shelf" options={shelfOptions} />
           <OptionalReferenceSelect name="toCustodianId" label="Target custodian" options={userOptions} />

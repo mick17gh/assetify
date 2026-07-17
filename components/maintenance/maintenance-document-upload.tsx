@@ -11,9 +11,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function MaintenanceDocumentUpload({ recordId }: { recordId: string }) {
+export function MaintenanceDocumentUpload({
+  recordId,
+  canUpload = true,
+}: {
+  recordId: string;
+  canUpload?: boolean;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+
+  if (!canUpload) return null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -34,6 +42,7 @@ export function MaintenanceDocumentUpload({ recordId }: { recordId: string }) {
         </DialogHeader>
         <PendingForm
           action={uploadMaintenanceDocumentAction}
+          successMessage="Invoice uploaded."
           onSuccess={() => {
             setOpen(false);
             router.refresh();
@@ -43,7 +52,7 @@ export function MaintenanceDocumentUpload({ recordId }: { recordId: string }) {
           <input type="hidden" name="recordId" value={recordId} />
           <div className="space-y-1">
             <Label htmlFor={`document-${recordId}`}>Invoice / report</Label>
-            <Input id={`document-${recordId}`} name="document" type="file" required />
+            <Input id={`document-${recordId}`} name="document" type="file" required accept=".pdf,.png,.jpg,.jpeg,.webp" />
           </div>
           <SubmitButton idleLabel="Upload" pendingLabel="Uploading..." className="w-full cursor-pointer" />
         </PendingForm>

@@ -1,30 +1,13 @@
 "use client";
 
-import {
-  createConditionFlagAction,
-  createMaintenanceAction,
-  deleteMaintenanceAction,
-  resolveConditionFlagAction,
-  updateMaintenanceAction,
-} from "@/app/(dashboard)/maintenance/actions";
-import { SetupTextField } from "@/components/settings/setup-create-modal";
-import { EnumSelect } from "@/components/shared/enum-select";
-import { ReferenceOption, ReferenceSelect } from "@/components/shared/reference-selects";
-import { SetupRowActions } from "@/components/settings/setup-row-actions";
-import { SetupCreateModal } from "@/components/settings/setup-create-modal";
+import { resolveConditionFlagAction } from "@/app/(dashboard)/maintenance/actions";
 import { SubmitButton } from "@/components/shared/submit-button";
-import { MaintenanceDocumentUpload } from "@/components/maintenance/maintenance-document-upload";
+import { PendingForm } from "@/components/shared/pending-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MAINTENANCE_STATUS } from "@/constants";
 import { ENUM_LABELS } from "@/constants/labels";
 
-const CONDITION_SEVERITY = {
-  LOW: "LOW",
-  MEDIUM: "MEDIUM",
-  HIGH: "HIGH",
-  CRITICAL: "CRITICAL",
-} as const;
+export { MaintenanceRowActions } from "@/components/maintenance/maintenance-row-actions";
 
 const CONDITION_SEVERITY_LABELS = {
   LOW: "Low",
@@ -34,13 +17,11 @@ const CONDITION_SEVERITY_LABELS = {
 } as const;
 
 export function MaintenanceBoard({
-  assets,
   totalRecords,
   openFlags,
   criticalFlags,
   latestFlags,
 }: {
-  assets: ReferenceOption[];
   totalRecords: number;
   openFlags: number;
   criticalFlags: number;
@@ -53,44 +34,12 @@ export function MaintenanceBoard({
 }) {
   return (
     <Card className="border-purple-200 shadow-sm">
-      <CardHeader className="gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <CardTitle>Status and Condition Monitoring</CardTitle>
-          <p className="mt-1 text-sm text-purple-900/70">
-            Track lifecycle transitions, condition notes, maintenance history, and urgent flags.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <SetupCreateModal title="Log maintenance service" triggerLabel="Log Service" action={createMaintenanceAction}>
-            <ReferenceSelect name="assetId" label="Asset" options={assets} required />
-            <SetupTextField name="description" label="Description" required />
-            <SetupTextField name="serviceDate" label="Service date" type="date" required />
-            <SetupTextField name="cost" label="Cost" placeholder="0.00" />
-            <SetupTextField name="vendorName" label="Vendor name" />
-            <SetupTextField name="nextServiceDate" label="Next service date" type="date" />
-            <EnumSelect
-              name="status"
-              label="Status"
-              labelKey="maintenanceStatus"
-              values={MAINTENANCE_STATUS}
-              defaultValue={MAINTENANCE_STATUS.COMPLETED}
-              required
-            />
-          </SetupCreateModal>
-          <SetupCreateModal title="Create condition flag" triggerLabel="Flag Condition" action={createConditionFlagAction}>
-            <ReferenceSelect name="assetId" label="Asset" options={assets} required />
-            <SetupTextField name="title" label="Issue title" required />
-            <EnumSelect
-              name="severity"
-              label="Severity"
-              labelKey="recommendationState"
-              values={CONDITION_SEVERITY}
-              defaultValue={CONDITION_SEVERITY.MEDIUM}
-              required
-            />
-          </SetupCreateModal>
-        </div>
-      </CardHeader>
+      {/* <CardHeader>
+        <CardTitle>Status and Condition Monitoring</CardTitle>
+        <p className="mt-1 text-sm text-purple-900/70">
+          Track lifecycle transitions, condition notes, maintenance history, and urgent flags.
+        </p>
+      </CardHeader> */}
       <CardContent className="space-y-4">
         <div className="grid gap-3 md:grid-cols-3">
           <Metric title="Total maintenance records" value={totalRecords.toLocaleString()} />
@@ -111,14 +60,14 @@ export function MaintenanceBoard({
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary">{CONDITION_SEVERITY_LABELS[flag.severity]}</Badge>
-                    <form action={resolveConditionFlagAction}>
+                    <PendingForm action={resolveConditionFlagAction} successMessage="Condition flag resolved.">
                       <input type="hidden" name="id" value={flag.id} />
                       <SubmitButton
                         idleLabel="Resolve"
                         pendingLabel="Resolving..."
                         className="h-7 cursor-pointer border-purple-200 bg-white px-2.5 text-xs text-purple-800 shadow-none hover:bg-purple-50"
                       />
-                    </form>
+                    </PendingForm>
                   </div>
                 </div>
               ))}
@@ -135,58 +84,6 @@ function Metric({ title, value }: { title: string; value: string }) {
     <div className="rounded-lg border border-purple-100 bg-purple-50/80 p-3.5">
       <p className="text-xl font-semibold text-[#7C3AED]">{value}</p>
       <p className="text-sm text-purple-900/70">{title}</p>
-    </div>
-  );
-}
-
-export function MaintenanceRowActions({
-  recordId,
-  assetId,
-  description,
-  serviceDate,
-  cost,
-  vendorName,
-  nextServiceDate,
-  status,
-  assets,
-}: {
-  recordId: string;
-  assetId: string;
-  description: string;
-  serviceDate: string;
-  cost: string;
-  vendorName: string;
-  nextServiceDate: string;
-  status: string;
-  assets: ReferenceOption[];
-}) {
-  return (
-    <div className="flex items-center justify-end gap-2">
-      <MaintenanceDocumentUpload recordId={recordId} />
-      <SetupRowActions
-        recordId={recordId}
-        editTitle="Update maintenance record"
-        updateAction={updateMaintenanceAction}
-        deleteAction={deleteMaintenanceAction}
-        editFields={
-          <>
-            <ReferenceSelect name="assetId" label="Asset" options={assets} value={assetId} required />
-            <SetupTextField name="description" label="Description" required defaultValue={description} />
-            <SetupTextField name="serviceDate" label="Service date" type="date" required defaultValue={serviceDate} />
-            <SetupTextField name="cost" label="Cost" defaultValue={cost} />
-            <SetupTextField name="vendorName" label="Vendor name" defaultValue={vendorName} />
-            <SetupTextField name="nextServiceDate" label="Next service date" type="date" defaultValue={nextServiceDate} />
-            <EnumSelect
-              name="status"
-              label="Status"
-              labelKey="maintenanceStatus"
-              values={MAINTENANCE_STATUS}
-              defaultValue={status}
-              required
-            />
-          </>
-        }
-      />
     </div>
   );
 }

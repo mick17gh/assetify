@@ -34,7 +34,7 @@ export function SetupCreateModal({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <PendingForm action={action} onSuccess={() => setOpen(false)} className="space-y-3">
+        <PendingForm action={action} onSuccess={() => setOpen(false)} successMessage="Saved." className="space-y-3">
           {children}
           <SubmitButton idleLabel="Save" pendingLabel="Saving..." className="w-full cursor-pointer" />
         </PendingForm>

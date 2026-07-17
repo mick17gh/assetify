@@ -36,6 +36,7 @@ export function DisposalModal({
         <PendingForm
           action={recordAssetDisposalAction}
           onSuccess={() => setOpen(false)}
+          successMessage="Asset disposal recorded."
           className="space-y-3"
         >
           <input type="hidden" name="assetId" value={assetId} />

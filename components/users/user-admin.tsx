@@ -27,7 +27,12 @@ export function UserAdmin({ branches }: { branches: ReferenceOption[] }) {
         <DialogHeader>
           <DialogTitle>Create User</DialogTitle>
         </DialogHeader>
-        <PendingForm action={createUserAction} onSuccess={() => setOpen(false)} className="space-y-3">
+        <PendingForm
+          action={createUserAction}
+          onSuccess={() => setOpen(false)}
+          successMessage="User created."
+          className="space-y-3"
+        >
           <SetupTextField name="name" label="Name" required />
           <SetupTextField name="email" label="Email" type="email" required />
           <SetupTextField name="password" label="Temporary password" type="password" required />
