@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   ASSET_CONDITION,
   ASSET_STATUS,
+  DEPRECIATION_METHOD,
   REGEX,
 } from "@/constants";
 import { enumFromConst, optionalCuid } from "./helpers";
@@ -46,6 +47,16 @@ export const updateAssetSchema = z.object({
   custodianId: optionalCuid,
   purchaseCost: z.string().regex(REGEX.CURRENCY),
   warrantyExpiryDate: z.string().optional(),
+  depreciationUsefulLifeYears: z.coerce.number().int().min(1).max(50).optional().or(z.literal("")),
+  depreciationSalvageValue: z.string().regex(REGEX.CURRENCY).optional().or(z.literal("")),
+  depreciationMethodOverride: enumFromConst(DEPRECIATION_METHOD).optional().or(z.literal("")),
+});
+
+export const updateAssetDepreciationSchema = z.object({
+  assetId: z.string().cuid(),
+  depreciationUsefulLifeYears: z.coerce.number().int().min(1).max(50).optional().or(z.literal("")),
+  depreciationSalvageValue: z.string().regex(REGEX.CURRENCY).optional().or(z.literal("")),
+  depreciationMethodOverride: enumFromConst(DEPRECIATION_METHOD).optional().or(z.literal("")),
 });
 
 export const updateAssetStatusSchema = z.object({

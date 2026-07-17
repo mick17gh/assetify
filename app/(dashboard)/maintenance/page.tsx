@@ -1,4 +1,5 @@
-import { MaintenanceBoard, MaintenanceRowActions } from "@/components/maintenance/maintenance-board";
+import { MaintenanceBoard, MaintenanceRowActions, MaintenanceStatusBadge } from "@/components/maintenance/maintenance-board";
+import { MaintenanceStatusFilter } from "@/components/maintenance/maintenance-status-filter";
 import { PageHeader } from "@/components/shared/page-header";
 import { db } from "@/lib/db";
 import { getRequiredSession } from "@/lib/session";
@@ -9,6 +10,7 @@ import { TableToolbar } from "@/components/shared/table-toolbar";
 import { PaginationControls } from "@/components/shared/pagination-controls";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { MAINTENANCE_STATUS } from "@/constants";
 import { Prisma } from "@/lib/generated/prisma/client";
 
 export default async function MaintenancePage({ searchParams }: { searchParams: Promise<SearchParams> }) {
@@ -16,9 +18,16 @@ export default async function MaintenancePage({ searchParams }: { searchParams: 
   const assetScope = getAssetScopeWhere(session);
   const params = await searchParams;
   const q = getOptionalQuery(params, "q");
+  const statusFilter = getOptionalQuery(params, "status");
   const { cursor, limit, take } = resolveCursorPaginationFromParams(params);
+  const statusQuery =
+    statusFilter && Object.values(MAINTENANCE_STATUS).includes(statusFilter as (typeof MAINTENANCE_STATUS)[keyof typeof MAINTENANCE_STATUS])
+      ? (statusFilter as Prisma.MaintenanceRecordWhereInput["status"])
+      : undefined;
+
   const where: Prisma.MaintenanceRecordWhereInput = {
     asset: assetScope,
+    ...(statusQuery ? { status: statusQuery } : {}),
     ...(q ? { description: { contains: q, mode: "insensitive" } } : {}),
   };
   const [records, assets, totalRecords, openFlags, criticalFlags, latestFlags] = await Promise.all([
@@ -72,11 +81,15 @@ export default async function MaintenancePage({ searchParams }: { searchParams: 
       <Card className="mt-4 border-purple-200 shadow-sm">
         <CardContent className="pt-6">
           <TableToolbar searchPlaceholder="Search service notes" defaultLimit={limit} />
+          <div className="mb-4 flex justify-end">
+            <MaintenanceStatusFilter />
+          </div>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Asset</TableHead>
                 <TableHead>Service Date</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Cost</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -87,6 +100,9 @@ export default async function MaintenancePage({ searchParams }: { searchParams: 
                 <TableRow key={record.id}>
                   <TableCell>{record.asset.name}</TableCell>
                   <TableCell>{record.serviceDate.toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <MaintenanceStatusBadge status={record.status} />
+                  </TableCell>
                   <TableCell>{record.description}</TableCell>
                   <TableCell>{record.cost ? Number(record.cost).toLocaleString() : "-"}</TableCell>
                   <TableCell className="text-right">
@@ -98,6 +114,7 @@ export default async function MaintenancePage({ searchParams }: { searchParams: 
                       cost={record.cost ? String(record.cost) : ""}
                       vendorName={record.vendorName ?? ""}
                       nextServiceDate={record.nextServiceDate ? record.nextServiceDate.toISOString().slice(0, 10) : ""}
+                      status={record.status}
                       assets={assetOptions}
                     />
                   </TableCell>

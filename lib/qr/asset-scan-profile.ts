@@ -41,11 +41,13 @@ export type StatusHistoryItem = {
 export type BranchRoom = { id: string; name: string; branchId: string };
 export type RoomShelf = { id: string; name: string; roomId: string };
 export type BranchUser = { id: string; name: string; branchId: string | null };
+export type BranchDepartment = { id: string; name: string; branchId: string };
 export type ReferenceOption = { id: string; label: string };
 
 export type MovementFormOptions = {
   assets: ReferenceOption[];
   branches: ReferenceOption[];
+  departments: BranchDepartment[];
   rooms: BranchRoom[];
   shelves: RoomShelf[];
   users: BranchUser[];
@@ -107,7 +109,7 @@ async function loadMovementFormOptions(
   asset: { id: string; name: string; ain: string },
 ): Promise<MovementFormOptions> {
   const assetScope = getAssetScopeWhere(session);
-  const [assets, branches, rooms, shelves, users] = await Promise.all([
+  const [assets, branches, departments, rooms, shelves, users] = await Promise.all([
     db.asset.findMany({
       where: assetScope,
       orderBy: { name: "asc" },
@@ -118,6 +120,11 @@ async function loadMovementFormOptions(
       where: { organizationId },
       orderBy: { name: "asc" },
       select: { id: true, name: true, code: true },
+    }),
+    db.department.findMany({
+      where: { branch: { organizationId } },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, branchId: true },
     }),
     db.room.findMany({
       where: { branch: { organizationId } },
@@ -143,6 +150,7 @@ async function loadMovementFormOptions(
   return {
     assets: assetOptions,
     branches: branches.map((branch) => ({ id: branch.id, label: `${branch.name} (${branch.code})` })),
+    departments,
     rooms,
     shelves,
     users,

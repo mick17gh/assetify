@@ -33,6 +33,9 @@ export default async function AssetsPage({ searchParams }: { searchParams: Promi
     ...(statusFilter && Object.values(ASSET_STATUS).includes(statusFilter as (typeof ASSET_STATUS)[keyof typeof ASSET_STATUS])
       ? { status: statusFilter as Prisma.AssetWhereInput["status"] }
       : {}),
+    ...(!statusFilter || ![ASSET_STATUS.DISPOSED, ASSET_STATUS.DONATED, ASSET_STATUS.SOLD].includes(statusFilter as typeof ASSET_STATUS.DISPOSED)
+      ? { isActive: true }
+      : {}),
     ...(isWarrantyDueFilter
       ? {
           warrantyExpiryDate: {

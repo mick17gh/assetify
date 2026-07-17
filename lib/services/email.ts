@@ -333,3 +333,54 @@ export async function sendWelcomeEmail(
     text: `Welcome to ${businessName}! You can now access the dashboard at ${dashboardUrl}`,
   });
 }
+
+export async function sendAssetRequestSubmittedEmail({
+  to,
+  managerName,
+  requesterName,
+  categoryName,
+  reason,
+  urgency,
+  requestId,
+}: {
+  to: string;
+  managerName: string;
+  requesterName: string;
+  categoryName: string;
+  reason: string;
+  urgency: string;
+  requestId: string;
+}): Promise<boolean> {
+  const requestsUrl = `${APP_URL}/requests`;
+  return sendEmail({
+    to,
+    subject: `New asset request: ${categoryName}`,
+    html: `<p>Hi ${managerName},</p><p><strong>${requesterName}</strong> submitted an asset request for <strong>${categoryName}</strong> (${urgency} urgency).</p><p>Reason: ${reason}</p><p><a href="${requestsUrl}">Review requests</a></p>`,
+    text: `${requesterName} submitted an asset request for ${categoryName}. Reason: ${reason}. Review at ${requestsUrl}`,
+  });
+}
+
+export async function sendAssetRequestDecisionEmail({
+  to,
+  requesterName,
+  categoryName,
+  approved,
+  comment,
+  assetId,
+}: {
+  to: string;
+  requesterName: string;
+  categoryName: string;
+  approved: boolean;
+  comment?: string;
+  assetId?: string;
+}): Promise<boolean> {
+  const status = approved ? "approved" : "rejected";
+  const assetLink = assetId ? `${APP_URL}/assets/${assetId}` : `${APP_URL}/requests`;
+  return sendEmail({
+    to,
+    subject: `Your asset request was ${status}`,
+    html: `<p>Hi ${requesterName},</p><p>Your request for <strong>${categoryName}</strong> was <strong>${status}</strong>.</p>${comment ? `<p>Comment: ${comment}</p>` : ""}${approved ? `<p><a href="${assetLink}">View pending asset</a></p>` : ""}`,
+    text: `Your request for ${categoryName} was ${status}.${comment ? ` Comment: ${comment}` : ""}`,
+  });
+}

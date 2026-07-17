@@ -13,6 +13,7 @@ const links = [
   { href: APP_ROUTES.SETTINGS_LOCATIONS, label: "Locations" },
   { href: APP_ROUTES.SETTINGS_FEATURES, label: "Features" },
   { href: APP_ROUTES.SETTINGS_POLICIES, label: "Policies" },
+  { href: APP_ROUTES.SETTINGS_DEPRECIATION, label: "Depreciation" },
   { href: APP_ROUTES.SETTINGS_REMINDERS, label: "Reminders" },
   { href: APP_ROUTES.SETTINGS_AUDIT, label: "Audit" },
 ];

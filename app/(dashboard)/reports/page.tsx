@@ -3,9 +3,10 @@ import { ReportCharts } from "@/components/reports/report-charts";
 import { RecommendationStateFilter } from "@/components/shared/recommendation-state-filter";
 import { PageHeader } from "@/components/shared/page-header";
 import { db } from "@/lib/db";
-import { RECOMMENDATION_STATE } from "@/constants";
+import { PERMISSION_KEYS, RECOMMENDATION_STATE } from "@/constants";
 import { getRequiredSession } from "@/lib/session";
 import { getAssetScopeWhere } from "@/lib/scoping";
+import { hasPermission } from "@/lib/permissions";
 import { getOptionalQuery, SearchParams } from "@/lib/filters/query";
 import { getNextCursor, resolveCursorPaginationFromParams } from "@/lib/pagination/cursor";
 import { PaginationControls } from "@/components/shared/pagination-controls";
@@ -13,9 +14,15 @@ import { TableToolbar } from "@/components/shared/table-toolbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Prisma } from "@/lib/generated/prisma/client";
+import {
+  getDepartmentCostReport,
+  getDisposalReport,
+  getEndOfLifeValuationReport,
+} from "@/lib/reports";
 
 export default async function ReportsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const session = await getRequiredSession();
+  const canViewFinance = hasPermission(session.role, PERMISSION_KEYS.FINANCE_READ);
   const params = await searchParams;
   const q = getOptionalQuery(params, "q");
   const state = getOptionalQuery(params, "state");
@@ -40,7 +47,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       : {}),
   };
 
-  const [dueCount, dueCost] = await Promise.all([
+  const [dueCount, dueCost, departmentRows, disposalData, valuationRows] = await Promise.all([
     db.replacementEvaluation.count({
       where: {
         ...whereBase,
@@ -54,7 +61,11 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
         state: { in: [RECOMMENDATION_STATE.APPROACHING, RECOMMENDATION_STATE.OVERDUE] },
       },
     }),
+    canViewFinance ? getDepartmentCostReport(session) : Promise.resolve([]),
+    canViewFinance ? getDisposalReport(session) : Promise.resolve({ records: [], summary: [] }),
+    canViewFinance ? getEndOfLifeValuationReport(session) : Promise.resolve([]),
   ]);
+
   const [rows, trendRows] = await Promise.all([
     db.replacementEvaluation.findMany({
       where: whereBase,
@@ -81,14 +92,21 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   return (
     <div>
       <PageHeader
-        title="Simple Reports"
-        description="Quick branch-level summaries and export workflows for managers."
+        title="Reports"
+        description="Replacement, department cost, disposal, and end-of-life valuation reports."
       />
-      <ReportCenter dueCount={dueCount} dueCost={Number(dueCost._sum.estimatedReplacementCost ?? 0)} />
+      <ReportCenter
+        dueCount={dueCount}
+        dueCost={Number(dueCost._sum.estimatedReplacementCost ?? 0)}
+        departmentRows={departmentRows}
+        disposalSummary={disposalData.summary}
+        valuationRows={valuationRows}
+        canViewFinance={canViewFinance}
+      />
       <div className="mt-4">
         <ReportCharts trendData={trendData} />
       </div>
-      <Card className="border-purple-200">
+      <Card className="mt-4 border-purple-200">
         <CardContent className="pt-6">
           <TableToolbar searchPlaceholder="Search by asset name or AIN" defaultLimit={limit} />
           <div className="mb-4 flex justify-end">

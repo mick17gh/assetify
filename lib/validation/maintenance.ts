@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { REGEX } from "@/constants";
+import { MAINTENANCE_STATUS, REGEX } from "@/constants";
+import { enumFromConst } from "./helpers";
 
 export const createMaintenanceSchema = z.object({
   assetId: z.string().cuid(),
@@ -8,6 +9,7 @@ export const createMaintenanceSchema = z.object({
   cost: z.string().regex(REGEX.CURRENCY).optional().or(z.literal("")),
   vendorName: z.string().max(120).optional(),
   nextServiceDate: z.string().optional(),
+  status: enumFromConst(MAINTENANCE_STATUS).default(MAINTENANCE_STATUS.COMPLETED),
 });
 
 export const updateMaintenanceSchema = createMaintenanceSchema.extend({

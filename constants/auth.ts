@@ -2,15 +2,19 @@ export const USER_ROLES = {
   ADMIN: "ADMIN",
   MANAGER: "MANAGER",
   STAFF: "STAFF",
+  FINANCE: "FINANCE",
 } as const;
 
 export const PERMISSION_KEYS = {
   ASSET_READ: "asset:read",
   ASSET_WRITE: "asset:write",
+  ASSET_REQUEST: "asset:request",
+  ASSET_APPROVE: "asset:approve",
   DOCUMENT_READ: "document:read",
   DOCUMENT_WRITE: "document:write",
   LOCATION_UPDATE: "location:update",
   REPORT_READ: "report:read",
+  FINANCE_READ: "finance:read",
   USER_MANAGE: "user:manage",
   POLICY_MANAGE: "policy:manage",
 } as const;
@@ -20,6 +24,7 @@ export const ROLE_PERMISSIONS: Record<(typeof USER_ROLES)[keyof typeof USER_ROLE
   MANAGER: [
     PERMISSION_KEYS.ASSET_READ,
     PERMISSION_KEYS.ASSET_WRITE,
+    PERMISSION_KEYS.ASSET_APPROVE,
     PERMISSION_KEYS.DOCUMENT_READ,
     PERMISSION_KEYS.DOCUMENT_WRITE,
     PERMISSION_KEYS.LOCATION_UPDATE,
@@ -27,7 +32,14 @@ export const ROLE_PERMISSIONS: Record<(typeof USER_ROLES)[keyof typeof USER_ROLE
   ],
   STAFF: [
     PERMISSION_KEYS.ASSET_READ,
+    PERMISSION_KEYS.ASSET_REQUEST,
     PERMISSION_KEYS.DOCUMENT_READ,
     PERMISSION_KEYS.LOCATION_UPDATE,
+  ],
+  FINANCE: [
+    PERMISSION_KEYS.ASSET_READ,
+    PERMISSION_KEYS.DOCUMENT_READ,
+    PERMISSION_KEYS.REPORT_READ,
+    PERMISSION_KEYS.FINANCE_READ,
   ],
 };

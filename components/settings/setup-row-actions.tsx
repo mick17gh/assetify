@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { SubmitButton } from "@/components/shared/submit-button";
+import { PendingForm } from "@/components/shared/pending-form";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
@@ -41,17 +42,11 @@ export function SetupRowActions({
           <DialogHeader>
             <DialogTitle>{editTitle}</DialogTitle>
           </DialogHeader>
-          <form
-            action={async (formData) => {
-              await updateAction(formData);
-              setOpen(false);
-            }}
-            className="space-y-3"
-          >
+          <PendingForm action={updateAction} onSuccess={() => setOpen(false)} className="space-y-3">
             <input type="hidden" name="id" value={recordId} />
             {editFields}
             <SubmitButton idleLabel="Update" pendingLabel="Updating..." className="w-full cursor-pointer" />
-          </form>
+          </PendingForm>
         </DialogContent>
       </Dialog>
 
@@ -62,7 +57,9 @@ export function SetupRowActions({
             <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="cursor-pointer" disabled={deleting}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               className="cursor-pointer bg-red-600 hover:bg-red-700"
               disabled={deleting}
@@ -79,6 +76,7 @@ export function SetupRowActions({
                 }
               }}
             >
+              {deleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               {deleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -23,6 +23,7 @@ export const reminderSettingsSchema = z.object({
 
 export const updateOrganizationSchema = z.object({
   name: z.string().min(2).max(120),
+  maintenanceCostThresholdPercent: z.coerce.number().int().min(1).max(500),
 });
 
 export const featureSettingsSchema = z.object({

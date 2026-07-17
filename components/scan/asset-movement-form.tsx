@@ -7,6 +7,7 @@ import { EnumSelect } from "@/components/shared/enum-select";
 import { OptionalReferenceSelect, ReferenceSelect } from "@/components/shared/reference-selects";
 import { SetupTextField } from "@/components/settings/setup-create-modal";
 import { SubmitButton } from "@/components/shared/submit-button";
+import { PendingForm } from "@/components/shared/pending-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { APP_ROUTES, FEATURE_FLAGS, MOVEMENT_TYPE } from "@/constants";
 import type { BranchRoom, BranchUser, MovementFormOptions, RoomShelf } from "@/lib/qr/asset-scan-profile";
@@ -37,13 +38,14 @@ export function AssetMovementForm({
   onAssetIdChange?: (assetId: string) => void;
 }) {
   const router = useRouter();
-  const { assets, branches, rooms, shelves, users } = options;
+  const { assets, branches, departments, rooms, shelves, users } = options;
   const [selectedAssetId, setSelectedAssetId] = useState(assetId);
   const [movementType, setMovementType] = useState<string>(MOVEMENT_TYPE.BRANCH_TRANSFER);
   const [branchId, setBranchId] = useState(branches[0]?.id ?? "");
   const [roomId, setRoomId] = useState("");
   const [shelfId, setShelfId] = useState("");
   const [custodianId, setCustodianId] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
 
   const roomOptions = useMemo(
     () => rooms.filter((room) => room.branchId === branchId).map((room) => ({ id: room.id, label: room.name })),
@@ -56,6 +58,10 @@ export function AssetMovementForm({
   const userOptions = useMemo(
     () => users.filter((user) => !user.branchId || user.branchId === branchId).map((user) => ({ id: user.id, label: user.name })),
     [users, branchId],
+  );
+  const departmentOptions = useMemo(
+    () => departments.filter((department) => department.branchId === branchId).map((department) => ({ id: department.id, label: department.name })),
+    [departments, branchId],
   );
 
   useEffect(() => {
@@ -107,7 +113,7 @@ export function AssetMovementForm({
         <CardTitle className="text-lg">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <form
+        <PendingForm
           action={async (formData) => {
             if (!navigator.onLine) {
               if (!FEATURE_FLAGS.ENABLE_OFFLINE_MODE) return;
@@ -153,6 +159,13 @@ export function AssetMovementForm({
             required
           />
           <ReferenceSelect name="toBranchId" label="Target branch" options={branches} value={branchId} onValueChange={setBranchId} required />
+          <OptionalReferenceSelect
+            name="toDepartmentId"
+            label="Target department"
+            options={departmentOptions}
+            value={departmentId}
+            onValueChange={setDepartmentId}
+          />
           <OptionalReferenceSelect name="toRoomId" label="Target room" options={roomOptions} value={roomId} onValueChange={setRoomId} />
           <OptionalReferenceSelect name="toShelfId" label="Target shelf" options={shelfOptions} value={shelfId} onValueChange={setShelfId} />
           <OptionalReferenceSelect name="toCustodianId" label="Target custodian" options={userOptions} value={custodianId} onValueChange={setCustodianId} />
@@ -163,7 +176,7 @@ export function AssetMovementForm({
             disabled={!selectedAssetId}
             className="w-full cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]"
           />
-        </form>
+        </PendingForm>
       </CardContent>
     </Card>
   );

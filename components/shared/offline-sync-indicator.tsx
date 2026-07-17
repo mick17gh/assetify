@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useOfflineQueue } from "@/hooks/use-offline-queue";
@@ -28,6 +29,7 @@ export function OfflineSyncIndicator() {
         }}
         disabled={queue.length === 0 || syncing}
       >
+        {syncing ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : null}
         {syncing ? "Syncing..." : "Sync"}
       </Button>
     </div>

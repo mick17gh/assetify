@@ -14,6 +14,8 @@ import { AssetDetailsActions } from "@/components/assets/asset-details-actions";
 import { PrintAssetTagButton } from "@/components/assets/print-asset-tag-button";
 import { AssetQrPreview } from "@/components/assets/asset-qr-preview";
 import { isQrLocationScanningEnabled } from "@/lib/organization-settings";
+import { calculateAssetValuation } from "@/lib/depreciation-service";
+import { getTotalMaintenanceCost, isHighMaintenanceAsset } from "@/lib/maintenance-service";
 
 export default async function AssetDetailsPage({ params }: { params: Promise<{ assetId: string }> }) {
   const session = await getRequiredSession();
@@ -34,14 +36,52 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
       vendor: true,
       custodian: true,
       category: true,
+      organization: { select: { maintenanceCostThresholdPercent: true } },
       photos: { orderBy: { createdAt: "desc" }, take: 1 },
-      maintenanceRecords: { orderBy: { serviceDate: "desc" }, take: 10 },
+      maintenanceRecords: {
+        orderBy: { serviceDate: "desc" },
+        take: 20,
+        include: { documents: { select: { id: true, fileName: true, fileUrl: true } } },
+      },
       statusHistory: { orderBy: { createdAt: "desc" }, take: 20 },
       documents: { orderBy: { createdAt: "desc" }, take: 20 },
+      disposalRecord: true,
     },
   });
 
   if (!asset) notFound();
+
+  const depreciationPolicy = await db.depreciationPolicy.findFirst({
+    where: {
+      organizationId: session.organizationId ?? undefined,
+      categoryId: asset.categoryId,
+    },
+  });
+
+  const valuation = calculateAssetValuation(
+    {
+      purchaseDate: asset.purchaseDate,
+      purchaseCost: asset.purchaseCost,
+      categoryName: asset.category.name,
+      depreciationUsefulLifeYears: asset.depreciationUsefulLifeYears,
+      depreciationSalvageValue: asset.depreciationSalvageValue,
+      depreciationMethodOverride: asset.depreciationMethodOverride,
+    },
+    depreciationPolicy
+      ? {
+          method: depreciationPolicy.method,
+          usefulLifeYears: depreciationPolicy.usefulLifeYears,
+          salvagePercent: Number(depreciationPolicy.salvagePercent),
+        }
+      : null,
+  );
+
+  const totalMaintenanceCost = await getTotalMaintenanceCost(asset.id);
+  const highMaintenance = isHighMaintenanceAsset(
+    Number(asset.purchaseCost),
+    totalMaintenanceCost,
+    asset.organization.maintenanceCostThresholdPercent,
+  );
 
   return (
     <div>
@@ -65,6 +105,10 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
               initialDescription={asset.description ?? ""}
               initialStatus={asset.status}
               initialCondition={asset.condition}
+              recommendedSalePrice={valuation.recommendedSalePrice}
+              depreciationUsefulLifeYears={asset.depreciationUsefulLifeYears ? String(asset.depreciationUsefulLifeYears) : ""}
+              depreciationSalvageValue={asset.depreciationSalvageValue ? String(asset.depreciationSalvageValue) : ""}
+              depreciationMethodOverride={asset.depreciationMethodOverride ?? ""}
             />
           </div>
         }
@@ -110,14 +154,20 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
                     <p className="font-medium text-purple-950">{Number(asset.purchaseCost).toLocaleString()}</p>
                   </div>
                   <div className="rounded-lg border border-purple-100 bg-white p-3">
-                    <p className="text-xs text-purple-900/60">Purchase Date</p>
-                    <p className="font-medium text-purple-950">{asset.purchaseDate.toLocaleDateString()}</p>
+                    <p className="text-xs text-purple-900/60">Current Value</p>
+                    <p className="font-medium text-purple-950">GHS {valuation.currentValue.toLocaleString()}</p>
                   </div>
                   <div className="rounded-lg border border-purple-100 bg-white p-3">
-                    <p className="text-xs text-purple-900/60">Warranty Expiry</p>
-                    <p className="font-medium text-purple-950">
-                      {asset.warrantyExpiryDate ? asset.warrantyExpiryDate.toLocaleDateString() : "N/A"}
-                    </p>
+                    <p className="text-xs text-purple-900/60">Recommended Sale Price</p>
+                    <p className="font-medium text-purple-950">GHS {valuation.recommendedSalePrice.toLocaleString()}</p>
+                  </div>
+                  <div className="rounded-lg border border-purple-100 bg-white p-3">
+                    <p className="text-xs text-purple-900/60">Age</p>
+                    <p className="font-medium text-purple-950">{valuation.ageMonths} months</p>
+                  </div>
+                  <div className="rounded-lg border border-purple-100 bg-white p-3">
+                    <p className="text-xs text-purple-900/60">Depreciation Applied</p>
+                    <p className="font-medium text-purple-950">GHS {valuation.accumulatedDepreciation.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
@@ -154,13 +204,24 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
                     to: asset.statusHistory[0].toStatus,
                   }
                 : null,
+              currentValue: valuation.currentValue.toLocaleString(),
+              accumulatedDepreciation: valuation.accumulatedDepreciation.toLocaleString(),
+              recommendedSalePrice: valuation.recommendedSalePrice.toLocaleString(),
             }}
             maintenance={asset.maintenanceRecords.map((item) => ({
               id: item.id,
               serviceDate: item.serviceDate.toLocaleDateString(),
               description: item.description,
               cost: item.cost ? Number(item.cost).toLocaleString() : "N/A",
+              vendorName: item.vendorName ?? "",
+              status: item.status,
+              documents: item.documents,
             }))}
+            maintenanceSummary={{
+              totalCost: totalMaintenanceCost,
+              purchaseCost: Number(asset.purchaseCost),
+              isHighCost: highMaintenance,
+            }}
             history={asset.statusHistory.map((item) => ({
               id: item.id,
               date: item.createdAt.toLocaleDateString(),
@@ -175,6 +236,16 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
               fileUrl: item.fileUrl,
               createdAt: item.createdAt.toLocaleDateString(),
             }))}
+            disposalRecord={
+              asset.disposalRecord
+                ? {
+                    method: asset.disposalRecord.method,
+                    disposalDate: asset.disposalRecord.disposalDate.toLocaleDateString(),
+                    reason: asset.disposalRecord.reason,
+                    salePrice: asset.disposalRecord.salePrice ? Number(asset.disposalRecord.salePrice).toLocaleString() : null,
+                  }
+                : null
+            }
           />
         </div>
 

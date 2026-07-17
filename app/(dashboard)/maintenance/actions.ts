@@ -13,6 +13,9 @@ import {
   resolveConditionFlagSchema,
   updateMaintenanceSchema,
 } from "@/lib/validation/maintenance";
+import { ensureHighMaintenanceFlag } from "@/lib/maintenance-service";
+import { uploadAssetFileToSpaces } from "@/lib/storage/spaces";
+import { DOCUMENT_TYPE } from "@/constants";
 
 async function assertAssetScope(assetId: string, organizationId: string | null) {
   const asset = await db.asset.findFirst({
@@ -40,8 +43,21 @@ export async function createMaintenanceAction(formData: FormData) {
       cost: parsed.data.cost ? parsed.data.cost : null,
       vendorName: parsed.data.vendorName?.trim() || null,
       nextServiceDate: parsed.data.nextServiceDate ? new Date(parsed.data.nextServiceDate) : null,
+      status: parsed.data.status,
     },
   });
+
+  const fullAsset = await db.asset.findUnique({
+    where: { id: parsed.data.assetId },
+    include: { organization: { select: { maintenanceCostThresholdPercent: true } } },
+  });
+  if (fullAsset) {
+    await ensureHighMaintenanceFlag(
+      parsed.data.assetId,
+      Number(fullAsset.purchaseCost),
+      fullAsset.organization.maintenanceCostThresholdPercent,
+    );
+  }
 
   await writeAuditLog({
     actorUserId: session.userId,
@@ -80,8 +96,21 @@ export async function updateMaintenanceAction(formData: FormData) {
       cost: parsed.data.cost ? parsed.data.cost : null,
       vendorName: parsed.data.vendorName?.trim() || null,
       nextServiceDate: parsed.data.nextServiceDate ? new Date(parsed.data.nextServiceDate) : null,
+      status: parsed.data.status,
     },
   });
+
+  const fullAsset = await db.asset.findUnique({
+    where: { id: parsed.data.assetId },
+    include: { organization: { select: { maintenanceCostThresholdPercent: true } } },
+  });
+  if (fullAsset) {
+    await ensureHighMaintenanceFlag(
+      parsed.data.assetId,
+      Number(fullAsset.purchaseCost),
+      fullAsset.organization.maintenanceCostThresholdPercent,
+    );
+  }
 
   await writeAuditLog({
     actorUserId: session.userId,
@@ -185,4 +214,45 @@ export async function resolveConditionFlagAction(formData: FormData) {
 
   revalidatePath(APP_ROUTES.MAINTENANCE);
   revalidatePath(`/assets/${flag.asset.id}`);
+}
+
+export async function uploadMaintenanceDocumentAction(formData: FormData) {
+  const session = await getRequiredSession();
+  assertPermission(session.role, PERMISSION_KEYS.DOCUMENT_WRITE);
+
+  const recordId = String(formData.get("recordId") ?? "");
+  const file = formData.get("document");
+  if (!recordId || !(file instanceof File)) throw new Error("Invalid document upload payload.");
+
+  const record = await db.maintenanceRecord.findFirst({
+    where: { id: recordId, asset: { organizationId: session.organizationId ?? undefined } },
+    include: { asset: { select: { id: true, branchId: true } } },
+  });
+  if (!record) throw new Error("Maintenance record not found.");
+
+  const { fileName, publicUrl } = await uploadAssetFileToSpaces(record.asset.id, file, "documents");
+  await db.assetDocument.create({
+    data: {
+      assetId: record.asset.id,
+      maintenanceRecordId: record.id,
+      documentType: DOCUMENT_TYPE.MAINTENANCE_INVOICE,
+      fileName,
+      fileUrl: publicUrl,
+      mimeType: file.type || "application/octet-stream",
+      uploadedByUserId: session.userId,
+    },
+  });
+
+  await writeAuditLog({
+    actorUserId: session.userId,
+    organizationId: session.organizationId,
+    branchId: record.asset.branchId,
+    action: "maintenance.document.upload",
+    entityType: "MaintenanceRecord",
+    entityId: record.id,
+    metadata: { fileName },
+  });
+
+  revalidatePath(APP_ROUTES.MAINTENANCE);
+  revalidatePath(`/assets/${record.asset.id}`);
 }

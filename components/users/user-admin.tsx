@@ -8,6 +8,7 @@ import { EnumSelect } from "@/components/shared/enum-select";
 import { ReferenceSelect, type ReferenceOption } from "@/components/shared/reference-selects";
 import { SetupTextField } from "@/components/settings/setup-create-modal";
 import { SubmitButton } from "@/components/shared/submit-button";
+import { PendingForm } from "@/components/shared/pending-form";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
@@ -26,20 +27,14 @@ export function UserAdmin({ branches }: { branches: ReferenceOption[] }) {
         <DialogHeader>
           <DialogTitle>Create User</DialogTitle>
         </DialogHeader>
-        <form
-          action={async (formData) => {
-            await createUserAction(formData);
-            setOpen(false);
-          }}
-          className="space-y-3"
-        >
+        <PendingForm action={createUserAction} onSuccess={() => setOpen(false)} className="space-y-3">
           <SetupTextField name="name" label="Name" required />
           <SetupTextField name="email" label="Email" type="email" required />
           <SetupTextField name="password" label="Temporary password" type="password" required />
           <EnumSelect name="role" label="Role" labelKey="userRole" values={USER_ROLES} defaultValue={USER_ROLES.STAFF} required />
           <ReferenceSelect name="branchId" label="Branch" options={branches} />
           <SubmitButton idleLabel="Create user" pendingLabel="Creating..." className="w-full cursor-pointer" />
-        </form>
+        </PendingForm>
       </DialogContent>
     </Dialog>
   );

@@ -9,5 +9,6 @@ export const createMovementSchema = z.object({
   toRoomId: optionalCuid,
   toShelfId: optionalCuid,
   toCustodianId: optionalCuid,
+  toDepartmentId: optionalCuid,
   note: z.string().max(500).optional(),
 });

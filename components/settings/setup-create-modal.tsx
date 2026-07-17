@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SubmitButton } from "@/components/shared/submit-button";
+import { PendingForm } from "@/components/shared/pending-form";
 
 export function SetupCreateModal({
   title,
@@ -33,16 +34,10 @@ export function SetupCreateModal({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <form
-          action={async (formData) => {
-            await action(formData);
-            setOpen(false);
-          }}
-          className="space-y-3"
-        >
+        <PendingForm action={action} onSuccess={() => setOpen(false)} className="space-y-3">
           {children}
           <SubmitButton idleLabel="Save" pendingLabel="Saving..." className="w-full cursor-pointer" />
-        </form>
+        </PendingForm>
       </DialogContent>
     </Dialog>
   );

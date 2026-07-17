@@ -1,5 +1,6 @@
 export * from "./asset";
 export * from "./auth";
+export * from "./depreciation-defaults";
 export * from "./labels";
 export * from "./errors";
 export * from "./features";

@@ -19,6 +19,16 @@ export default async function OrganizationSettingsPage() {
         <CardContent className="pt-6">
           <form action={updateOrganizationAction} className="max-w-md space-y-3">
             <SetupTextField name="name" label="Organization name" required defaultValue={organization?.name ?? ""} />
+            <SetupTextField
+              name="maintenanceCostThresholdPercent"
+              label="High maintenance cost threshold (%)"
+              type="number"
+              required
+              defaultValue={String(organization?.maintenanceCostThresholdPercent ?? 50)}
+            />
+            <p className="text-xs text-purple-900/60">
+              Assets are flagged for replacement review when total maintenance cost reaches this percentage of purchase cost.
+            </p>
             <SubmitButton idleLabel="Save organization" pendingLabel="Saving..." className="cursor-pointer" />
           </form>
         </CardContent>

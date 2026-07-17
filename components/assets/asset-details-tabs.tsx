@@ -1,6 +1,7 @@
 "use client";
 
 import { DocumentOpenButton } from "@/components/documents/document-open-button";
+import { MaintenanceTimeline } from "@/components/maintenance/maintenance-timeline";
 import { CheckCircle2, Clock3, FileText, MapPin, User, Wrench, XCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +12,9 @@ type MaintenanceItem = {
   serviceDate: string;
   description: string;
   cost: string;
+  vendorName: string;
+  status: string;
+  documents: Array<{ id: string; fileName: string; fileUrl: string }>;
 };
 
 type HistoryItem = {
@@ -47,18 +51,25 @@ type OverviewData = {
   documentCount: number;
   latestMaintenance: { date: string; description: string } | null;
   latestHistory: { date: string; from: string; to: string } | null;
+  currentValue: string;
+  accumulatedDepreciation: string;
+  recommendedSalePrice: string;
 };
 
 export function AssetDetailsTabs({
   overview,
   maintenance,
+  maintenanceSummary,
   history,
   files,
+  disposalRecord,
 }: {
   overview: OverviewData;
   maintenance: MaintenanceItem[];
+  maintenanceSummary: { totalCost: number; purchaseCost: number; isHighCost: boolean };
   history: HistoryItem[];
   files: FileItem[];
+  disposalRecord: { method: string; disposalDate: string; reason: string; salePrice: string | null } | null;
 }) {
   const statusMeta: Record<string, { badge: string; dot: string; icon: React.ComponentType<{ className?: string }> }> = {
     ACTIVE: {
@@ -90,6 +101,16 @@ export function AssetDetailsTabs({
       badge: "bg-zinc-100 text-zinc-700",
       dot: "bg-zinc-500",
       icon: XCircle,
+    },
+    DONATED: {
+      badge: "bg-sky-100 text-sky-700",
+      dot: "bg-sky-500",
+      icon: CheckCircle2,
+    },
+    SOLD: {
+      badge: "bg-indigo-100 text-indigo-700",
+      dot: "bg-indigo-500",
+      icon: CheckCircle2,
     },
     "N/A": {
       badge: "bg-purple-100 text-purple-700",
@@ -153,9 +174,27 @@ export function AssetDetailsTabs({
                   <p>
                     <span className="font-medium text-purple-950">Warranty expiry:</span> {overview.warrantyExpiry}
                   </p>
+                  <p>
+                    <span className="font-medium text-purple-950">Current value:</span> GHS {overview.currentValue}
+                  </p>
+                  <p>
+                    <span className="font-medium text-purple-950">Depreciation:</span> GHS {overview.accumulatedDepreciation}
+                  </p>
+                  <p>
+                    <span className="font-medium text-purple-950">Recommended sale:</span> GHS {overview.recommendedSalePrice}
+                  </p>
                 </div>
               </div>
             </div>
+
+            {disposalRecord ? (
+              <div className="rounded-lg border border-rose-100 bg-rose-50/50 p-4 text-sm">
+                <p className="mb-2 font-semibold text-rose-900">Disposal record</p>
+                <p>{disposalRecord.method} on {disposalRecord.disposalDate}</p>
+                <p className="text-rose-900/80">{disposalRecord.reason}</p>
+                {disposalRecord.salePrice ? <p>Sale price: GHS {disposalRecord.salePrice}</p> : null}
+              </div>
+            ) : null}
 
             <div className="grid gap-3 md:grid-cols-3">
               <OverviewStat label="Maintenance records" value={String(overview.maintenanceCount)} />
@@ -190,22 +229,13 @@ export function AssetDetailsTabs({
       </TabsContent>
       <TabsContent value="maintenance">
         <Card className="border-purple-200 shadow-sm">
-          <CardContent className="space-y-3 pt-6">
-            {maintenance.length === 0 ? (
-              <p className="text-sm text-purple-900/70">No maintenance records yet.</p>
-            ) : (
-              maintenance.map((item) => (
-                <div key={item.id} className="rounded-lg border border-purple-100 bg-purple-50/60 p-3 text-sm">
-                  <p className="flex items-center gap-2 font-medium text-purple-950">
-                    <Wrench className="h-4 w-4 text-purple-700" />
-                    <span>{item.description}</span>
-                  </p>
-                  <p className="text-purple-900/70">
-                    {item.serviceDate} • Cost: {item.cost}
-                  </p>
-                </div>
-              ))
-            )}
+          <CardContent className="pt-6">
+            <MaintenanceTimeline
+              items={maintenance}
+              totalCost={maintenanceSummary.totalCost}
+              purchaseCost={maintenanceSummary.purchaseCost}
+              isHighCost={maintenanceSummary.isHighCost}
+            />
           </CardContent>
         </Card>
       </TabsContent>

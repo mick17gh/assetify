@@ -41,7 +41,7 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
   });
   const nextCursor = getNextCursor(rows, limit);
   const pageItems = rows.slice(0, limit);
-  const [assets, branches, rooms, shelves, users] = await Promise.all([
+  const [assets, branches, departments, rooms, shelves, users] = await Promise.all([
     db.asset.findMany({
       where: assetScope,
       orderBy: { name: "asc" },
@@ -52,6 +52,11 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
       where: { organizationId: session.organizationId ?? undefined },
       orderBy: { name: "asc" },
       select: { id: true, name: true, code: true },
+    }),
+    db.department.findMany({
+      where: { branch: { organizationId: session.organizationId ?? undefined } },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, branchId: true },
     }),
     db.room.findMany({
       where: { branch: { organizationId: session.organizationId ?? undefined } },
@@ -85,6 +90,7 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
             <LocationTracker
               assets={assets.map((asset) => ({ id: asset.id, label: `${asset.name} (${asset.ain})` }))}
               branches={branches.map((branch) => ({ id: branch.id, label: `${branch.name} (${branch.code})` }))}
+              departments={departments}
               rooms={rooms}
               shelves={shelves}
               users={users}

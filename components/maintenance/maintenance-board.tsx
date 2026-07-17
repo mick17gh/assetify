@@ -13,8 +13,11 @@ import { ReferenceOption, ReferenceSelect } from "@/components/shared/reference-
 import { SetupRowActions } from "@/components/settings/setup-row-actions";
 import { SetupCreateModal } from "@/components/settings/setup-create-modal";
 import { SubmitButton } from "@/components/shared/submit-button";
+import { MaintenanceDocumentUpload } from "@/components/maintenance/maintenance-document-upload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { MAINTENANCE_STATUS } from "@/constants";
+import { ENUM_LABELS } from "@/constants/labels";
 
 const CONDITION_SEVERITY = {
   LOW: "LOW",
@@ -65,6 +68,14 @@ export function MaintenanceBoard({
             <SetupTextField name="cost" label="Cost" placeholder="0.00" />
             <SetupTextField name="vendorName" label="Vendor name" />
             <SetupTextField name="nextServiceDate" label="Next service date" type="date" />
+            <EnumSelect
+              name="status"
+              label="Status"
+              labelKey="maintenanceStatus"
+              values={MAINTENANCE_STATUS}
+              defaultValue={MAINTENANCE_STATUS.COMPLETED}
+              required
+            />
           </SetupCreateModal>
           <SetupCreateModal title="Create condition flag" triggerLabel="Flag Condition" action={createConditionFlagAction}>
             <ReferenceSelect name="assetId" label="Asset" options={assets} required />
@@ -136,6 +147,7 @@ export function MaintenanceRowActions({
   cost,
   vendorName,
   nextServiceDate,
+  status,
   assets,
 }: {
   recordId: string;
@@ -145,24 +157,40 @@ export function MaintenanceRowActions({
   cost: string;
   vendorName: string;
   nextServiceDate: string;
+  status: string;
   assets: ReferenceOption[];
 }) {
   return (
-    <SetupRowActions
-      recordId={recordId}
-      editTitle="Update maintenance record"
-      updateAction={updateMaintenanceAction}
-      deleteAction={deleteMaintenanceAction}
-      editFields={
-        <>
-          <ReferenceSelect name="assetId" label="Asset" options={assets} value={assetId} required />
-          <SetupTextField name="description" label="Description" required defaultValue={description} />
-          <SetupTextField name="serviceDate" label="Service date" type="date" required defaultValue={serviceDate} />
-          <SetupTextField name="cost" label="Cost" defaultValue={cost} />
-          <SetupTextField name="vendorName" label="Vendor name" defaultValue={vendorName} />
-          <SetupTextField name="nextServiceDate" label="Next service date" type="date" defaultValue={nextServiceDate} />
-        </>
-      }
-    />
+    <div className="flex items-center justify-end gap-2">
+      <MaintenanceDocumentUpload recordId={recordId} />
+      <SetupRowActions
+        recordId={recordId}
+        editTitle="Update maintenance record"
+        updateAction={updateMaintenanceAction}
+        deleteAction={deleteMaintenanceAction}
+        editFields={
+          <>
+            <ReferenceSelect name="assetId" label="Asset" options={assets} value={assetId} required />
+            <SetupTextField name="description" label="Description" required defaultValue={description} />
+            <SetupTextField name="serviceDate" label="Service date" type="date" required defaultValue={serviceDate} />
+            <SetupTextField name="cost" label="Cost" defaultValue={cost} />
+            <SetupTextField name="vendorName" label="Vendor name" defaultValue={vendorName} />
+            <SetupTextField name="nextServiceDate" label="Next service date" type="date" defaultValue={nextServiceDate} />
+            <EnumSelect
+              name="status"
+              label="Status"
+              labelKey="maintenanceStatus"
+              values={MAINTENANCE_STATUS}
+              defaultValue={status}
+              required
+            />
+          </>
+        }
+      />
+    </div>
   );
+}
+
+export function MaintenanceStatusBadge({ status }: { status: string }) {
+  return <Badge variant="secondary">{ENUM_LABELS.maintenanceStatus[status] ?? status}</Badge>;
 }

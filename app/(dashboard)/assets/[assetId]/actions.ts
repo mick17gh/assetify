@@ -5,12 +5,14 @@ import { db } from "@/lib/db";
 import { getRequiredSession } from "@/lib/session";
 import { assertPermission } from "@/lib/permissions";
 import { writeAuditLog } from "@/lib/audit";
-import { PERMISSION_KEYS, ASSET_STATUS, ERROR_MESSAGES } from "@/constants";
+import { PERMISSION_KEYS, ASSET_STATUS, ERROR_MESSAGES, DISPOSAL_METHOD, MAINTENANCE_STATUS } from "@/constants";
 import {
-  disposeAssetSchema,
+  updateAssetDepreciationSchema,
   updateAssetSchema,
   updateAssetStatusSchema,
 } from "@/lib/validation/asset";
+import { recordDisposalSchema } from "@/lib/validation/disposal";
+import { calculateAssetValuation } from "@/lib/depreciation-service";
 import { parseOptionalCuid } from "@/lib/validation/helpers";
 import { syncReplacementForAsset } from "@/lib/replacement-service";
 import { syncRemindersForAsset } from "@/lib/reminder-service";
@@ -137,6 +139,7 @@ export async function createWorkOrderAction(formData: FormData) {
       description: description.trim(),
       serviceDate: dueDateRaw ? new Date(dueDateRaw) : new Date(),
       vendorName: "Internal Work Order",
+      status: MAINTENANCE_STATUS.SCHEDULED,
     },
   });
 
@@ -173,6 +176,15 @@ export async function updateAssetProfileAction(formData: FormData) {
       custodianId: parseOptionalCuid(parsed.data.custodianId),
       purchaseCost: parsed.data.purchaseCost,
       warrantyExpiryDate: parsed.data.warrantyExpiryDate ? new Date(parsed.data.warrantyExpiryDate) : null,
+      depreciationUsefulLifeYears: parsed.data.depreciationUsefulLifeYears
+        ? Number(parsed.data.depreciationUsefulLifeYears)
+        : null,
+      depreciationSalvageValue: parsed.data.depreciationSalvageValue
+        ? parsed.data.depreciationSalvageValue
+        : null,
+      depreciationMethodOverride: parsed.data.depreciationMethodOverride
+        ? parsed.data.depreciationMethodOverride
+        : null,
     },
   });
 
@@ -184,6 +196,40 @@ export async function updateAssetProfileAction(formData: FormData) {
     organizationId: session.organizationId,
     branchId: session.branchId,
     action: "asset.profile.update",
+    entityType: "Asset",
+    entityId: parsed.data.assetId,
+  });
+
+  revalidatePath(`/assets/${parsed.data.assetId}`);
+  revalidatePath("/assets");
+}
+
+export async function updateAssetDepreciationAction(formData: FormData) {
+  const session = await getRequiredSession();
+  assertPermission(session.role, PERMISSION_KEYS.ASSET_WRITE);
+  const parsed = updateAssetDepreciationSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
+
+  await db.asset.updateMany({
+    where: { id: parsed.data.assetId, organizationId: session.organizationId ?? undefined },
+    data: {
+      depreciationUsefulLifeYears: parsed.data.depreciationUsefulLifeYears
+        ? Number(parsed.data.depreciationUsefulLifeYears)
+        : null,
+      depreciationSalvageValue: parsed.data.depreciationSalvageValue
+        ? parsed.data.depreciationSalvageValue
+        : null,
+      depreciationMethodOverride: parsed.data.depreciationMethodOverride
+        ? parsed.data.depreciationMethodOverride
+        : null,
+    },
+  });
+
+  await writeAuditLog({
+    actorUserId: session.userId,
+    organizationId: session.organizationId,
+    branchId: session.branchId,
+    action: "asset.depreciation.update",
     entityType: "Asset",
     entityId: parsed.data.assetId,
   });
@@ -222,27 +268,95 @@ export async function updateAssetStatusAction(formData: FormData) {
 }
 
 export async function disposeAssetAction(formData: FormData) {
+  return recordAssetDisposalAction(formData);
+}
+
+export async function recordAssetDisposalAction(formData: FormData) {
   const session = await getRequiredSession();
   assertPermission(session.role, PERMISSION_KEYS.ASSET_WRITE);
-  const parsed = disposeAssetSchema.safeParse(Object.fromEntries(formData.entries()));
+  const parsed = recordDisposalSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
 
-  await db.asset.updateMany({
+  const asset = await db.asset.findFirst({
     where: { id: parsed.data.assetId, organizationId: session.organizationId ?? undefined },
-    data: { status: ASSET_STATUS.DISPOSED, isActive: false },
+    include: { category: true },
+  });
+  if (!asset) throw new Error("Asset not found.");
+
+  const policy = await db.depreciationPolicy.findFirst({
+    where: {
+      organizationId: session.organizationId ?? undefined,
+      categoryId: asset.categoryId,
+    },
   });
 
-  await db.disposalRecommendation.create({
-    data: {
-      assetId: parsed.data.assetId,
-      state: "OVERDUE",
-      recommendedAt: new Date(),
-      reason: parsed.data.reason,
+  const valuation = calculateAssetValuation(
+    {
+      purchaseDate: asset.purchaseDate,
+      purchaseCost: asset.purchaseCost,
+      categoryName: asset.category.name,
+      depreciationUsefulLifeYears: asset.depreciationUsefulLifeYears,
+      depreciationSalvageValue: asset.depreciationSalvageValue,
+      depreciationMethodOverride: asset.depreciationMethodOverride,
     },
+    policy
+      ? {
+          method: policy.method,
+          usefulLifeYears: policy.usefulLifeYears,
+          salvagePercent: Number(policy.salvagePercent),
+        }
+      : null,
+  );
+
+  const statusMap = {
+    [DISPOSAL_METHOD.DONATED]: ASSET_STATUS.DONATED,
+    [DISPOSAL_METHOD.SOLD]: ASSET_STATUS.SOLD,
+    [DISPOSAL_METHOD.DISPOSED]: ASSET_STATUS.DISPOSED,
+  } as const;
+
+  await db.assetDisposalRecord.create({
+    data: {
+      assetId: asset.id,
+      organizationId: session.organizationId ?? "",
+      method: parsed.data.method,
+      disposalDate: new Date(parsed.data.disposalDate),
+      reason: parsed.data.reason,
+      salePrice: parsed.data.salePrice ? parsed.data.salePrice : null,
+      buyerName: parsed.data.buyerName?.trim() || null,
+      buyerContact: parsed.data.buyerContact?.trim() || null,
+      bookValueAtDisposal: valuation.currentValue,
+      recommendedSalePrice: valuation.recommendedSalePrice,
+      disposedByUserId: session.userId,
+    },
+  });
+
+  await db.asset.update({
+    where: { id: asset.id },
+    data: { status: statusMap[parsed.data.method], isActive: false },
+  });
+
+  await db.assetStatusHistory.create({
+    data: {
+      assetId: asset.id,
+      fromStatus: asset.status,
+      toStatus: statusMap[parsed.data.method],
+      note: parsed.data.reason,
+    },
+  });
+
+  await writeAuditLog({
+    actorUserId: session.userId,
+    organizationId: session.organizationId,
+    branchId: session.branchId,
+    action: "asset.dispose",
+    entityType: "Asset",
+    entityId: asset.id,
+    metadata: { method: parsed.data.method },
   });
 
   revalidatePath(`/assets/${parsed.data.assetId}`);
   revalidatePath("/assets");
+  revalidatePath("/reports");
 }
 
 export async function deleteAssetPhotoAction(formData: FormData) {

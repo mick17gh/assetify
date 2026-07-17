@@ -9,6 +9,7 @@ type RouteRule = {
 const ROUTE_RULES: RouteRule[] = [
   { prefix: APP_ROUTES.DASHBOARD, permission: PERMISSION_KEYS.ASSET_READ },
   { prefix: APP_ROUTES.ASSETS, permission: PERMISSION_KEYS.ASSET_READ },
+  { prefix: APP_ROUTES.ASSET_REQUESTS, permission: PERMISSION_KEYS.ASSET_READ },
   { prefix: APP_ROUTES.DOCUMENTS, permission: PERMISSION_KEYS.DOCUMENT_READ },
   { prefix: APP_ROUTES.LOCATIONS, permission: PERMISSION_KEYS.LOCATION_UPDATE },
   { prefix: APP_ROUTES.MAINTENANCE, permission: PERMISSION_KEYS.ASSET_READ },
@@ -28,6 +29,7 @@ export function getPermissionForPath(pathname: string): PermissionKey | null {
 export const NAV_LINKS = [
   { href: APP_ROUTES.DASHBOARD, label: "Dashboard", permission: PERMISSION_KEYS.ASSET_READ },
   { href: APP_ROUTES.ASSETS, label: "Assets", permission: PERMISSION_KEYS.ASSET_READ },
+  { href: APP_ROUTES.ASSET_REQUESTS, label: "Requests", permission: PERMISSION_KEYS.ASSET_READ },
   { href: APP_ROUTES.DOCUMENTS, label: "Documents", permission: PERMISSION_KEYS.DOCUMENT_READ },
   { href: APP_ROUTES.LOCATIONS, label: "Locations", permission: PERMISSION_KEYS.LOCATION_UPDATE },
   { href: APP_ROUTES.MAINTENANCE, label: "Maintenance", permission: PERMISSION_KEYS.ASSET_READ },

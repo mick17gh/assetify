@@ -5,6 +5,7 @@ export const APP_ROUTES = {
   USAGE_MANUAL: "/usage-manual",
   FORGOT_PASSWORD: "/forgot-password",
   RESET_PASSWORD: "/reset-password",
+  ASSET_REQUESTS: "/requests",
   DASHBOARD: "/dashboard",
   ASSETS: "/assets",
   DOCUMENTS: "/documents",
@@ -23,6 +24,7 @@ export const APP_ROUTES = {
   SETTINGS_LOCATIONS: "/settings/locations",
   SETTINGS_FEATURES: "/settings/features",
   SETTINGS_POLICIES: "/settings/policies",
+  SETTINGS_DEPRECIATION: "/settings/depreciation",
   SETTINGS_REMINDERS: "/settings/reminders",
   SETTINGS_AUDIT: "/settings/audit",
 } as const;

@@ -25,6 +25,11 @@ import {
   updateOrganizationSchema,
   updateReplacementPolicySchema,
 } from "@/lib/validation/policy";
+import {
+  deleteDepreciationPolicySchema,
+  depreciationPolicySchema,
+  updateDepreciationPolicySchema,
+} from "@/lib/validation/depreciation";
 import { parseOptionalCuid } from "@/lib/validation/helpers";
 
 function orgId(session: Awaited<ReturnType<typeof getRequiredSession>>) {
@@ -41,7 +46,10 @@ export async function updateOrganizationAction(formData: FormData) {
 
   await db.organization.update({
     where: { id: orgId(session) },
-    data: { name: parsed.data.name },
+    data: {
+      name: parsed.data.name,
+      maintenanceCostThresholdPercent: parsed.data.maintenanceCostThresholdPercent,
+    },
   });
   revalidatePath(APP_ROUTES.SETTINGS_ORGANIZATION);
 }
@@ -379,4 +387,64 @@ export async function deleteReplacementPolicyAction(formData: FormData) {
     where: { id: parsed.data.id, organizationId: orgId(session) },
   });
   revalidatePath(APP_ROUTES.SETTINGS_POLICIES);
+}
+
+// --- Depreciation policies ---
+export async function createDepreciationPolicyAction(formData: FormData) {
+  const session = await getRequiredSession();
+  assertPermission(session.role, PERMISSION_KEYS.POLICY_MANAGE);
+  const parsed = depreciationPolicySchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
+
+  await db.depreciationPolicy.create({
+    data: { ...parsed.data, organizationId: orgId(session) },
+  });
+
+  await writeAuditLog({
+    actorUserId: session.userId,
+    organizationId: session.organizationId,
+    action: "depreciation.policy.create",
+    entityType: "DepreciationPolicy",
+  });
+
+  revalidatePath(APP_ROUTES.SETTINGS_DEPRECIATION);
+}
+
+export async function updateDepreciationPolicyAction(formData: FormData) {
+  const session = await getRequiredSession();
+  assertPermission(session.role, PERMISSION_KEYS.POLICY_MANAGE);
+  const parsed = updateDepreciationPolicySchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
+
+  await db.depreciationPolicy.updateMany({
+    where: { id: parsed.data.id, organizationId: orgId(session) },
+    data: {
+      categoryId: parsed.data.categoryId,
+      method: parsed.data.method,
+      usefulLifeYears: parsed.data.usefulLifeYears,
+      salvagePercent: parsed.data.salvagePercent,
+    },
+  });
+
+  await writeAuditLog({
+    actorUserId: session.userId,
+    organizationId: session.organizationId,
+    action: "depreciation.policy.update",
+    entityType: "DepreciationPolicy",
+    entityId: parsed.data.id,
+  });
+
+  revalidatePath(APP_ROUTES.SETTINGS_DEPRECIATION);
+}
+
+export async function deleteDepreciationPolicyAction(formData: FormData) {
+  const session = await getRequiredSession();
+  assertPermission(session.role, PERMISSION_KEYS.POLICY_MANAGE);
+  const parsed = deleteDepreciationPolicySchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
+
+  await db.depreciationPolicy.deleteMany({
+    where: { id: parsed.data.id, organizationId: orgId(session) },
+  });
+  revalidatePath(APP_ROUTES.SETTINGS_DEPRECIATION);
 }

@@ -8,6 +8,7 @@ import { EnumSelect } from "@/components/shared/enum-select";
 import { OptionalReferenceSelect, ReferenceSelect, type ReferenceOption } from "@/components/shared/reference-selects";
 import { SetupTextField } from "@/components/settings/setup-create-modal";
 import { SubmitButton } from "@/components/shared/submit-button";
+import { PendingForm } from "@/components/shared/pending-form";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
@@ -59,11 +60,9 @@ export function CreateAssetModal({
         <DialogHeader>
           <DialogTitle>Create Asset</DialogTitle>
         </DialogHeader>
-        <form
-          action={async (formData) => {
-            await createAssetAction(formData);
-            setOpen(false);
-          }}
+        <PendingForm
+          action={createAssetAction}
+          onSuccess={() => setOpen(false)}
           className="grid gap-4 md:grid-cols-2"
         >
           <SetupTextField name="ain" label="AIN" placeholder="AIN-NY-000123" required />
@@ -91,7 +90,7 @@ export function CreateAssetModal({
           <div className="md:col-span-2">
             <SubmitButton idleLabel="Save Asset" pendingLabel="Saving..." className="w-full cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]" />
           </div>
-        </form>
+        </PendingForm>
       </DialogContent>
     </Dialog>
   );

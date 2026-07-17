@@ -13,6 +13,7 @@ enum UserRole {
   ADMIN
   MANAGER
   STAFF
+  FINANCE
 }
 
 enum AssetStatus {
@@ -22,6 +23,38 @@ enum AssetStatus {
   IN_STORAGE
   MISSING
   DISPOSED
+  DONATED
+  SOLD
+}
+
+enum AssetRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  FULFILLED
+}
+
+enum AssetRequestUrgency {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum MaintenanceStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum DisposalMethod {
+  DONATED
+  SOLD
+  DISPOSED
+}
+
+enum DepreciationMethod {
+  STRAIGHT_LINE
 }
 
 enum AssetCondition {
@@ -38,6 +71,7 @@ enum MovementType {
   STAFF_ASSIGNMENT
   ROOM_TRANSFER
   SHELF_TRANSFER
+  DEPARTMENT_TRANSFER
 }
 
 enum DocumentType {
@@ -45,6 +79,7 @@ enum DocumentType {
   WARRANTY_CARD
   MANUAL
   SERVICE_REPORT
+  MAINTENANCE_INVOICE
   OTHER
 }
 
@@ -87,6 +122,9 @@ model User {
   notifications NotificationLog[]
   auditLogs     AuditLog[]
   staffProfile  StaffProfile?
+  assetRequestsSubmitted AssetRequest[] @relation("AssetRequestRequester")
+  assetRequestsReviewed  AssetRequest[] @relation("AssetRequestReviewer")
+  disposalRecords        AssetDisposalRecord[]
   @@unique([email])
   @@index([branchId])
   @@index([organizationId])
@@ -141,15 +179,19 @@ model Verification {
 }
 
 model Organization {
-  id                  String                 @id @default(cuid())
-  name                String
-  settings            Json?
-  createdAt           DateTime               @default(now())
-  updatedAt           DateTime               @updatedAt
-  branches            Branch[]
-  users               User[]
-  replacementPolicies ReplacementPolicy[]
-  assets              Asset[]
+  id                              String                 @id @default(cuid())
+  name                            String
+  settings                        Json?
+  maintenanceCostThresholdPercent Int                    @default(50)
+  createdAt                       DateTime               @default(now())
+  updatedAt                       DateTime               @updatedAt
+  branches                        Branch[]
+  users                           User[]
+  replacementPolicies             ReplacementPolicy[]
+  depreciationPolicies            DepreciationPolicy[]
+  assets                          Asset[]
+  assetRequests                   AssetRequest[]
+  disposalRecords                 AssetDisposalRecord[]
   @@unique([name])
 }
 
@@ -166,6 +208,7 @@ model Branch {
   rooms          Room[]
   users          User[]
   assets         Asset[]
+  assetRequests  AssetRequest[]
   @@unique([organizationId, code])
   @@index([organizationId, name])
 }
@@ -176,8 +219,9 @@ model Department {
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
-  assets    Asset[]
+  branch        Branch         @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  assets        Asset[]
+  assetRequests AssetRequest[]
   @@unique([branchId, name])
 }
 
@@ -213,6 +257,8 @@ model Category {
   updatedAt             DateTime           @updatedAt
   assets                Asset[]
   replacementPolicies   ReplacementPolicy[]
+  depreciationPolicies  DepreciationPolicy[]
+  assetRequests         AssetRequest[]
   @@unique([name])
 }
 
@@ -248,9 +294,12 @@ model Asset {
   condition             AssetCondition           @default(GOOD)
   purchaseDate          DateTime
   purchaseCost          Decimal                  @db.Decimal(12, 2)
-  warrantyExpiryDate    DateTime?
-  isActive              Boolean                  @default(true)
-  branchId              String
+  warrantyExpiryDate              DateTime?
+  depreciationUsefulLifeYears     Int?
+  depreciationSalvageValue        Decimal?                 @db.Decimal(12, 2)
+  depreciationMethodOverride      DepreciationMethod?
+  isActive                        Boolean                  @default(true)
+  branchId                        String
   departmentId          String?
   roomId                String?
   shelfId               String?
@@ -276,6 +325,8 @@ model Asset {
   conditionFlags        ConditionFlag[]
   replacementEvaluations ReplacementEvaluation[]
   disposalRecommendations DisposalRecommendation[]
+  disposalRecord         AssetDisposalRecord?
+  fulfilledRequest       AssetRequest?
   @@unique([ain])
   @@unique([serialNumber])
   @@index([branchId, status, updatedAt])
@@ -295,16 +346,19 @@ model AssetPhoto {
 }
 
 model AssetDocument {
-  id               String       @id @default(cuid())
-  assetId          String
-  documentType     DocumentType
-  fileUrl          String
-  fileName         String
-  mimeType         String
-  uploadedByUserId String
-  createdAt        DateTime     @default(now())
-  asset            Asset        @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  id                  String             @id @default(cuid())
+  assetId             String
+  documentType        DocumentType
+  fileUrl             String
+  fileName            String
+  mimeType            String
+  uploadedByUserId    String
+  maintenanceRecordId String?
+  createdAt           DateTime           @default(now())
+  asset               Asset              @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  maintenanceRecord   MaintenanceRecord? @relation(fields: [maintenanceRecordId], references: [id], onDelete: SetNull)
   @@index([assetId, documentType, createdAt])
+  @@index([maintenanceRecordId])
 }
 
 model AssetMovement {
@@ -316,9 +370,11 @@ model AssetMovement {
   toRoomId       String?
   fromShelfId    String?
   toShelfId      String?
-  fromCustodianId String?
-  toCustodianId  String?
-  movementType   MovementType
+  fromCustodianId  String?
+  toCustodianId    String?
+  fromDepartmentId String?
+  toDepartmentId   String?
+  movementType     MovementType
   note           String?
   movedByUserId  String
   createdAt      DateTime     @default(now())
@@ -340,17 +396,20 @@ model AssetStatusHistory {
 }
 
 model MaintenanceRecord {
-  id               String       @id @default(cuid())
+  id               String             @id @default(cuid())
   assetId          String
   serviceDate      DateTime
   description      String
-  cost             Decimal?     @db.Decimal(12, 2)
+  cost             Decimal?           @db.Decimal(12, 2)
   vendorName       String?
   nextServiceDate  DateTime?
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
-  asset            Asset        @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  status           MaintenanceStatus  @default(COMPLETED)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  asset            Asset              @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  documents        AssetDocument[]
   @@index([assetId, serviceDate])
+  @@index([assetId, status])
 }
 
 model ConditionFlag {
@@ -414,6 +473,71 @@ model DisposalRecommendation {
   createdAt     DateTime            @default(now())
   asset         Asset               @relation(fields: [assetId], references: [id], onDelete: Cascade)
   @@index([assetId, recommendedAt])
+}
+
+model DepreciationPolicy {
+  id               String             @id @default(cuid())
+  organizationId   String
+  categoryId       String
+  method           DepreciationMethod @default(STRAIGHT_LINE)
+  usefulLifeYears  Int
+  salvagePercent   Decimal            @default(10) @db.Decimal(5, 2)
+  isDefault        Boolean            @default(false)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  organization     Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  category         Category           @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  @@unique([organizationId, categoryId])
+}
+
+model AssetDisposalRecord {
+  id                    String         @id @default(cuid())
+  assetId               String         @unique
+  organizationId        String
+  method                DisposalMethod
+  disposalDate          DateTime
+  reason                String
+  salePrice             Decimal?       @db.Decimal(12, 2)
+  buyerName             String?
+  buyerContact          String?
+  bookValueAtDisposal   Decimal        @db.Decimal(12, 2)
+  recommendedSalePrice  Decimal?       @db.Decimal(12, 2)
+  disposedByUserId      String
+  createdAt             DateTime       @default(now())
+  asset                 Asset          @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  organization          Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  disposedBy            User           @relation(fields: [disposedByUserId], references: [id], onDelete: Restrict)
+  @@index([organizationId, disposalDate])
+  @@index([method, disposalDate])
+}
+
+model AssetRequest {
+  id               String              @id @default(cuid())
+  requesterId      String
+  organizationId   String
+  branchId         String
+  departmentId     String?
+  categoryId       String
+  reason           String
+  urgency          AssetRequestUrgency @default(MEDIUM)
+  notes            String?
+  status           AssetRequestStatus  @default(PENDING)
+  reviewerId       String?
+  reviewComment    String?
+  reviewedAt       DateTime?
+  fulfilledAssetId String?             @unique
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  requester        User                @relation("AssetRequestRequester", fields: [requesterId], references: [id], onDelete: Restrict)
+  reviewer         User?               @relation("AssetRequestReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  organization     Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  branch           Branch              @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  department       Department?         @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  category         Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  fulfilledAsset   Asset?              @relation(fields: [fulfilledAssetId], references: [id], onDelete: SetNull)
+  @@index([organizationId, status, createdAt])
+  @@index([branchId, status])
+  @@index([requesterId, createdAt])
 }
 
 model Permission {

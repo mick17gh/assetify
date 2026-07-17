@@ -8,22 +8,26 @@ import { OptionalReferenceSelect, ReferenceOption, ReferenceSelect } from "@/com
 import { SetupTextField } from "@/components/settings/setup-create-modal";
 import { MOVEMENT_TYPE } from "@/constants";
 import { SubmitButton } from "@/components/shared/submit-button";
+import { PendingForm } from "@/components/shared/pending-form";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 type BranchRoom = { id: string; name: string; branchId: string };
 type RoomShelf = { id: string; name: string; roomId: string };
 type BranchUser = { id: string; name: string; branchId: string | null };
+type BranchDepartment = { id: string; name: string; branchId: string };
 
 export function LocationTracker({
   assets,
   branches,
+  departments,
   rooms,
   shelves,
   users,
 }: {
   assets: ReferenceOption[];
   branches: ReferenceOption[];
+  departments: BranchDepartment[];
   rooms: BranchRoom[];
   shelves: RoomShelf[];
   users: BranchUser[];
@@ -48,6 +52,10 @@ export function LocationTracker({
         .map((user) => ({ id: user.id, label: user.name })),
     [users, branchId],
   );
+  const departmentOptions = useMemo(
+    () => departments.filter((d) => d.branchId === branchId).map((d) => ({ id: d.id, label: d.name })),
+    [departments, branchId],
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -61,11 +69,9 @@ export function LocationTracker({
         <DialogHeader>
           <DialogTitle>Record Asset Movement</DialogTitle>
         </DialogHeader>
-        <form
-          action={async (formData) => {
-            await createAssetMovementAction(formData);
-            setOpen(false);
-          }}
+        <PendingForm
+          action={createAssetMovementAction}
+          onSuccess={() => setOpen(false)}
           className="space-y-3"
         >
           <ReferenceSelect name="assetId" label="Asset" options={assets} required />
@@ -86,6 +92,7 @@ export function LocationTracker({
             onValueChange={setBranchId}
             required={movementType === MOVEMENT_TYPE.BRANCH_TRANSFER}
           />
+          <OptionalReferenceSelect name="toDepartmentId" label="Target department" options={departmentOptions} />
           <OptionalReferenceSelect name="toRoomId" label="Target room" options={roomOptions} value={roomId} onValueChange={setRoomId} />
           <OptionalReferenceSelect name="toShelfId" label="Target shelf" options={shelfOptions} />
           <OptionalReferenceSelect name="toCustodianId" label="Target custodian" options={userOptions} />
@@ -95,7 +102,7 @@ export function LocationTracker({
             pendingLabel="Saving movement..."
             className="w-full cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]"
           />
-        </form>
+        </PendingForm>
       </DialogContent>
     </Dialog>
   );

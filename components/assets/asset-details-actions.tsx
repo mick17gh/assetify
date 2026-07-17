@@ -2,19 +2,21 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MoreHorizontal, PencilLine, PlusCircle, RefreshCw, Trash2, Upload } from "lucide-react";
+import { MoreHorizontal, PencilLine, PlusCircle, RefreshCw, Upload, Calculator } from "lucide-react";
 import {
   createWorkOrderAction,
-  disposeAssetAction,
+  updateAssetDepreciationAction,
   updateAssetDetailsAction,
   updateAssetStatusAction,
   uploadAssetDocumentAction,
   uploadAssetPhotoAction,
 } from "@/app/(dashboard)/assets/[assetId]/actions";
-import { ASSET_CONDITION, ASSET_STATUS, DOCUMENT_TYPE } from "@/constants";
+import { DisposalModal } from "@/components/assets/disposal-modal";
+import { ASSET_CONDITION, ASSET_STATUS, DEPRECIATION_METHOD, DOCUMENT_TYPE } from "@/constants";
 import { EnumSelect } from "@/components/shared/enum-select";
 import { SetupTextField } from "@/components/settings/setup-create-modal";
 import { SubmitButton } from "@/components/shared/submit-button";
+import { PendingForm } from "@/components/shared/pending-form";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -29,12 +31,20 @@ export function AssetDetailsActions({
   initialDescription,
   initialStatus,
   initialCondition,
+  recommendedSalePrice,
+  depreciationUsefulLifeYears,
+  depreciationSalvageValue,
+  depreciationMethodOverride,
 }: {
   assetId: string;
   initialName: string;
   initialDescription: string;
   initialStatus: string;
   initialCondition: string;
+  recommendedSalePrice: number;
+  depreciationUsefulLifeYears: string;
+  depreciationSalvageValue: string;
+  depreciationMethodOverride: string;
 }) {
   const router = useRouter();
   const [docType, setDocType] = useState<string>(DOCUMENT_TYPE.OTHER);
@@ -55,7 +65,7 @@ export function AssetDetailsActions({
             <DialogTitle>Create Work Order</DialogTitle>
             <DialogDescription>Add a maintenance work order from asset details.</DialogDescription>
           </DialogHeader>
-          <form
+          <PendingForm
             action={async (formData) => {
               if (!navigator.onLine) {
                 enqueueOfflineOperation({
@@ -79,7 +89,7 @@ export function AssetDetailsActions({
             </div>
             <SetupTextField name="dueDate" label="Due Date" type="date" />
             <SubmitButton idleLabel="Create" pendingLabel="Creating..." className="w-full cursor-pointer" />
-          </form>
+          </PendingForm>
         </DialogContent>
       </Dialog>
 
@@ -118,6 +128,45 @@ export function AssetDetailsActions({
           <Dialog>
             <DialogTrigger asChild>
               <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
+                <Calculator className="mr-2 h-4 w-4" />
+                Depreciation Overrides
+              </DropdownMenuItem>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Depreciation Overrides</DialogTitle>
+                <DialogDescription>
+                  Override category depreciation rules for this asset. Leave blank to use category defaults.
+                </DialogDescription>
+              </DialogHeader>
+              <form action={updateAssetDepreciationAction} className="space-y-3">
+                <input type="hidden" name="assetId" value={assetId} />
+                <SetupTextField
+                  name="depreciationUsefulLifeYears"
+                  label="Useful life (years)"
+                  type="number"
+                  defaultValue={depreciationUsefulLifeYears}
+                />
+                <SetupTextField
+                  name="depreciationSalvageValue"
+                  label="Salvage value (GHS)"
+                  defaultValue={depreciationSalvageValue}
+                />
+                <EnumSelect
+                  name="depreciationMethodOverride"
+                  label="Method"
+                  labelKey="depreciationMethod"
+                  values={DEPRECIATION_METHOD}
+                  defaultValue={depreciationMethodOverride || DEPRECIATION_METHOD.STRAIGHT_LINE}
+                />
+                <SubmitButton idleLabel="Save overrides" pendingLabel="Saving..." className="w-full cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]" />
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog>
+            <DialogTrigger asChild>
+              <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Change Status
               </DropdownMenuItem>
@@ -147,9 +196,9 @@ export function AssetDetailsActions({
               <DialogHeader>
                 <DialogTitle>Upload Asset Photo</DialogTitle>
               </DialogHeader>
-              <form
-                action={async (formData) => {
-                  await uploadAssetPhotoAction(formData);
+              <PendingForm
+                action={uploadAssetPhotoAction}
+                onSuccess={() => {
                   setPhotoDialogOpen(false);
                   router.refresh();
                 }}
@@ -161,7 +210,7 @@ export function AssetDetailsActions({
                   <Input id="photo" name="photo" type="file" accept="image/*" required />
                 </div>
                 <SubmitButton idleLabel="Upload photo" pendingLabel="Uploading..." className="w-full cursor-pointer" />
-              </form>
+              </PendingForm>
             </DialogContent>
           </Dialog>
 
@@ -176,9 +225,9 @@ export function AssetDetailsActions({
               <DialogHeader>
                 <DialogTitle>Upload Asset Document</DialogTitle>
               </DialogHeader>
-              <form
-                action={async (formData) => {
-                  await uploadAssetDocumentAction(formData);
+              <PendingForm
+                action={uploadAssetDocumentAction}
+                onSuccess={() => {
                   setDocumentDialogOpen(false);
                   router.refresh();
                 }}
@@ -199,28 +248,11 @@ export function AssetDetailsActions({
                   <Input id="document" name="document" type="file" required />
                 </div>
                 <SubmitButton idleLabel="Upload document" pendingLabel="Uploading..." className="w-full cursor-pointer" />
-              </form>
+              </PendingForm>
             </DialogContent>
           </Dialog>
 
-          <Dialog>
-            <DialogTrigger asChild>
-              <DropdownMenuItem onSelect={(event) => event.preventDefault()} className="text-red-700 focus:text-red-700">
-                <Trash2 className="mr-2 h-4 w-4" />
-                Dispose Asset
-              </DropdownMenuItem>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Dispose Asset</DialogTitle>
-              </DialogHeader>
-              <form action={disposeAssetAction} className="space-y-3">
-                <input type="hidden" name="assetId" value={assetId} />
-                <SetupTextField name="reason" label="Disposal reason" required />
-                <SubmitButton idleLabel="Confirm disposal" pendingLabel="Processing..." className="w-full cursor-pointer bg-red-600 hover:bg-red-700" />
-              </form>
-            </DialogContent>
-          </Dialog>
+          <DisposalModal assetId={assetId} recommendedSalePrice={recommendedSalePrice} />
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

@@ -36,11 +36,13 @@ export async function createAssetMovementAction(formData: FormData) {
   const nextRoomId = parseOptionalCuid(parsed.data.toRoomId);
   const nextShelfId = parseOptionalCuid(parsed.data.toShelfId);
   const nextCustodianId = parseOptionalCuid(parsed.data.toCustodianId);
+  const nextDepartmentId = parseOptionalCuid(parsed.data.toDepartmentId);
 
   let resolvedBranchId = asset.branchId;
   let resolvedRoomId = asset.roomId;
   let resolvedShelfId = asset.shelfId;
   let resolvedCustodianId = asset.custodianId;
+  let resolvedDepartmentId = asset.departmentId;
 
   if (nextBranchId) {
     const branch = await db.branch.findFirst({
@@ -81,6 +83,22 @@ export async function createAssetMovementAction(formData: FormData) {
     resolvedBranchId = shelf.room.branchId;
   }
 
+  if (nextDepartmentId) {
+    const department = await db.department.findFirst({
+      where: {
+        id: nextDepartmentId,
+        branch: { organizationId: session.organizationId ?? undefined },
+      },
+      select: { id: true, branchId: true },
+    });
+    if (!department) throw new Error("Target department not found.");
+    if (!canAccessBranch(session.role, session.branchId, department.branchId)) {
+      throw new Error(ERROR_MESSAGES.FORBIDDEN);
+    }
+    resolvedDepartmentId = department.id;
+    resolvedBranchId = department.branchId;
+  }
+
   if (nextCustodianId) {
     const custodian = await db.user.findFirst({
       where: { id: nextCustodianId, organizationId: session.organizationId ?? undefined },
@@ -114,6 +132,10 @@ export async function createAssetMovementAction(formData: FormData) {
       if (!nextCustodianId) throw new Error("Target custodian is required.");
       break;
     }
+    case MOVEMENT_TYPE.DEPARTMENT_TRANSFER: {
+      if (!nextDepartmentId) throw new Error("Target department is required.");
+      break;
+    }
   }
 
   await db.assetMovement.create({
@@ -128,6 +150,8 @@ export async function createAssetMovementAction(formData: FormData) {
       toShelfId: resolvedShelfId,
       fromCustodianId: asset.custodianId,
       toCustodianId: resolvedCustodianId,
+      fromDepartmentId: asset.departmentId,
+      toDepartmentId: resolvedDepartmentId,
       note: parsed.data.note?.trim() || null,
       movedByUserId: session.userId,
     },
@@ -140,6 +164,7 @@ export async function createAssetMovementAction(formData: FormData) {
       roomId: resolvedRoomId,
       shelfId: resolvedShelfId,
       custodianId: resolvedCustodianId,
+      departmentId: resolvedDepartmentId,
     },
   });
 
@@ -154,6 +179,7 @@ export async function createAssetMovementAction(formData: FormData) {
   });
 
   revalidatePath(APP_ROUTES.LOCATIONS);
+  revalidatePath(APP_ROUTES.REPORTS);
   revalidatePath(APP_ROUTES.SCAN);
   revalidatePath(`/assets/${asset.id}`);
 }
