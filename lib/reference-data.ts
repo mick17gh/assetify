@@ -1,7 +1,8 @@
+import { cache } from "react";
 import { db } from "@/lib/db";
 import type { AppSession } from "@/lib/session";
 
-export async function getReferenceDataForSession(session: AppSession) {
+export const getReferenceDataForSession = cache(async (session: AppSession) => {
   const orgId = session.organizationId ?? undefined;
   const branchFilter = session.branchId ? { branchId: session.branchId } : {};
 
@@ -44,4 +45,4 @@ export async function getReferenceDataForSession(session: AppSession) {
     rooms,
     shelves,
   };
-}
+});

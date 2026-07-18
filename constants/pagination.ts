@@ -3,3 +3,5 @@ export const PAGINATION = {
   MAX_LIMIT: 100,
   FORECAST_LIMIT: 50,
 } as const;
+
+export const REPORT_EXPORT_MAX_ROWS = 10_000;

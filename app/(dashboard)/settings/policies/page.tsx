@@ -20,10 +20,8 @@ export default async function PoliciesSettingsPage({ searchParams }: { searchPar
   const q = getOptionalQuery(params, "q");
   const { cursor, limit, take } = resolveCursorPaginationFromParams(params);
 
-  const categories = await db.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } });
-  const categoryOptions = categories.map((c) => ({ id: c.id, label: c.name }));
-
-  const rows = await db.replacementPolicy.findMany({
+  const categoriesPromise = db.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } });
+  const rowsPromise = db.replacementPolicy.findMany({
     where: {
       organizationId: session.organizationId ?? undefined,
       ...(q ? { category: { name: { contains: q, mode: "insensitive" } } } : {}),
@@ -33,6 +31,8 @@ export default async function PoliciesSettingsPage({ searchParams }: { searchPar
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
     take,
   });
+  const [categories, rows] = await Promise.all([categoriesPromise, rowsPromise]);
+  const categoryOptions = categories.map((c) => ({ id: c.id, label: c.name }));
   const nextCursor = getNextCursor(rows, limit);
   const pageItems = rows.slice(0, limit);
 

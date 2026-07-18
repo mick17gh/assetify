@@ -19,9 +19,9 @@ export function resolveCursorPagination(input: CursorInput) {
   };
 }
 
-export function resolveCursorPaginationFromParams(searchParams: SearchParams) {
-  const cursor = getQueryString(searchParams, "cursor") || undefined;
-  const limitValue = getQueryString(searchParams, "limit");
+export function resolveCursorPaginationFromParams(searchParams: SearchParams, prefix = "") {
+  const cursor = getQueryString(searchParams, `${prefix}cursor`) || undefined;
+  const limitValue = getQueryString(searchParams, `${prefix}limit`);
   const parsedLimit = limitValue ? Number(limitValue) : undefined;
   return resolveCursorPagination({ cursor, limit: Number.isFinite(parsedLimit) ? parsedLimit : undefined });
 }

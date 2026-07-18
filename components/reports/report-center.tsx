@@ -20,30 +20,17 @@ type DisposalSummaryRow = {
   totalSaleProceeds: number;
 };
 
-type ValuationRow = {
-  assetId: string;
-  assetName: string;
-  ain: string;
-  branchName: string;
-  state: string;
-  purchaseCost: number;
-  currentValue: number;
-  recommendedSalePrice: number;
-};
-
 export function ReportCenter({
   dueCount,
   dueCost,
   departmentRows,
   disposalSummary,
-  valuationRows,
   canViewFinance,
 }: {
   dueCount: number;
   dueCost: number;
   departmentRows: DepartmentRow[];
   disposalSummary: DisposalSummaryRow[];
-  valuationRows: ValuationRow[];
   canViewFinance: boolean;
 }) {
   return (
@@ -57,7 +44,6 @@ export function ReportCenter({
             <TabsTrigger value="replacement">Replacement</TabsTrigger>
             {canViewFinance ? <TabsTrigger value="department">Department Cost</TabsTrigger> : null}
             {canViewFinance ? <TabsTrigger value="disposal">Disposal</TabsTrigger> : null}
-            {canViewFinance ? <TabsTrigger value="valuation">End-of-Life FMV</TabsTrigger> : null}
           </TabsList>
 
           <TabsContent value="replacement" className="space-y-4">
@@ -74,7 +60,8 @@ export function ReportCenter({
               </div>
             </div>
             <p className="text-sm text-purple-900/65">
-              Use PDF / Excel next to the table below. Exports respect the current state and search filters.
+              Use PDF / Excel next to the table below. Exports include all matching rows (up to 10,000) and respect
+              the current state and search filters.
             </p>
           </TabsContent>
 
@@ -127,36 +114,6 @@ export function ReportCenter({
                       <TableCell>{row.count}</TableCell>
                       <TableCell>GHS {row.totalPurchaseValue.toLocaleString()}</TableCell>
                       <TableCell>GHS {row.totalSaleProceeds.toLocaleString()}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TabsContent>
-          ) : null}
-
-          {canViewFinance ? (
-            <TabsContent value="valuation" className="space-y-4">
-              <div className="flex justify-end">
-                <ReportExportButtons report="end-of-life-valuation" />
-              </div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Asset</TableHead>
-                    <TableHead>State</TableHead>
-                    <TableHead>Purchase</TableHead>
-                    <TableHead>Current Value</TableHead>
-                    <TableHead>Recommended Sale</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {valuationRows.map((row) => (
-                    <TableRow key={row.assetId}>
-                      <TableCell>{row.assetName}</TableCell>
-                      <TableCell>{row.state}</TableCell>
-                      <TableCell>GHS {row.purchaseCost.toLocaleString()}</TableCell>
-                      <TableCell>GHS {row.currentValue.toLocaleString()}</TableCell>
-                      <TableCell>GHS {row.recommendedSalePrice.toLocaleString()}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

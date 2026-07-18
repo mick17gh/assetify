@@ -365,11 +365,12 @@ export function UsageManualContent() {
           </li>
         </ul>
         <p>
-          The page includes a replacement cost trend chart and a searchable evaluation table with a state filter
-          (Healthy / Approaching / Overdue). For the Replacement report, use <strong>PDF</strong> and{" "}
-          <strong>Excel</strong> beside the Rows control — exports include only rows matching the current state and
-          search filters (for example, Healthy downloads healthy assets only). For Department Cost, Disposal, and
-          End-of-Life FMV, export from the buttons on each tab. Department costs update when assets are transferred
+          The page includes a replacement cost trend chart (aggregated across all matching assets) and a
+          searchable, paginated evaluation table with a state filter (Healthy / Approaching / Overdue). For the
+          Replacement report, use <strong>PDF</strong> and <strong>Excel</strong> beside the Rows control — exports
+          include all matching rows (up to 10,000) and respect the current state and search filters. Finance users
+          also see an <strong>End-of-Life FMV</strong> section with its own pagination and export. For Department
+          Cost and Disposal, export from the buttons on each tab. Department costs update when assets are transferred
           between departments.
         </p>
       </Section>

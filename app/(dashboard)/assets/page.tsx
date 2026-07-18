@@ -19,7 +19,6 @@ import { hasPermission } from "@/lib/permissions";
 export default async function AssetsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const session = await getRequiredSession();
   const canWriteAssets = hasPermission(session.role, PERMISSION_KEYS.ASSET_WRITE);
-  const qrEnabled = session.organizationId ? await isQrLocationScanningEnabled(session.organizationId) : false;
   const params = await searchParams;
   const q = getOptionalQuery(params, "q");
   const branchFilter = getOptionalQuery(params, "branch");
@@ -46,26 +45,29 @@ export default async function AssetsPage({ searchParams }: { searchParams: Promi
           },
         }
       : q
-      ? {
-          OR: [
-            { ain: { contains: q, mode: "insensitive" } },
-            { serialNumber: { contains: q, mode: "insensitive" } },
-            { name: { contains: q, mode: "insensitive" } },
-          ],
-        }
-      : {}),
+        ? {
+            OR: [
+              { ain: { contains: q, mode: "insensitive" } },
+              { serialNumber: { contains: q, mode: "insensitive" } },
+              { name: { contains: q, mode: "insensitive" } },
+            ],
+          }
+        : {}),
   };
 
-  const assets = await db.asset.findMany({
-    where,
-    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-    take,
-    orderBy: { updatedAt: "desc" },
-    include: { branch: true, custodian: true },
-  });
+  const [assets, refs, qrEnabled] = await Promise.all([
+    db.asset.findMany({
+      where,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      take,
+      orderBy: { updatedAt: "desc" },
+      include: { branch: true, custodian: true },
+    }),
+    getReferenceDataForSession(session),
+    session.organizationId ? isQrLocationScanningEnabled(session.organizationId) : Promise.resolve(false),
+  ]);
   const nextCursor = getNextCursor(assets, limit);
   const pageItems = assets.slice(0, limit);
-  const refs = await getReferenceDataForSession(session);
 
   return (
     <div>

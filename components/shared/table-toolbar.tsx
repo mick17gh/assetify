@@ -17,18 +17,25 @@ export function TableToolbar({
   searchPlaceholder,
   defaultLimit,
   filters,
+  paramPrefix = "",
+  showSearch = true,
 }: {
-  searchPlaceholder: string;
+  searchPlaceholder?: string;
   defaultLimit: number;
   filters?: React.ReactNode;
+  paramPrefix?: string;
+  showSearch?: boolean;
 }) {
   const router = useRouter();
   const params = useSearchParams();
-  const limit = params.get("limit") ?? String(defaultLimit);
+  const limitKey = `${paramPrefix}limit`;
+  const cursorKey = `${paramPrefix}cursor`;
+  const stackKey = `${paramPrefix}stack`;
+  const limit = params.get(limitKey) ?? String(defaultLimit);
 
   return (
     <div className="mb-4 flex flex-col gap-3 border-b border-purple-100 pb-4 md:flex-row md:items-center md:justify-between">
-      <TableSearch placeholder={searchPlaceholder} />
+      {showSearch && searchPlaceholder ? <TableSearch placeholder={searchPlaceholder} /> : <div />}
       <div className="flex flex-wrap items-center gap-2">
         {filters}
         <span className="text-xs font-medium text-purple-900/65">Rows</span>
@@ -36,9 +43,9 @@ export function TableToolbar({
           value={limit}
           onValueChange={(value) => {
             const target = getQueryNavigationTarget(params, (next) => {
-              next.set("limit", value);
-              next.delete("cursor");
-              next.delete("stack");
+              next.set(limitKey, value);
+              next.delete(cursorKey);
+              next.delete(stackKey);
             });
             if (!target) return;
             router.replace(target);

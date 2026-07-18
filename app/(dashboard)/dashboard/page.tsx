@@ -12,49 +12,55 @@ export default async function DashboardPage() {
   const assetScope = getAssetScopeWhere(session);
   const warrantyDueThreshold = new Date();
   warrantyDueThreshold.setDate(warrantyDueThreshold.getDate() + 90);
+  const yearStart = new Date(new Date().getFullYear(), 0, 1);
+  const yearEnd = new Date(new Date().getFullYear() + 1, 0, 1);
 
-  const [totalAssets, warrantyExpiringSoon, replacementDueQuarter, yearlyBudget] = await Promise.all([
-    db.asset.count({ where: assetScope }),
-    db.asset.count({
-      where: {
-        ...assetScope,
-        warrantyExpiryDate: {
-          lte: warrantyDueThreshold,
+  const [totalAssets, warrantyExpiringSoon, replacementDueQuarter, yearlyBudget, statusGroups, branchGroups, quarterSnapshot] =
+    await Promise.all([
+      db.asset.count({ where: assetScope }),
+      db.asset.count({
+        where: {
+          ...assetScope,
+          warrantyExpiryDate: {
+            lte: warrantyDueThreshold,
+          },
         },
-      },
-    }),
-    db.replacementEvaluation.count({
-      where: {
-        asset: assetScope,
-        state: { in: [RECOMMENDATION_STATE.APPROACHING, RECOMMENDATION_STATE.OVERDUE] },
-      },
-    }),
-    db.replacementEvaluation.aggregate({
-      _sum: { estimatedReplacementCost: true },
-      where: {
-        asset: assetScope,
-        recommendedReplaceDate: {
-          gte: new Date(new Date().getFullYear(), 0, 1),
-          lt: new Date(new Date().getFullYear() + 1, 0, 1),
+      }),
+      db.replacementEvaluation.count({
+        where: {
+          asset: assetScope,
+          state: { in: [RECOMMENDATION_STATE.APPROACHING, RECOMMENDATION_STATE.OVERDUE] },
         },
-      },
-    }),
-  ]);
-  const [statusGroups, branchGroups] = await Promise.all([
-    db.asset.groupBy({
-      by: ["status"],
-      where: assetScope,
-      _count: { _all: true },
-    }),
-    db.asset.groupBy({
-      by: ["branchId"],
-      where: assetScope,
-      _count: { _all: true },
-    }),
-  ]);
-  const topBranchGroups = [...branchGroups]
-    .sort((a, b) => b._count._all - a._count._all)
-    .slice(0, 6);
+      }),
+      db.replacementEvaluation.aggregate({
+        _sum: { estimatedReplacementCost: true },
+        where: {
+          asset: assetScope,
+          recommendedReplaceDate: {
+            gte: yearStart,
+            lt: yearEnd,
+          },
+        },
+      }),
+      db.asset.groupBy({
+        by: ["status"],
+        where: assetScope,
+        _count: { _all: true },
+      }),
+      db.asset.groupBy({
+        by: ["branchId"],
+        where: assetScope,
+        _count: { _all: true },
+      }),
+      session.organizationId
+        ? snapshotCurrentQuarter(
+            session.organizationId,
+            session.role === USER_ROLES.ADMIN ? null : session.branchId,
+          )
+        : Promise.resolve(null),
+    ]);
+
+  const topBranchGroups = [...branchGroups].sort((a, b) => b._count._all - a._count._all).slice(0, 6);
   const branchIds = topBranchGroups.map((item) => item.branchId);
   const branches = branchIds.length
     ? await db.branch.findMany({
@@ -63,12 +69,6 @@ export default async function DashboardPage() {
       })
     : [];
   const branchMap = new Map(branches.map((branch) => [branch.id, branch.name]));
-  const quarterSnapshot = session.organizationId
-    ? await snapshotCurrentQuarter(
-        session.organizationId,
-        session.role === USER_ROLES.ADMIN ? null : session.branchId,
-      )
-    : null;
 
   return (
     <div>

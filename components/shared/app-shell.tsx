@@ -76,7 +76,7 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
                         tooltip={link.label}
                         className="cursor-pointer rounded-lg data-[active=true]:bg-purple-100 data-[active=true]:text-purple-900"
                       >
-                        <Link href={link.href}>
+                        <Link href={link.href} prefetch>
                           <Icon className="h-4 w-4" />
                           <span>{link.label}</span>
                         </Link>

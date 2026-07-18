@@ -3,9 +3,11 @@ import { API_ROUTES, FEATURE_FLAGS, PERMISSION_KEYS, RATE_LIMIT } from "@/consta
 import { getRequiredSession } from "@/lib/session";
 import { assertRateLimit } from "@/lib/rate-limit";
 import {
+  buildExportTruncationNote,
   getDepartmentCostReport,
-  getDisposalReport,
-  getEndOfLifeValuationReport,
+  getDisposalRecordsExport,
+  getDisposalSummaryReport,
+  getEndOfLifeValuationExport,
   getReplacementDueReport,
 } from "@/lib/reports";
 import { assertPermission, hasPermission } from "@/lib/permissions";
@@ -56,6 +58,7 @@ export async function GET(request: Request) {
       { header: "Assets", key: "assets", width: 12 },
       { header: "Total Cost (GHS)", key: "cost", width: 20 },
     ];
+    const note = buildExportTruncationNote(false, rows.length, rows.length);
 
     if (format === "excel") {
       const buffer = await buildExcelReport(
@@ -67,6 +70,7 @@ export async function GET(request: Request) {
           assets: r.assetCount,
           cost: r.totalCost,
         })),
+        { note },
       );
       return fileResponse(buffer, `department-cost-${dateStamp}.xlsx`, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     }
@@ -80,19 +84,26 @@ export async function GET(request: Request) {
         assets: r.assetCount,
         cost: r.totalCost.toLocaleString(),
       })),
+      { note },
     );
     return fileResponse(buffer, `department-cost-${dateStamp}.pdf`, "application/pdf");
   }
 
   if (report === "disposal-summary") {
-    const { records, summary } = await getDisposalReport(session);
+    const [summary, exportResult] = await Promise.all([
+      getDisposalSummaryReport(session),
+      getDisposalRecordsExport(session),
+    ]);
+    const { records, totalCount, truncated } = exportResult;
+    const note = buildExportTruncationNote(truncated, totalCount, records.length);
+
     await writeAuditLog({
       actorUserId: session.userId,
       organizationId: session.organizationId,
       branchId: session.branchId,
       action: "reports.export",
       entityType: "AssetDisposalRecord",
-      metadata: { format, count: records.length, report },
+      metadata: { format, count: records.length, totalCount, truncated, report },
     });
 
     if (format === "excel") {
@@ -110,6 +121,7 @@ export async function GET(request: Request) {
           purchase: r.totalPurchaseValue,
           sales: r.totalSaleProceeds,
         })),
+        { note },
       );
       return fileResponse(buffer, `disposal-summary-${dateStamp}.xlsx`, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     }
@@ -132,19 +144,21 @@ export async function GET(request: Request) {
       sale: r.salePrice != null ? Number(r.salePrice).toLocaleString() : "—",
       reason: r.reason,
     }));
-    const buffer = await buildPdfReport("Assetify Disposal Summary", columns, data);
+    const buffer = await buildPdfReport("Assetify Disposal Summary", columns, data, { note });
     return fileResponse(buffer, `disposal-summary-${dateStamp}.pdf`, "application/pdf");
   }
 
   if (report === "end-of-life-valuation") {
-    const rows = await getEndOfLifeValuationReport(session);
+    const { rows, totalCount, truncated } = await getEndOfLifeValuationExport(session);
+    const note = buildExportTruncationNote(truncated, totalCount, rows.length);
+
     await writeAuditLog({
       actorUserId: session.userId,
       organizationId: session.organizationId,
       branchId: session.branchId,
       action: "reports.export",
       entityType: "EndOfLifeValuation",
-      metadata: { format, count: rows.length, report },
+      metadata: { format, count: rows.length, totalCount, truncated, report },
     });
 
     const columns = [
@@ -167,7 +181,7 @@ export async function GET(request: Request) {
     }));
 
     if (format === "excel") {
-      const buffer = await buildExcelReport("End of Life Valuation", columns, excelData);
+      const buffer = await buildExcelReport("End of Life Valuation", columns, excelData, { note });
       return fileResponse(buffer, `end-of-life-valuation-${dateStamp}.xlsx`, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     }
 
@@ -180,25 +194,27 @@ export async function GET(request: Request) {
         current: Number(r.current).toLocaleString(),
         sale: Number(r.sale).toLocaleString(),
       })),
+      { note },
     );
     return fileResponse(buffer, `end-of-life-valuation-${dateStamp}.pdf`, "application/pdf");
   }
 
-  // Default: replacement due
   if (!hasPermission(session.role, PERMISSION_KEYS.REPORT_READ)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const stateFilter = url.searchParams.get("state") ?? undefined;
   const qFilter = url.searchParams.get("q") ?? undefined;
-  const rows = await getReplacementDueReport(session, { state: stateFilter, q: qFilter });
+  const { rows, totalCount, truncated } = await getReplacementDueReport(session, { state: stateFilter, q: qFilter });
+  const note = buildExportTruncationNote(truncated, totalCount, rows.length);
+
   await writeAuditLog({
     actorUserId: session.userId,
     organizationId: session.organizationId,
     branchId: session.branchId,
     action: "reports.export",
     entityType: "ReplacementEvaluation",
-    metadata: { format, count: rows.length, report: "replacement", state: stateFilter ?? null, q: qFilter ?? null },
+    metadata: { format, count: rows.length, totalCount, truncated, report: "replacement", state: stateFilter ?? null, q: qFilter ?? null },
   });
 
   const columns = [
@@ -221,7 +237,7 @@ export async function GET(request: Request) {
   const titleSuffix = stateFilter ? ` (${stateFilter})` : "";
 
   if (format === "excel") {
-    const buffer = await buildExcelReport("Replacement Due", columns, excelData);
+    const buffer = await buildExcelReport("Replacement Due", columns, excelData, { note });
     return fileResponse(buffer, `replacement-report-${dateStamp}.xlsx`, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
   }
 
@@ -229,6 +245,7 @@ export async function GET(request: Request) {
     `Assetify Replacement Report${titleSuffix}`,
     columns,
     excelData.map((r) => ({ ...r, cost: Number(r.cost).toLocaleString() })),
+    { note },
   );
   return fileResponse(buffer, `replacement-report-${dateStamp}.pdf`, "application/pdf");
 }

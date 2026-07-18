@@ -30,20 +30,21 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
         }
       : {}),
   };
-  const users = await db.user.findMany({
+  const usersPromise = db.user.findMany({
     where,
     include: { branch: true },
     orderBy: { updatedAt: "desc" },
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
     take,
   });
-  const nextCursor = getNextCursor(users, limit);
-  const pageItems = users.slice(0, limit);
-  const branches = await db.branch.findMany({
+  const branchesPromise = db.branch.findMany({
     where: { organizationId: session.organizationId ?? undefined },
     orderBy: { name: "asc" },
     select: { id: true, name: true, code: true },
   });
+  const [users, branches] = await Promise.all([usersPromise, branchesPromise]);
+  const nextCursor = getNextCursor(users, limit);
+  const pageItems = users.slice(0, limit);
 
   return (
     <div>

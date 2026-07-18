@@ -7,9 +7,14 @@ export async function buildExcelReport(
   sheetName: string,
   columns: ExportColumn[],
   rows: Record<string, string | number>[],
+  options?: { note?: string },
 ): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet(sheetName);
+  if (options?.note) {
+    worksheet.addRow([options.note]);
+    worksheet.addRow([]);
+  }
   worksheet.columns = columns.map((col) => ({ header: col.header, key: col.key, width: col.width ?? 20 }));
   rows.forEach((row) => worksheet.addRow(row));
   const buffer = await workbook.xlsx.writeBuffer();
@@ -170,6 +175,7 @@ export async function buildPdfReport(
   title: string,
   columns: ExportColumn[],
   rows: Record<string, string | number>[],
+  options?: { note?: string },
 ): Promise<Buffer> {
   const pdf = await PDFDocument.create();
   const font = await pdf.embedFont(StandardFonts.Helvetica);
@@ -177,7 +183,7 @@ export async function buildPdfReport(
   const usableWidth = PAGE_WIDTH - MARGIN_X * 2;
   const columnWidths = resolveColumnWidths(columns, usableWidth);
 
-  const headerBlock = 40 + HEADER_HEIGHT;
+  const headerBlock = 40 + HEADER_HEIGHT + (options?.note ? 14 : 0);
   const availableForRows = PAGE_HEIGHT - MARGIN_TOP - MARGIN_BOTTOM - headerBlock;
   const maxRowsPerPage = Math.max(1, Math.floor(availableForRows / ROW_HEIGHT));
 
@@ -190,12 +196,15 @@ export async function buildPdfReport(
   const generatedAt = new Date().toLocaleString();
   chunks.forEach((chunk, index) => {
     const page = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+    const pageLabelParts = [`Generated: ${generatedAt}`];
+    if (options?.note) pageLabelParts.push(options.note);
+    if (chunks.length > 1) pageLabelParts.push(`Page ${index + 1} of ${chunks.length}`);
     drawTablePage({
       page,
       font,
       bold,
       title,
-      pageLabel: `Generated: ${generatedAt}${chunks.length > 1 ? `  •  Page ${index + 1} of ${chunks.length}` : ""}`,
+      pageLabel: pageLabelParts.join("  •  "),
       columns,
       columnWidths,
       rows: chunk,

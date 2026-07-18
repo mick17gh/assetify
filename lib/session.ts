@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { USER_ROLES } from "@/constants";
@@ -10,10 +11,14 @@ export type AppSession = {
   email: string;
 };
 
-export async function getOptionalSession(): Promise<AppSession | null> {
-  const session = await auth.api.getSession({
+const getAuthSession = cache(async () => {
+  return auth.api.getSession({
     headers: await headers(),
   });
+});
+
+export const getOptionalSession = cache(async (): Promise<AppSession | null> => {
+  const session = await getAuthSession();
 
   if (!session?.user) return null;
 
@@ -24,22 +29,14 @@ export async function getOptionalSession(): Promise<AppSession | null> {
     organizationId: (session.user.organizationId as string | null | undefined) ?? null,
     email: session.user.email,
   };
-}
+});
 
-export async function getRequiredSession(): Promise<AppSession> {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+export const getRequiredSession = cache(async (): Promise<AppSession> => {
+  const session = await getOptionalSession();
 
-  if (!session?.user) {
+  if (!session) {
     throw new Error("UNAUTHORIZED");
   }
 
-  return {
-    userId: session.user.id,
-    role: (session.user.role as AppSession["role"]) ?? USER_ROLES.STAFF,
-    branchId: (session.user.branchId as string | null | undefined) ?? null,
-    organizationId: (session.user.organizationId as string | null | undefined) ?? null,
-    email: session.user.email,
-  };
-}
+  return session;
+});

@@ -22,10 +22,8 @@ export default async function DepreciationSettingsPage({ searchParams }: { searc
   const q = getOptionalQuery(params, "q");
   const { cursor, limit, take } = resolveCursorPaginationFromParams(params);
 
-  const categories = await db.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } });
-  const categoryOptions = categories.map((c) => ({ id: c.id, label: c.name }));
-
-  const rows = await db.depreciationPolicy.findMany({
+  const categoriesPromise = db.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } });
+  const rowsPromise = db.depreciationPolicy.findMany({
     where: {
       organizationId: session.organizationId ?? undefined,
       ...(q ? { category: { name: { contains: q, mode: "insensitive" } } } : {}),
@@ -35,6 +33,8 @@ export default async function DepreciationSettingsPage({ searchParams }: { searc
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
     take,
   });
+  const [categories, rows] = await Promise.all([categoriesPromise, rowsPromise]);
+  const categoryOptions = categories.map((c) => ({ id: c.id, label: c.name }));
   const nextCursor = getNextCursor(rows, limit);
   const pageItems = rows.slice(0, limit);
 

@@ -10,23 +10,29 @@ export function PaginationControls({
   nextCursor,
   shownCount,
   limit,
+  totalCount,
+  paramPrefix = "",
 }: {
   nextCursor: string | null;
   shownCount: number;
   limit: number;
+  totalCount?: number;
+  paramPrefix?: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [activeAction, setActiveAction] = useState<"reset" | "prev" | "next" | null>(null);
   const params = useSearchParams();
-  const currentCursor = params.get("cursor") ?? "";
+  const cursorKey = `${paramPrefix}cursor`;
+  const stackKey = `${paramPrefix}stack`;
+  const currentCursor = params.get(cursorKey) ?? "";
   const stack = useMemo(
     () =>
-      (params.get("stack") ?? "")
+      (params.get(stackKey) ?? "")
         .split(",")
         .map((item) => item.trim())
         .filter(Boolean),
-    [params],
+    [params, stackKey],
   );
   const prevToken = stack.length ? stack[stack.length - 1] : null;
   const hasPrevious = prevToken !== null;
@@ -39,8 +45,8 @@ export function PaginationControls({
     if (!nextCursor) return;
     const target = getQueryNavigationTarget(params, (next) => {
       const nextStack = [...stack, currentCursor || "ROOT"];
-      next.set("stack", nextStack.join(","));
-      next.set("cursor", nextCursor);
+      next.set(stackKey, nextStack.join(","));
+      next.set(cursorKey, nextCursor);
     });
     if (!target) return;
     setActiveAction("next");
@@ -53,10 +59,10 @@ export function PaginationControls({
     if (!prevToken) return;
     const target = getQueryNavigationTarget(params, (next) => {
       const nextStack = stack.slice(0, -1);
-      if (nextStack.length) next.set("stack", nextStack.join(","));
-      else next.delete("stack");
-      if (prevToken === "ROOT") next.delete("cursor");
-      else next.set("cursor", prevToken);
+      if (nextStack.length) next.set(stackKey, nextStack.join(","));
+      else next.delete(stackKey);
+      if (prevToken === "ROOT") next.delete(cursorKey);
+      else next.set(cursorKey, prevToken);
     });
     if (!target) return;
     setActiveAction("prev");
@@ -67,8 +73,8 @@ export function PaginationControls({
 
   const resetPagination = () => {
     const target = getQueryNavigationTarget(params, (next) => {
-      next.delete("cursor");
-      next.delete("stack");
+      next.delete(cursorKey);
+      next.delete(stackKey);
     });
     if (!target) return;
     setActiveAction("reset");
@@ -77,11 +83,14 @@ export function PaginationControls({
     });
   };
 
+  const countLabel =
+    totalCount != null
+      ? `Showing ${shownCount} of ${totalCount.toLocaleString()} (page size ${limit})`
+      : `Showing ${shownCount} row${shownCount === 1 ? "" : "s"} (page size ${limit})`;
+
   return (
     <div className="mt-4 flex flex-col gap-3 border-t border-purple-100 pt-4 md:flex-row md:items-center md:justify-between">
-      <p className="text-xs font-medium text-purple-900/65">
-        Showing {shownCount} row{shownCount === 1 ? "" : "s"} (page size {limit})
-      </p>
+      <p className="text-xs font-medium text-purple-900/65">{countLabel}</p>
       <div className="flex items-center gap-2">
         <Button variant="outline" onClick={resetPagination} disabled={isPending} className="cursor-pointer border-purple-200">
           {isResetLoading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <RotateCcw className="mr-1 h-4 w-4" />}
