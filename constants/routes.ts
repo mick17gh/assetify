@@ -35,4 +35,5 @@ export const API_ROUTES = {
   REMINDERS_DISPATCH: "/api/reminders/dispatch",
   CSV_IMPORT: "/api/assets/import",
   CSV_IMPORT_TEMPLATE: "/api/assets/import/template",
+  VERSION: "/api/version",
 } as const;

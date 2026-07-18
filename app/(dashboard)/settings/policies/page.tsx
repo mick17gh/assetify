@@ -1,8 +1,10 @@
+import { Suspense } from "react";
 import { PageHeader } from "@/components/shared/page-header";
 import { SetupTableShell } from "@/components/shared/setup-table-shell";
 import { SetupCreateModal, SetupTextField } from "@/components/settings/setup-create-modal";
 import { SetupRowActions } from "@/components/settings/setup-row-actions";
 import { ReferenceSelect } from "@/components/shared/reference-selects";
+import { PageLoading } from "@/components/shared/page-loading";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { db } from "@/lib/db";
 import { getRequiredSession } from "@/lib/session";
@@ -14,41 +16,38 @@ import {
   updateReplacementPolicyAction,
 } from "../actions";
 
-export default async function PoliciesSettingsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+async function PoliciesContent({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const session = await getRequiredSession();
   const params = await searchParams;
   const q = getOptionalQuery(params, "q");
   const { cursor, limit, take } = resolveCursorPaginationFromParams(params);
 
-  const categoriesPromise = db.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } });
-  const rowsPromise = db.replacementPolicy.findMany({
-    where: {
-      organizationId: session.organizationId ?? undefined,
-      ...(q ? { category: { name: { contains: q, mode: "insensitive" } } } : {}),
-    },
-    include: { category: true },
-    orderBy: { createdAt: "desc" },
-    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-    take,
-  });
-  const [categories, rows] = await Promise.all([categoriesPromise, rowsPromise]);
+  const [categories, rows] = await Promise.all([
+    db.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    db.replacementPolicy.findMany({
+      where: {
+        organizationId: session.organizationId ?? undefined,
+        ...(q ? { category: { name: { contains: q, mode: "insensitive" } } } : {}),
+      },
+      include: { category: true },
+      orderBy: { createdAt: "desc" },
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      take,
+    }),
+  ]);
   const categoryOptions = categories.map((c) => ({ id: c.id, label: c.name }));
   const nextCursor = getNextCursor(rows, limit);
   const pageItems = rows.slice(0, limit);
 
   return (
-    <div>
-      <PageHeader
-        title="Replacement Policies"
-        description="Category-specific replacement and disposal rules."
-        action={
-          <SetupCreateModal title="Create policy" triggerLabel="Add Policy" action={createReplacementPolicyAction}>
-            <ReferenceSelect name="categoryId" label="Category" options={categoryOptions} required />
-            <SetupTextField name="replacementYears" label="Replacement years" type="number" required defaultValue="3" />
-            <SetupTextField name="disposalGraceMonths" label="Grace months" type="number" required defaultValue="6" />
-          </SetupCreateModal>
-        }
-      />
+    <>
+      <div className="mb-4 flex justify-end">
+        <SetupCreateModal title="Create policy" triggerLabel="Add Policy" action={createReplacementPolicyAction}>
+          <ReferenceSelect name="categoryId" label="Category" options={categoryOptions} required />
+          <SetupTextField name="replacementYears" label="Replacement years" type="number" required defaultValue="3" />
+          <SetupTextField name="disposalGraceMonths" label="Grace months" type="number" required defaultValue="6" />
+        </SetupCreateModal>
+      </div>
       <SetupTableShell searchPlaceholder="Search by category" defaultLimit={limit} nextCursor={nextCursor} shownCount={pageItems.length}>
         <Table>
           <TableHeader>
@@ -85,6 +84,17 @@ export default async function PoliciesSettingsPage({ searchParams }: { searchPar
           </TableBody>
         </Table>
       </SetupTableShell>
+    </>
+  );
+}
+
+export default function PoliciesSettingsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  return (
+    <div>
+      <PageHeader title="Replacement Policies" description="Category-specific replacement and disposal rules." />
+      <Suspense fallback={<PageLoading rows={5} />}>
+        <PoliciesContent searchParams={searchParams} />
+      </Suspense>
     </div>
   );
 }

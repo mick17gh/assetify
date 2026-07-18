@@ -1,16 +1,18 @@
+import { Suspense } from "react";
 import { PageHeader } from "@/components/shared/page-header";
 import { SetupTableShell } from "@/components/shared/setup-table-shell";
 import { LocationsSetupTabs } from "@/components/settings/locations-setup-tabs";
+import { PageLoading } from "@/components/shared/page-loading";
 import { db } from "@/lib/db";
 import { isQrLocationScanningEnabled } from "@/lib/organization-settings";
 import { getRequiredSession } from "@/lib/session";
 
-export default async function LocationsSettingsPage() {
+async function LocationsContent() {
   const session = await getRequiredSession();
   const orgId = session.organizationId ?? undefined;
-  const qrEnabled = orgId ? await isQrLocationScanningEnabled(orgId) : false;
 
-  const [departments, rooms, shelves, branches] = await Promise.all([
+  const [qrEnabled, departments, rooms, shelves, branches] = await Promise.all([
+    orgId ? isQrLocationScanningEnabled(orgId) : Promise.resolve(false),
     db.department.findMany({
       where: { branch: { organizationId: orgId } },
       include: { branch: true },
@@ -37,18 +39,31 @@ export default async function LocationsSettingsPage() {
   ]);
 
   return (
+    <SetupTableShell
+      searchPlaceholder="Search locations"
+      defaultLimit={100}
+      nextCursor={null}
+      shownCount={departments.length + rooms.length + shelves.length}
+    >
+      <LocationsSetupTabs
+        departments={departments}
+        rooms={rooms}
+        shelves={shelves}
+        branches={branches.map((b) => ({ id: b.id, label: `${b.name} (${b.code})` }))}
+        roomsForSelect={rooms.map((r) => ({ id: r.id, label: `${r.name} (${r.branch.name})` }))}
+        qrEnabled={qrEnabled}
+      />
+    </SetupTableShell>
+  );
+}
+
+export default function LocationsSettingsPage() {
+  return (
     <div>
       <PageHeader title="Locations" description="Manage departments, rooms, and shelves." />
-      <SetupTableShell searchPlaceholder="Search locations" defaultLimit={100} nextCursor={null} shownCount={departments.length + rooms.length + shelves.length}>
-        <LocationsSetupTabs
-          departments={departments}
-          rooms={rooms}
-          shelves={shelves}
-          branches={branches.map((b) => ({ id: b.id, label: `${b.name} (${b.code})` }))}
-          roomsForSelect={rooms.map((r) => ({ id: r.id, label: `${r.name} (${r.branch.name})` }))}
-          qrEnabled={qrEnabled}
-        />
-      </SetupTableShell>
+      <Suspense fallback={<PageLoading rows={6} />}>
+        <LocationsContent />
+      </Suspense>
     </div>
   );
 }

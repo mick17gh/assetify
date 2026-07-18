@@ -27,6 +27,7 @@ export function SettingsNav() {
         <Link
           key={link.href}
           href={link.href}
+          prefetch
           className={cn(
             "cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
             pathname === link.href || pathname.startsWith(`${link.href}/`)

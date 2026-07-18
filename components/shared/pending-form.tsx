@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useTransition } from "react";
 import { toast } from "sonner";
+import { isStaleClientError, notifyUpdateAvailable } from "@/lib/update-available";
 
 const PendingFormContext = createContext(false);
 
@@ -53,6 +54,10 @@ export function PendingForm({
               onSuccess?.();
             } catch (error) {
               if (shouldRethrow(error)) throw error;
+              if (isStaleClientError(error)) {
+                notifyUpdateAvailable("This page is out of date after a deploy. Refresh, then try again.");
+                return;
+              }
               toast.error(getErrorMessage(error));
             }
           });

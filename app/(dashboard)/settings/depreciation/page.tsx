@@ -1,9 +1,11 @@
+import { Suspense } from "react";
 import { PageHeader } from "@/components/shared/page-header";
 import { SetupTableShell } from "@/components/shared/setup-table-shell";
 import { SetupCreateModal, SetupTextField } from "@/components/settings/setup-create-modal";
 import { SetupRowActions } from "@/components/settings/setup-row-actions";
 import { ReferenceSelect } from "@/components/shared/reference-selects";
 import { EnumSelect } from "@/components/shared/enum-select";
+import { PageLoading } from "@/components/shared/page-loading";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { db } from "@/lib/db";
 import { getRequiredSession } from "@/lib/session";
@@ -16,49 +18,46 @@ import {
   updateDepreciationPolicyAction,
 } from "../actions";
 
-export default async function DepreciationSettingsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+async function DepreciationContent({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const session = await getRequiredSession();
   const params = await searchParams;
   const q = getOptionalQuery(params, "q");
   const { cursor, limit, take } = resolveCursorPaginationFromParams(params);
 
-  const categoriesPromise = db.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } });
-  const rowsPromise = db.depreciationPolicy.findMany({
-    where: {
-      organizationId: session.organizationId ?? undefined,
-      ...(q ? { category: { name: { contains: q, mode: "insensitive" } } } : {}),
-    },
-    include: { category: true },
-    orderBy: { createdAt: "desc" },
-    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-    take,
-  });
-  const [categories, rows] = await Promise.all([categoriesPromise, rowsPromise]);
+  const [categories, rows] = await Promise.all([
+    db.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    db.depreciationPolicy.findMany({
+      where: {
+        organizationId: session.organizationId ?? undefined,
+        ...(q ? { category: { name: { contains: q, mode: "insensitive" } } } : {}),
+      },
+      include: { category: true },
+      orderBy: { createdAt: "desc" },
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      take,
+    }),
+  ]);
   const categoryOptions = categories.map((c) => ({ id: c.id, label: c.name }));
   const nextCursor = getNextCursor(rows, limit);
   const pageItems = rows.slice(0, limit);
 
   return (
-    <div>
-      <PageHeader
-        title="Depreciation Policies"
-        description="Define straight-line depreciation rules per asset category."
-        action={
-          <SetupCreateModal title="Create depreciation policy" triggerLabel="Add Policy" action={createDepreciationPolicyAction}>
-            <ReferenceSelect name="categoryId" label="Category" options={categoryOptions} required />
-            <EnumSelect
-              name="method"
-              label="Method"
-              labelKey="depreciationMethod"
-              values={DEPRECIATION_METHOD}
-              defaultValue={DEPRECIATION_METHOD.STRAIGHT_LINE}
-              required
-            />
-            <SetupTextField name="usefulLifeYears" label="Useful life (years)" type="number" required defaultValue="5" />
-            <SetupTextField name="salvagePercent" label="Salvage %" type="number" required defaultValue="10" />
-          </SetupCreateModal>
-        }
-      />
+    <>
+      <div className="mb-4 flex justify-end">
+        <SetupCreateModal title="Create depreciation policy" triggerLabel="Add Policy" action={createDepreciationPolicyAction}>
+          <ReferenceSelect name="categoryId" label="Category" options={categoryOptions} required />
+          <EnumSelect
+            name="method"
+            label="Method"
+            labelKey="depreciationMethod"
+            values={DEPRECIATION_METHOD}
+            defaultValue={DEPRECIATION_METHOD.STRAIGHT_LINE}
+            required
+          />
+          <SetupTextField name="usefulLifeYears" label="Useful life (years)" type="number" required defaultValue="5" />
+          <SetupTextField name="salvagePercent" label="Salvage %" type="number" required defaultValue="10" />
+        </SetupCreateModal>
+      </div>
       <SetupTableShell searchPlaceholder="Search by category" defaultLimit={limit} nextCursor={nextCursor} shownCount={pageItems.length}>
         <Table>
           <TableHeader>
@@ -105,6 +104,20 @@ export default async function DepreciationSettingsPage({ searchParams }: { searc
           </TableBody>
         </Table>
       </SetupTableShell>
+    </>
+  );
+}
+
+export default function DepreciationSettingsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  return (
+    <div>
+      <PageHeader
+        title="Depreciation Policies"
+        description="Define straight-line depreciation rules per asset category."
+      />
+      <Suspense fallback={<PageLoading rows={5} />}>
+        <DepreciationContent searchParams={searchParams} />
+      </Suspense>
     </div>
   );
 }
