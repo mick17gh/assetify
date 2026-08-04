@@ -306,6 +306,7 @@ async function main() {
       branchId: branch.id,
       departmentId: itDepartment.id,
       categoryId: category.id,
+      requestedAssetName: "Demo Laptop",
       reason: "Need a laptop for remote project work",
       urgency: ASSET_REQUEST_URGENCY.HIGH,
       notes: "Prefer 16GB RAM model",

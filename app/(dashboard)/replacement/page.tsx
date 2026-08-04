@@ -10,9 +10,9 @@ import { ASSET_STATUS, RECOMMENDATION_STATE } from "@/constants";
 import { getRequiredSession } from "@/lib/session";
 import { getAssetScopeWhere } from "@/lib/scoping";
 import { getOptionalQuery, SearchParams } from "@/lib/filters/query";
-import { getNextCursor, resolveCursorPaginationFromParams } from "@/lib/pagination/cursor";
+import { resolvePagePaginationFromParams } from "@/lib/pagination/page";
 import { TableToolbar } from "@/components/shared/table-toolbar";
-import { PaginationControls } from "@/components/shared/pagination-controls";
+import { TablePagination } from "@/components/shared/table-pagination";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Prisma } from "@/lib/generated/prisma/client";
@@ -22,7 +22,7 @@ export default async function ReplacementPage({ searchParams }: { searchParams: 
   const params = await searchParams;
   const q = getOptionalQuery(params, "q");
   const state = getOptionalQuery(params, "state");
-  const { cursor, limit, take } = resolveCursorPaginationFromParams(params);
+  const { page, pageSize, skip, take } = resolvePagePaginationFromParams(params);
   const stateQuery =
     state && Object.values(RECOMMENDATION_STATE).includes(state.toUpperCase() as (typeof RECOMMENDATION_STATE)[keyof typeof RECOMMENDATION_STATE])
       ? state.toUpperCase()
@@ -49,7 +49,7 @@ export default async function ReplacementPage({ searchParams }: { searchParams: 
     ...(stateQuery ? { state: stateQuery as Prisma.ReplacementEvaluationWhereInput["state"] } : {}),
   };
 
-  const [healthy, approaching, overdue, rows] = await Promise.all([
+  const [healthy, approaching, overdue, rows, totalCount] = await Promise.all([
     db.replacementEvaluation.count({ where: { ...whereBase, state: RECOMMENDATION_STATE.HEALTHY } }),
     db.replacementEvaluation.count({ where: { ...whereBase, state: RECOMMENDATION_STATE.APPROACHING } }),
     db.replacementEvaluation.count({ where: { ...whereBase, state: RECOMMENDATION_STATE.OVERDUE } }),
@@ -57,12 +57,11 @@ export default async function ReplacementPage({ searchParams }: { searchParams: 
       where: whereBase,
       include: { asset: true },
       orderBy: { recommendedReplaceDate: "asc" },
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      skip,
       take,
     }),
+    db.replacementEvaluation.count({ where: whereBase }),
   ]);
-  const nextCursor = getNextCursor(rows, limit);
-  const pageItems = rows.slice(0, limit);
 
   return (
     <div>
@@ -82,7 +81,7 @@ export default async function ReplacementPage({ searchParams }: { searchParams: 
       />
       <Card className="mt-4 border-purple-200 shadow-sm">
         <CardContent className="pt-6">
-          <TableToolbar searchPlaceholder="Search by asset name or AIN" defaultLimit={limit} />
+          <TableToolbar searchPlaceholder="Search by asset name or AIN" />
           <div className="mb-4 flex justify-end">
             <RecommendationStateFilter />
           </div>
@@ -97,7 +96,7 @@ export default async function ReplacementPage({ searchParams }: { searchParams: 
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pageItems.map((row) => (
+              {rows.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell>
                     <Link href={`/assets/${row.assetId}`} className="font-medium text-[#6D28D9] hover:underline">
@@ -125,7 +124,7 @@ export default async function ReplacementPage({ searchParams }: { searchParams: 
               ))}
             </TableBody>
           </Table>
-          <PaginationControls nextCursor={nextCursor} shownCount={pageItems.length} limit={limit} />
+          <TablePagination currentPage={page} totalItems={totalCount} pageSize={pageSize} />
         </CardContent>
       </Card>
     </div>

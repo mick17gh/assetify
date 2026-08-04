@@ -5,6 +5,7 @@ import { DOCUMENT_TYPE, ENUM_LABELS } from "@/constants";
 import type { ReferenceOption } from "@/components/shared/reference-selects";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getQueryNavigationTarget } from "@/lib/filters/query";
+import { clearPaginationParams } from "@/lib/pagination/page";
 
 export function DocumentFilters({
   branches,
@@ -22,8 +23,7 @@ export function DocumentFilters({
 
   function updateQuery(mutate: (next: URLSearchParams) => void) {
     const target = getQueryNavigationTarget(params, (next) => {
-      next.delete("cursor");
-      next.delete("stack");
+      clearPaginationParams(next);
       mutate(next);
     });
     if (!target) return;

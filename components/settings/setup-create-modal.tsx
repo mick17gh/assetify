@@ -34,7 +34,7 @@ export function SetupCreateModal({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <PendingForm action={action} onSuccess={() => setOpen(false)} successMessage="Saved." className="space-y-3">
+        <PendingForm action={action} onSuccess={() => setOpen(false)} successMessage="Saved." className="min-w-0 space-y-3">
           {children}
           <SubmitButton idleLabel="Save" pendingLabel="Saving..." className="w-full cursor-pointer" />
         </PendingForm>
@@ -50,6 +50,9 @@ export function SetupTextField({
   required,
   defaultValue,
   placeholder,
+  minLength,
+  maxLength,
+  pattern,
 }: {
   name: string;
   label: string;
@@ -57,9 +60,12 @@ export function SetupTextField({
   required?: boolean;
   defaultValue?: string;
   placeholder?: string;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
 }) {
   return (
-    <div className="space-y-1">
+    <div className="min-w-0 space-y-1">
       <Label htmlFor={name}>{label}</Label>
       <Input
         id={name}
@@ -68,6 +74,10 @@ export function SetupTextField({
         required={required}
         defaultValue={defaultValue}
         placeholder={placeholder}
+        minLength={minLength}
+        maxLength={maxLength}
+        pattern={pattern}
+        className="min-w-0"
       />
     </div>
   );

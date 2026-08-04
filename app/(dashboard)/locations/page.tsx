@@ -5,9 +5,9 @@ import { db } from "@/lib/db";
 import { getRequiredSession } from "@/lib/session";
 import { getAssetScopeWhere } from "@/lib/scoping";
 import { getOptionalQuery, SearchParams } from "@/lib/filters/query";
-import { getNextCursor, resolveCursorPaginationFromParams } from "@/lib/pagination/cursor";
+import { resolvePagePaginationFromParams } from "@/lib/pagination/page";
 import { TableToolbar } from "@/components/shared/table-toolbar";
-import { PaginationControls } from "@/components/shared/pagination-controls";
+import { TablePagination } from "@/components/shared/table-pagination";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Prisma } from "@/lib/generated/prisma/client";
@@ -20,7 +20,7 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
   const assetScope = getAssetScopeWhere(session);
   const params = await searchParams;
   const q = getOptionalQuery(params, "q");
-  const { cursor, limit, take } = resolveCursorPaginationFromParams(params);
+  const { page, pageSize, skip, take } = resolvePagePaginationFromParams(params);
   const where: Prisma.AssetMovementWhereInput = {
     asset: assetScope,
     ...(q
@@ -32,16 +32,15 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
         }
       : {}),
   };
-  const rows = await db.assetMovement.findMany({
-    where,
-    include: { asset: { include: { branch: true } } },
-    orderBy: { createdAt: "desc" },
-    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-    take,
-  });
-  const nextCursor = getNextCursor(rows, limit);
-  const pageItems = rows.slice(0, limit);
-  const [assets, branches, departments, rooms, shelves, users] = await Promise.all([
+  const [rows, totalCount, assets, branches, departments, rooms, shelves, users] = await Promise.all([
+    db.assetMovement.findMany({
+      where,
+      include: { asset: { include: { branch: true } } },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take,
+    }),
+    db.assetMovement.count({ where }),
     db.asset.findMany({
       where: assetScope,
       orderBy: { name: "asc" },
@@ -100,7 +99,7 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
       />
       <Card className="border-purple-200 shadow-sm">
         <CardContent className="pt-6">
-          <TableToolbar searchPlaceholder="Filter by movement note or asset" defaultLimit={limit} />
+          <TableToolbar searchPlaceholder="Filter by movement note or asset" />
           <Table>
             <TableHeader>
               <TableRow>
@@ -111,7 +110,7 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pageItems.map((row) => (
+              {rows.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell>
                     <Link href={`/assets/${row.assetId}`} className="font-medium text-[#6D28D9] hover:underline">
@@ -125,7 +124,7 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
               ))}
             </TableBody>
           </Table>
-          <PaginationControls nextCursor={nextCursor} shownCount={pageItems.length} limit={limit} />
+          <TablePagination currentPage={page} totalItems={totalCount} pageSize={pageSize} />
         </CardContent>
       </Card>
     </div>

@@ -279,6 +279,10 @@ export function AssetDetailsActions({
                   required
                 />
                 <div className="space-y-1">
+                  <Label htmlFor="displayName">Document name</Label>
+                  <Input id="displayName" name="displayName" placeholder="e.g. Warranty card" required />
+                </div>
+                <div className="space-y-1">
                   <Label htmlFor="document">File</Label>
                   <Input id="document" name="document" type="file" required />
                 </div>

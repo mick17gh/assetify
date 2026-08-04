@@ -66,6 +66,7 @@ export async function uploadAssetDocumentAction(formData: FormData) {
   if (!asset) throw new Error("Asset not found.");
 
   const { fileName, publicUrl } = await uploadAssetFileToSpaces(assetId, file, "documents");
+  const displayName = String(formData.get("displayName") ?? "").trim() || file.name || fileName;
   await db.assetDocument.create({
     data: {
       assetId,
@@ -75,6 +76,7 @@ export async function uploadAssetDocumentAction(formData: FormData) {
         | "MANUAL"
         | "SERVICE_REPORT"
         | "OTHER",
+      displayName,
       fileName,
       fileUrl: publicUrl,
       mimeType: file.type || "application/octet-stream",
@@ -89,7 +91,7 @@ export async function uploadAssetDocumentAction(formData: FormData) {
     action: "asset.document.upload",
     entityType: "AssetDocument",
     entityId: assetId,
-    metadata: { fileName, documentType },
+    metadata: { fileName, displayName, documentType },
   });
 
   revalidatePath(`/assets/${assetId}`);

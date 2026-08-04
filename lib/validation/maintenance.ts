@@ -23,6 +23,7 @@ export const deleteMaintenanceSchema = z.object({
 export const createConditionFlagSchema = z.object({
   assetId: z.string().cuid(),
   title: z.string().min(2).max(120),
+  notes: z.string().max(2000).optional().or(z.literal("")),
   severity: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
 });
 

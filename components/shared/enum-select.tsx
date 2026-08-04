@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { FormValueInput } from "@/components/shared/form-value-input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ENUM_LABELS } from "@/constants";
@@ -35,9 +36,9 @@ export function EnumSelect({
   const selected = value ?? internal;
 
   return (
-    <div className="w-full space-y-1">
+    <div className="relative min-w-0 w-full space-y-1">
       <Label htmlFor={name}>{label}</Label>
-      <input type="hidden" name={name} value={selected} required={required} />
+      <FormValueInput name={name} value={selected} required={required} />
       <Select
         value={selected}
         onValueChange={(next) => {
@@ -45,7 +46,7 @@ export function EnumSelect({
           onValueChange?.(next);
         }}
       >
-        <SelectTrigger id={name} className="cursor-pointer border-purple-200">
+        <SelectTrigger id={name} className="min-w-0 cursor-pointer border-purple-200">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
@@ -74,7 +75,6 @@ export function EnumSelectFilter({
 
   return (
     <div className="space-y-1">
-      {/* <Label htmlFor={name}>{label}</Label> */}
       <Select value={value} onValueChange={onValueChange}>
         <SelectTrigger id={name} className="h-9 w-[160px] cursor-pointer border-purple-200">
           <SelectValue placeholder="All" />

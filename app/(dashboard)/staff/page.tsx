@@ -3,19 +3,19 @@ import { PageHeader } from "@/components/shared/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { TableToolbar } from "@/components/shared/table-toolbar";
-import { PaginationControls } from "@/components/shared/pagination-controls";
+import { TablePagination } from "@/components/shared/table-pagination";
 import { db } from "@/lib/db";
 import { getRequiredSession } from "@/lib/session";
 import { getUserScopeWhere } from "@/lib/scoping";
 import { getOptionalQuery, SearchParams } from "@/lib/filters/query";
-import { getNextCursor, resolveCursorPaginationFromParams } from "@/lib/pagination/cursor";
+import { resolvePagePaginationFromParams } from "@/lib/pagination/page";
 import { Prisma } from "@/lib/generated/prisma/client";
 
 export default async function StaffListPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const session = await getRequiredSession();
   const params = await searchParams;
   const q = getOptionalQuery(params, "q");
-  const { cursor, limit, take } = resolveCursorPaginationFromParams(params);
+  const { page, pageSize, skip, take } = resolvePagePaginationFromParams(params);
   const scope = getUserScopeWhere(session);
 
   const where: Prisma.UserWhereInput = {
@@ -31,19 +31,20 @@ export default async function StaffListPage({ searchParams }: { searchParams: Pr
       : {}),
   };
 
-  const staff = await db.user.findMany({
-    where,
-    include: {
-      branch: true,
-      staffProfile: true,
-      _count: { select: { assignedAssets: true } },
-    },
-    orderBy: { name: "asc" },
-    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-    take,
-  });
-  const nextCursor = getNextCursor(staff, limit);
-  const pageItems = staff.slice(0, limit);
+  const [staff, totalCount] = await Promise.all([
+    db.user.findMany({
+      where,
+      include: {
+        branch: true,
+        staffProfile: true,
+        _count: { select: { assignedAssets: true } },
+      },
+      orderBy: { name: "asc" },
+      skip,
+      take,
+    }),
+    db.user.count({ where }),
+  ]);
 
   return (
     <div>
@@ -53,7 +54,7 @@ export default async function StaffListPage({ searchParams }: { searchParams: Pr
       />
       <Card className="border-purple-200 shadow-sm">
         <CardContent className="pt-6">
-          <TableToolbar searchPlaceholder="Search staff by name or email" defaultLimit={limit} />
+          <TableToolbar searchPlaceholder="Search staff by name or email" />
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -66,7 +67,7 @@ export default async function StaffListPage({ searchParams }: { searchParams: Pr
                 </tr>
               </thead>
               <tbody>
-                {pageItems.map((member) => (
+                {staff.map((member) => (
                   <tr key={member.id} className="border-b border-purple-50">
                     <td className="py-3">
                       <Link href={`/staff/${member.id}`} className="font-medium text-[#6D28D9] hover:underline">
@@ -84,7 +85,7 @@ export default async function StaffListPage({ searchParams }: { searchParams: Pr
               </tbody>
             </table>
           </div>
-          <PaginationControls nextCursor={nextCursor} shownCount={pageItems.length} limit={limit} />
+          <TablePagination currentPage={page} totalItems={totalCount} pageSize={pageSize} />
         </CardContent>
       </Card>
     </div>

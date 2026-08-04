@@ -124,6 +124,7 @@ model User {
   staffProfile  StaffProfile?
   assetRequestsSubmitted AssetRequest[] @relation("AssetRequestRequester")
   assetRequestsReviewed  AssetRequest[] @relation("AssetRequestReviewer")
+  assetRequestsAsCustodian AssetRequest[] @relation("AssetRequestCustodian")
   disposalRecords        AssetDisposalRecord[]
   @@unique([email])
   @@index([branchId])
@@ -349,6 +350,7 @@ model AssetDocument {
   id                  String             @id @default(cuid())
   assetId             String
   documentType        DocumentType
+  displayName         String
   fileUrl             String
   fileName            String
   mimeType            String
@@ -416,6 +418,7 @@ model ConditionFlag {
   id         String    @id @default(cuid())
   assetId    String
   title      String
+  notes      String?
   severity   String
   resolvedAt DateTime?
   createdAt  DateTime  @default(now())
@@ -512,32 +515,36 @@ model AssetDisposalRecord {
 }
 
 model AssetRequest {
-  id               String              @id @default(cuid())
-  requesterId      String
-  organizationId   String
-  branchId         String
-  departmentId     String?
-  categoryId       String
-  reason           String
-  urgency          AssetRequestUrgency @default(MEDIUM)
-  notes            String?
-  status           AssetRequestStatus  @default(PENDING)
-  reviewerId       String?
-  reviewComment    String?
-  reviewedAt       DateTime?
-  fulfilledAssetId String?             @unique
-  createdAt        DateTime            @default(now())
-  updatedAt        DateTime            @updatedAt
-  requester        User                @relation("AssetRequestRequester", fields: [requesterId], references: [id], onDelete: Restrict)
-  reviewer         User?               @relation("AssetRequestReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
-  organization     Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  branch           Branch              @relation(fields: [branchId], references: [id], onDelete: Restrict)
-  department       Department?         @relation(fields: [departmentId], references: [id], onDelete: SetNull)
-  category         Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  fulfilledAsset   Asset?              @relation(fields: [fulfilledAssetId], references: [id], onDelete: SetNull)
+  id                 String              @id @default(cuid())
+  requesterId        String
+  organizationId     String
+  branchId           String
+  departmentId       String?
+  categoryId         String
+  requestedAssetName String
+  custodianId        String?
+  reason             String
+  urgency            AssetRequestUrgency @default(MEDIUM)
+  notes              String?
+  status             AssetRequestStatus  @default(PENDING)
+  reviewerId         String?
+  reviewComment      String?
+  reviewedAt         DateTime?
+  fulfilledAssetId   String?             @unique
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  requester          User                @relation("AssetRequestRequester", fields: [requesterId], references: [id], onDelete: Restrict)
+  reviewer           User?               @relation("AssetRequestReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  custodian          User?               @relation("AssetRequestCustodian", fields: [custodianId], references: [id], onDelete: SetNull)
+  organization       Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  branch             Branch              @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  department         Department?         @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  category           Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  fulfilledAsset     Asset?              @relation(fields: [fulfilledAssetId], references: [id], onDelete: SetNull)
   @@index([organizationId, status, createdAt])
   @@index([branchId, status])
   @@index([requesterId, createdAt])
+  @@index([custodianId])
 }
 
 model Permission {

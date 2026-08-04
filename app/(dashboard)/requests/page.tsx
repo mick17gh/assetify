@@ -3,14 +3,14 @@ import { AssetRequestForm } from "@/components/requests/asset-request-form";
 import { AssetRequestTable } from "@/components/requests/asset-request-table";
 import { AssetRequestFilters } from "@/components/requests/asset-request-filters";
 import { TableToolbar } from "@/components/shared/table-toolbar";
-import { PaginationControls } from "@/components/shared/pagination-controls";
+import { TablePagination } from "@/components/shared/table-pagination";
 import { db } from "@/lib/db";
 import { getRequiredSession } from "@/lib/session";
 import { hasPermission } from "@/lib/permissions";
 import { ASSET_REQUEST_STATUS, ASSET_REQUEST_URGENCY, PERMISSION_KEYS, USER_ROLES } from "@/constants";
 import { getReferenceDataForSession } from "@/lib/reference-data";
 import { getOptionalQuery, SearchParams } from "@/lib/filters/query";
-import { getNextCursor, resolveCursorPaginationFromParams } from "@/lib/pagination/cursor";
+import { resolvePagePaginationFromParams } from "@/lib/pagination/page";
 import { Prisma } from "@/lib/generated/prisma/client";
 
 export default async function AssetRequestsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
@@ -25,7 +25,7 @@ export default async function AssetRequestsPage({ searchParams }: { searchParams
   const statusFilter = getOptionalQuery(params, "status");
   const urgencyFilter = getOptionalQuery(params, "urgency");
   const branchFilter = getOptionalQuery(params, "branch");
-  const { cursor, limit, take } = resolveCursorPaginationFromParams(params);
+  const { page, pageSize, skip, take } = resolvePagePaginationFromParams(params);
 
   const reference = await getReferenceDataForSession(session);
 
@@ -55,6 +55,8 @@ export default async function AssetRequestsPage({ searchParams }: { searchParams
             { notes: { contains: q, mode: "insensitive" } },
             { reviewComment: { contains: q, mode: "insensitive" } },
             { requester: { name: { contains: q, mode: "insensitive" } } },
+            { requestedAssetName: { contains: q, mode: "insensitive" } },
+            { custodian: { name: { contains: q, mode: "insensitive" } } },
             { category: { name: { contains: q, mode: "insensitive" } } },
             { department: { name: { contains: q, mode: "insensitive" } } },
           ],
@@ -62,20 +64,32 @@ export default async function AssetRequestsPage({ searchParams }: { searchParams
       : {}),
   };
 
-  const requests = await db.assetRequest.findMany({
-    where,
-    include: {
-      requester: { select: { name: true } },
-      category: { select: { name: true } },
-      department: { select: { name: true } },
-      branch: { select: { name: true } },
-    },
-    orderBy: { createdAt: "desc" },
-    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-    take,
-  });
-  const nextCursor = getNextCursor(requests, limit);
-  const pageItems = requests.slice(0, limit);
+  const [requests, totalCount, assetsForRequest] = await Promise.all([
+    db.assetRequest.findMany({
+      where,
+      include: {
+        requester: { select: { name: true } },
+        custodian: { select: { name: true } },
+        category: { select: { name: true } },
+        department: { select: { name: true } },
+        branch: { select: { name: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take,
+    }),
+    db.assetRequest.count({ where }),
+    db.asset.findMany({
+      where: {
+        organizationId: session.organizationId ?? undefined,
+        isActive: true,
+        ...(session.branchId && !isAdmin ? { branchId: session.branchId } : {}),
+      },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, categoryId: true },
+      take: 500,
+    }),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -87,12 +101,14 @@ export default async function AssetRequestsPage({ searchParams }: { searchParams
             <AssetRequestForm
               categories={reference.categories}
               departments={reference.departments.map((d) => ({ id: d.id, label: d.name }))}
+              assets={assetsForRequest}
+              custodians={reference.custodians}
             />
           ) : null
         }
       />
       <AssetRequestTable
-        requests={pageItems.map((r) => ({
+        requests={requests.map((r) => ({
           id: r.id,
           reason: r.reason,
           urgency: r.urgency,
@@ -101,6 +117,8 @@ export default async function AssetRequestsPage({ searchParams }: { searchParams
           reviewComment: r.reviewComment,
           createdAt: r.createdAt.toLocaleDateString(),
           requesterName: r.requester.name,
+          requestedAssetName: r.requestedAssetName,
+          custodianName: r.custodian?.name ?? r.requester.name,
           categoryName: r.category.name,
           departmentName: r.department?.name ?? "N/A",
           branchName: r.branch.name,
@@ -112,7 +130,6 @@ export default async function AssetRequestsPage({ searchParams }: { searchParams
         toolbar={
           <TableToolbar
             searchPlaceholder="Search by reason, requester, or category"
-            defaultLimit={limit}
             filters={
               <AssetRequestFilters
                 branches={reference.branches}
@@ -121,7 +138,7 @@ export default async function AssetRequestsPage({ searchParams }: { searchParams
             }
           />
         }
-        pagination={<PaginationControls nextCursor={nextCursor} shownCount={pageItems.length} limit={limit} />}
+        pagination={<TablePagination currentPage={page} totalItems={totalCount} pageSize={pageSize} />}
       />
     </div>
   );

@@ -4,6 +4,8 @@ import { entityId, enumFromConst, optionalEntityId, optionalText } from "./helpe
 
 export const createAssetRequestSchema = z.object({
   categoryId: entityId,
+  requestedAssetName: z.string().trim().min(1).max(200),
+  custodianId: optionalEntityId,
   departmentId: optionalEntityId,
   reason: z.string().trim().min(3).max(1000),
   urgency: enumFromConst(ASSET_REQUEST_URGENCY).default(ASSET_REQUEST_URGENCY.MEDIUM),

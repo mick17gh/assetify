@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SetupCreateModal, SetupTextField } from "@/components/settings/setup-create-modal";
 import { SetupRowActions } from "@/components/settings/setup-row-actions";
@@ -7,6 +8,8 @@ import { PrintLocationTagButton } from "@/components/settings/print-location-tag
 import { ReferenceSelect } from "@/components/shared/reference-selects";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { ReferenceOption } from "@/components/shared/reference-selects";
+import { getQueryNavigationTarget } from "@/lib/filters/query";
+import { clearPaginationParams } from "@/lib/pagination/page";
 import {
   createDepartmentAction,
   createRoomAction,
@@ -24,6 +27,7 @@ type RoomRow = { id: string; name: string; branch: { name: string }; branchId: s
 type ShelfRow = { id: string; name: string; room: { name: string }; roomId: string };
 
 export function LocationsSetupTabs({
+  activeTab,
   departments,
   rooms,
   shelves,
@@ -31,6 +35,7 @@ export function LocationsSetupTabs({
   roomsForSelect,
   qrEnabled = false,
 }: {
+  activeTab: "departments" | "rooms" | "shelves";
   departments: DeptRow[];
   rooms: RoomRow[];
   shelves: ShelfRow[];
@@ -38,8 +43,21 @@ export function LocationsSetupTabs({
   roomsForSelect: ReferenceOption[];
   qrEnabled?: boolean;
 }) {
+  const router = useRouter();
+  const params = useSearchParams();
+
+  function setTab(value: string) {
+    const target = getQueryNavigationTarget(params, (next) => {
+      clearPaginationParams(next);
+      if (value === "departments") next.delete("tab");
+      else next.set("tab", value);
+    });
+    if (!target) return;
+    router.replace(target);
+  }
+
   return (
-    <Tabs defaultValue="departments" className="w-full">
+    <Tabs value={activeTab} onValueChange={setTab} className="w-full">
       <TabsList className="mb-4 h-10 rounded-lg bg-purple-50">
         <TabsTrigger value="departments">Departments</TabsTrigger>
         <TabsTrigger value="rooms">Rooms</TabsTrigger>

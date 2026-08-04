@@ -234,7 +234,7 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
             }))}
             files={asset.documents.map((item) => ({
               id: item.id,
-              fileName: item.fileName,
+              fileName: item.displayName,
               type: item.documentType,
               fileUrl: item.fileUrl,
               createdAt: item.createdAt.toLocaleDateString(),

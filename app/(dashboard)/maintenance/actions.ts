@@ -168,6 +168,7 @@ export async function createConditionFlagAction(formData: FormData) {
     data: {
       assetId: parsed.data.assetId,
       title: parsed.data.title,
+      notes: parsed.data.notes?.trim() || null,
       severity: parsed.data.severity,
     },
   });
@@ -238,7 +239,8 @@ export async function uploadMaintenanceDocumentAction(formData: FormData) {
       assetId: record.asset.id,
       maintenanceRecordId: record.id,
       documentType: DOCUMENT_TYPE.MAINTENANCE_INVOICE,
-      fileName: displayName,
+      displayName,
+      fileName: storedFileName,
       fileUrl: publicUrl,
       mimeType: file.type || "application/octet-stream",
       uploadedByUserId: session.userId,
@@ -252,7 +254,7 @@ export async function uploadMaintenanceDocumentAction(formData: FormData) {
     action: "maintenance.document.upload",
     entityType: "MaintenanceRecord",
     entityId: record.id,
-    metadata: { fileName: displayName },
+    metadata: { fileName: storedFileName, displayName },
   });
 
   revalidatePath(APP_ROUTES.MAINTENANCE);

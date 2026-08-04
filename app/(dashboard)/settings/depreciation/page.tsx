@@ -8,10 +8,10 @@ import { EnumSelect } from "@/components/shared/enum-select";
 import { PageLoading } from "@/components/shared/page-loading";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { db } from "@/lib/db";
+import { DEPRECIATION_METHOD, PAGINATION } from "@/constants";
 import { getRequiredSession } from "@/lib/session";
 import { getOptionalQuery, SearchParams } from "@/lib/filters/query";
-import { getNextCursor, resolveCursorPaginationFromParams } from "@/lib/pagination/cursor";
-import { DEPRECIATION_METHOD } from "@/constants";
+import { resolvePagePaginationFromParams } from "@/lib/pagination/page";
 import {
   createDepreciationPolicyAction,
   deleteDepreciationPolicyAction,
@@ -22,24 +22,27 @@ async function DepreciationContent({ searchParams }: { searchParams: Promise<Sea
   const session = await getRequiredSession();
   const params = await searchParams;
   const q = getOptionalQuery(params, "q");
-  const { cursor, limit, take } = resolveCursorPaginationFromParams(params);
+  const { page, pageSize, skip, take } = resolvePagePaginationFromParams(params, {
+    defaultPageSize: PAGINATION.SETTINGS_DEFAULT_LIMIT,
+  });
 
-  const [categories, rows] = await Promise.all([
+  const where = {
+    organizationId: session.organizationId ?? undefined,
+    ...(q ? { category: { name: { contains: q, mode: "insensitive" as const } } } : {}),
+  };
+
+  const [categories, rows, totalCount] = await Promise.all([
     db.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
     db.depreciationPolicy.findMany({
-      where: {
-        organizationId: session.organizationId ?? undefined,
-        ...(q ? { category: { name: { contains: q, mode: "insensitive" } } } : {}),
-      },
+      where,
       include: { category: true },
       orderBy: { createdAt: "desc" },
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      skip,
       take,
     }),
+    db.depreciationPolicy.count({ where }),
   ]);
   const categoryOptions = categories.map((c) => ({ id: c.id, label: c.name }));
-  const nextCursor = getNextCursor(rows, limit);
-  const pageItems = rows.slice(0, limit);
 
   return (
     <>
@@ -58,7 +61,12 @@ async function DepreciationContent({ searchParams }: { searchParams: Promise<Sea
           <SetupTextField name="salvagePercent" label="Salvage %" type="number" required defaultValue="10" />
         </SetupCreateModal>
       </div>
-      <SetupTableShell searchPlaceholder="Search by category" defaultLimit={limit} nextCursor={nextCursor} shownCount={pageItems.length}>
+      <SetupTableShell
+        searchPlaceholder="Search by category"
+        currentPage={page}
+        totalItems={totalCount}
+        pageSize={pageSize}
+      >
         <Table>
           <TableHeader>
             <TableRow>
@@ -70,7 +78,7 @@ async function DepreciationContent({ searchParams }: { searchParams: Promise<Sea
             </TableRow>
           </TableHeader>
           <TableBody>
-            {pageItems.map((row) => (
+            {rows.map((row) => (
               <TableRow key={row.id}>
                 <TableCell>{row.category.name}</TableCell>
                 <TableCell>{row.method}</TableCell>

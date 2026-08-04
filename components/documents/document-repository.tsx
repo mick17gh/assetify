@@ -5,7 +5,7 @@ import { uploadDocumentFromRepositoryAction, updateDocumentTypeAction, deleteDoc
 import { SetupRowActions } from "@/components/settings/setup-row-actions";
 import { EnumSelect } from "@/components/shared/enum-select";
 import { ReferenceOption, ReferenceSelect } from "@/components/shared/reference-selects";
-import { SetupCreateModal } from "@/components/settings/setup-create-modal";
+import { SetupCreateModal, SetupTextField } from "@/components/settings/setup-create-modal";
 import { DOCUMENT_TYPE } from "@/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ export function DocumentRepository({
       action={uploadDocumentFromRepositoryAction}
     >
       <ReferenceSelect name="assetId" label="Asset" options={assets} required />
+      <SetupTextField name="displayName" label="Document name" required placeholder="e.g. Warranty card 2026" minLength={1} maxLength={200} />
       <EnumSelect
         name="documentType"
         label="Document type"
@@ -52,28 +53,37 @@ export function DocumentRepository({
 export function DocumentRowActions({
   documentId,
   documentType,
+  displayName,
 }: {
   documentId: string;
   documentType: string;
+  displayName: string;
 }) {
   const [value, setValue] = useState(documentType);
 
   return (
     <SetupRowActions
       recordId={documentId}
-      editTitle="Update document type"
+      editTitle="Update document"
       updateAction={updateDocumentTypeAction}
       deleteAction={deleteDocumentFromRepositoryAction}
       editFields={
-        <EnumSelect
-          name="documentType"
-          label="Document type"
-          labelKey="documentType"
-          values={DOCUMENT_TYPE}
-          value={value}
-          onValueChange={setValue}
-          required
-        />
+        <>
+          <SetupTextField name="displayName" label="Document name" required defaultValue={displayName} minLength={1} maxLength={200} />
+          <EnumSelect
+            name="documentType"
+            label="Document type"
+            labelKey="documentType"
+            values={DOCUMENT_TYPE}
+            value={value}
+            onValueChange={setValue}
+            required
+          />
+          <div className="space-y-1">
+            <Label htmlFor="document-replace">Replace file (optional)</Label>
+            <Input id="document-replace" name="document" type="file" />
+          </div>
+        </>
       }
     />
   );

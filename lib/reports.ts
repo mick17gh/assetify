@@ -310,7 +310,7 @@ export type EndOfLifeValuationRow = {
 
 export async function getEndOfLifeValuationPage(
   session: AppSession,
-  pagination: { cursor?: string; take: number; limit: number },
+  pagination: { skip: number; take: number },
 ) {
   const where = valuationEvaluationWhere(session);
   const [evaluations, policies, totalCount] = await Promise.all([
@@ -325,20 +325,15 @@ export async function getEndOfLifeValuationPage(
         },
       },
       orderBy: [{ recommendedReplaceDate: "asc" }, { id: "asc" }],
-      ...(pagination.cursor ? { cursor: { id: pagination.cursor }, skip: 1 } : {}),
+      skip: pagination.skip,
       take: pagination.take,
     }),
     loadDepreciationPolicies(session),
     db.replacementEvaluation.count({ where }),
   ]);
 
-  const hasMore = evaluations.length > pagination.limit;
-  const pageEvaluations = evaluations.slice(0, pagination.limit);
-  const nextCursor = hasMore ? pageEvaluations[pageEvaluations.length - 1]?.id ?? null : null;
-
   return {
-    rows: pageEvaluations.map((row) => mapEvaluationToValuationRow(row, policies)),
-    nextCursor,
+    rows: evaluations.map((row) => mapEvaluationToValuationRow(row, policies)),
     totalCount,
   };
 }

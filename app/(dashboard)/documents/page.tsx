@@ -9,10 +9,10 @@ import { db } from "@/lib/db";
 import { getRequiredSession } from "@/lib/session";
 import { getAssetScopeWhere } from "@/lib/scoping";
 import { getOptionalQuery, SearchParams } from "@/lib/filters/query";
-import { getNextCursor, resolveCursorPaginationFromParams } from "@/lib/pagination/cursor";
+import { resolvePagePaginationFromParams } from "@/lib/pagination/page";
 import { getReferenceDataForSession } from "@/lib/reference-data";
 import { TableToolbar } from "@/components/shared/table-toolbar";
-import { PaginationControls } from "@/components/shared/pagination-controls";
+import { TablePagination } from "@/components/shared/table-pagination";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Prisma } from "@/lib/generated/prisma/client";
@@ -25,7 +25,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
   const typeFilter = getOptionalQuery(params, "type");
   const assetFilter = getOptionalQuery(params, "asset");
   const branchFilter = getOptionalQuery(params, "branch");
-  const { cursor, limit, take } = resolveCursorPaginationFromParams(params);
+  const { page, pageSize, skip, take } = resolvePagePaginationFromParams(params);
 
   const validType =
     typeFilter && Object.values(DOCUMENT_TYPE).includes(typeFilter as (typeof DOCUMENT_TYPE)[keyof typeof DOCUMENT_TYPE])
@@ -50,6 +50,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
     ...(q
       ? {
           OR: [
+            { displayName: { contains: q, mode: "insensitive" } },
             { fileName: { contains: q, mode: "insensitive" } },
             { asset: { name: { contains: q, mode: "insensitive" } } },
             { asset: { ain: { contains: q, mode: "insensitive" } } },
@@ -61,14 +62,15 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
       : {}),
   };
 
-  const [docs, assets, refs, totalDocuments] = await Promise.all([
+  const [docs, totalCount, assets, refs, totalDocuments] = await Promise.all([
     db.assetDocument.findMany({
       where,
       include: { asset: { include: { branch: true } } },
       orderBy: { createdAt: "desc" },
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      skip,
       take,
     }),
+    db.assetDocument.count({ where }),
     db.asset.findMany({
       where: assetScope,
       orderBy: { name: "asc" },
@@ -78,8 +80,6 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
     getReferenceDataForSession(session),
     db.assetDocument.count({ where: { asset: assetScope } }),
   ]);
-  const nextCursor = getNextCursor(docs, limit);
-  const pageItems = docs.slice(0, limit);
   const assetOptions = assets.map((asset) => ({ id: asset.id, label: `${asset.name} (${asset.ain})` }));
 
   return (
@@ -94,31 +94,30 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
       <Card className="border-purple-200 shadow-sm">
         <CardContent className="pt-6">
           <TableToolbar
-            searchPlaceholder="Search file name, type, or asset"
-            defaultLimit={limit}
+            searchPlaceholder="Search name, type, or asset"
             filters={<DocumentFilters branches={refs.branches} assets={assetOptions} />}
           />
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>File</TableHead>
+                <TableHead>Document Name</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Asset</TableHead>
                 <TableHead>Branch</TableHead>
-                <TableHead className="text-right">Open</TableHead>
+                <TableHead className="text-right">Artifact</TableHead>
                 <TableHead className="text-right">Manage</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pageItems.map((doc) => (
+              {docs.map((doc) => (
                 <TableRow key={doc.id}>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-purple-700" />
-                      <span>{doc.fileName}</span>
+                      <FileText className="h-4 w-4 shrink-0 text-purple-700" />
+                      <span>{doc.displayName}</span>
                     </div>
                   </TableCell>
-                  <TableCell>{doc.documentType}</TableCell>
+                  <TableCell>{ENUM_LABELS.documentType[doc.documentType] ?? doc.documentType}</TableCell>
                   <TableCell>
                     <Link href={`/assets/${doc.assetId}`} className="font-medium text-[#6D28D9] hover:underline">
                       {doc.asset.name}
@@ -126,16 +125,20 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                   </TableCell>
                   <TableCell>{doc.asset.branch.name}</TableCell>
                   <TableCell className="text-right">
-                    <DocumentOpenButton fileUrl={doc.fileUrl} fileName={doc.fileName} />
+                    <DocumentOpenButton fileUrl={doc.fileUrl} fileName={doc.displayName} />
                   </TableCell>
                   <TableCell className="text-right">
-                    <DocumentRowActions documentId={doc.id} documentType={doc.documentType} />
+                    <DocumentRowActions
+                      documentId={doc.id}
+                      documentType={doc.documentType}
+                      displayName={doc.displayName}
+                    />
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-          <PaginationControls nextCursor={nextCursor} shownCount={pageItems.length} limit={limit} />
+          <TablePagination currentPage={page} totalItems={totalCount} pageSize={pageSize} />
         </CardContent>
       </Card>
     </div>

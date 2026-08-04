@@ -6,6 +6,7 @@ import { EnumSelectFilter } from "@/components/shared/enum-select";
 import type { ReferenceOption } from "@/components/shared/reference-selects";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getQueryNavigationTarget } from "@/lib/filters/query";
+import { clearPaginationParams } from "@/lib/pagination/page";
 
 export function AssetRequestFilters({
   branches,
@@ -22,8 +23,7 @@ export function AssetRequestFilters({
 
   function updateQuery(mutate: (next: URLSearchParams) => void) {
     const target = getQueryNavigationTarget(params, (next) => {
-      next.delete("cursor");
-      next.delete("stack");
+      clearPaginationParams(next);
       mutate(next);
     });
     if (!target) return;

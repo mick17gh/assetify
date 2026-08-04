@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
+import { FormValueInput } from "@/components/shared/form-value-input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -35,9 +36,9 @@ export function ReferenceSelect({
   const selectedOption = options.find((option) => option.id === selected);
 
   return (
-    <div className="space-y-1">
+    <div className="relative min-w-0 space-y-1">
       <Label htmlFor={name}>{label}</Label>
-      <input type="hidden" name={name} value={selected} required={required} />
+      <FormValueInput name={name} value={selected} required={required} />
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -46,7 +47,7 @@ export function ReferenceSelect({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="h-9 w-full cursor-pointer justify-between border-purple-200 bg-white font-normal"
+            className="h-9 w-full min-w-0 cursor-pointer justify-between border-purple-200 bg-white font-normal"
           >
             <span className="truncate text-left">{selectedOption?.label ?? placeholder}</span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -103,9 +104,9 @@ export function OptionalReferenceSelect({
   const selectedLabel = selected === "NONE" ? "None" : selectedOption?.label ?? "None";
 
   return (
-    <div className="space-y-1">
+    <div className="relative space-y-1">
       <Label htmlFor={name}>{label}</Label>
-      <input type="hidden" name={name} value={selected === "NONE" ? "" : selected} />
+      <FormValueInput name={name} value={selected === "NONE" ? "" : selected} />
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button

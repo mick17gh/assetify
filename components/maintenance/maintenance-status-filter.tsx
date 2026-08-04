@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { MAINTENANCE_STATUS } from "@/constants";
 import { EnumSelectFilter } from "@/components/shared/enum-select";
 import { getQueryNavigationTarget } from "@/lib/filters/query";
+import { clearPaginationParams } from "@/lib/pagination/page";
 
 export function MaintenanceStatusFilter({
   paramName = "status",
@@ -23,8 +24,7 @@ export function MaintenanceStatusFilter({
       value={selected}
       onValueChange={(value) => {
         const target = getQueryNavigationTarget(params, (next) => {
-          next.delete("cursor");
-          next.delete("stack");
+          clearPaginationParams(next);
           if (value === "ALL") {
             next.delete(paramName);
           } else {

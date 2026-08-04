@@ -5,6 +5,7 @@ import { Search } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { getQueryNavigationTarget } from "@/lib/filters/query";
+import { clearPaginationParams } from "@/lib/pagination/page";
 import { cn } from "@/lib/utils";
 
 export function TableSearch({
@@ -16,22 +17,29 @@ export function TableSearch({
 }) {
   const router = useRouter();
   const params = useSearchParams();
-  const [value, setValue] = useState(params.get("q") ?? "");
+  const urlQuery = params.get("q") ?? "";
+  const [value, setValue] = useState(urlQuery);
 
   useEffect(() => {
+    setValue(urlQuery);
+  }, [urlQuery]);
+
+  useEffect(() => {
+    const trimmed = value.trim();
+    // Only rewrite the URL when search text actually changes — not when page/limit changes.
+    if (trimmed === urlQuery) return;
+
     const timeout = setTimeout(() => {
       const target = getQueryNavigationTarget(params, (next) => {
-        const trimmed = value.trim();
         if (trimmed) next.set("q", trimmed);
         else next.delete("q");
-        next.delete("cursor");
-        next.delete("stack");
+        clearPaginationParams(next);
       });
       if (!target) return;
       router.replace(target);
-    }, 250);
+    }, 300);
     return () => clearTimeout(timeout);
-  }, [value, params, router]);
+  }, [value, urlQuery, params, router]);
 
   return (
     <div className={cn("relative w-full max-w-sm", className)}>

@@ -66,11 +66,11 @@ export function CreateAssetModal({
           successMessage="Asset created."
           className="grid gap-4 md:grid-cols-2"
         >
-          <SetupTextField name="ain" label="AIN" placeholder="AIN-NY-000123" required />
-          <SetupTextField name="serialNumber" label="Serial Number" required />
-          <SetupTextField name="name" label="Asset Name" required />
+          <SetupTextField name="ain" label="AIN" placeholder="AIN-NY-000123" required pattern="AIN-[A-Z0-9-]{6,24}" />
+          <SetupTextField name="serialNumber" label="Serial Number" required minLength={1} pattern="[A-Za-z0-9-]{4,50}" />
+          <SetupTextField name="name" label="Asset Name" required minLength={1} />
           <SetupTextField name="purchaseDate" label="Purchase Date" type="date" required />
-          <SetupTextField name="purchaseCost" label="Purchase Cost" required />
+          <SetupTextField name="purchaseCost" label="Purchase Cost" required pattern="^\d+(\.\d{1,2})?$" />
           <SetupTextField name="warrantyExpiryDate" label="Warranty Expiry" type="date" />
           <ReferenceSelect name="categoryId" label="Category" options={categories} required />
           <ReferenceSelect

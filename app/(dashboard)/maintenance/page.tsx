@@ -6,9 +6,9 @@ import { db } from "@/lib/db";
 import { getRequiredSession } from "@/lib/session";
 import { getAssetScopeWhere } from "@/lib/scoping";
 import { getOptionalQuery, SearchParams } from "@/lib/filters/query";
-import { getNextCursor, resolveCursorPaginationFromParams } from "@/lib/pagination/cursor";
+import { resolvePagePaginationFromParams } from "@/lib/pagination/page";
 import { TableToolbar } from "@/components/shared/table-toolbar";
-import { PaginationControls } from "@/components/shared/pagination-controls";
+import { TablePagination } from "@/components/shared/table-pagination";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { MAINTENANCE_STATUS, PERMISSION_KEYS } from "@/constants";
@@ -23,7 +23,7 @@ export default async function MaintenancePage({ searchParams }: { searchParams: 
   const params = await searchParams;
   const q = getOptionalQuery(params, "q");
   const statusFilter = getOptionalQuery(params, "status");
-  const { cursor, limit, take } = resolveCursorPaginationFromParams(params);
+  const { page, pageSize, skip, take } = resolvePagePaginationFromParams(params);
   const statusQuery =
     statusFilter && Object.values(MAINTENANCE_STATUS).includes(statusFilter as (typeof MAINTENANCE_STATUS)[keyof typeof MAINTENANCE_STATUS])
       ? (statusFilter as Prisma.MaintenanceRecordWhereInput["status"])
@@ -32,19 +32,29 @@ export default async function MaintenancePage({ searchParams }: { searchParams: 
   const where: Prisma.MaintenanceRecordWhereInput = {
     asset: assetScope,
     ...(statusQuery ? { status: statusQuery } : {}),
-    ...(q ? { description: { contains: q, mode: "insensitive" } } : {}),
+    ...(q
+      ? {
+          OR: [
+            { description: { contains: q, mode: "insensitive" } },
+            { vendorName: { contains: q, mode: "insensitive" } },
+            { asset: { name: { contains: q, mode: "insensitive" } } },
+            { asset: { ain: { contains: q, mode: "insensitive" } } },
+          ],
+        }
+      : {}),
   };
-  const [records, assets, totalRecords, openFlags, criticalFlags, latestFlags] = await Promise.all([
+  const [records, totalCount, assets, totalRecords, openFlags, criticalFlags, latestFlags] = await Promise.all([
     db.maintenanceRecord.findMany({
       where,
       include: {
         asset: true,
-        documents: { select: { id: true, fileName: true, fileUrl: true }, orderBy: { createdAt: "desc" } },
+        documents: { select: { id: true, fileName: true, displayName: true, fileUrl: true }, orderBy: { createdAt: "desc" } },
       },
       orderBy: { serviceDate: "desc" },
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      skip,
       take,
     }),
+    db.maintenanceRecord.count({ where }),
     db.asset.findMany({
       where: assetScope,
       orderBy: { name: "asc" },
@@ -63,8 +73,6 @@ export default async function MaintenancePage({ searchParams }: { searchParams: 
       take: 5,
     }),
   ]);
-  const nextCursor = getNextCursor(records, limit);
-  const pageItems = records.slice(0, limit);
   const assetOptions = assets.map((asset) => ({ id: asset.id, label: `${asset.name} (${asset.ain})` }));
 
   return (
@@ -81,16 +89,17 @@ export default async function MaintenancePage({ searchParams }: { searchParams: 
         latestFlags={latestFlags.map((flag) => ({
           id: flag.id,
           title: flag.title,
+          notes: flag.notes,
           severity: flag.severity as "LOW" | "MEDIUM" | "HIGH" | "CRITICAL",
           assetName: flag.asset.name,
         }))}
       />
       <Card className="mt-4 border-purple-200 shadow-sm">
         <CardContent className="pt-6">
-          <TableToolbar searchPlaceholder="Search service notes" defaultLimit={limit} />
-          <div className="mb-4 flex justify-end">
-            <MaintenanceStatusFilter />
-          </div>
+          <TableToolbar
+            searchPlaceholder="Search by asset, description, or vendor"
+            filters={<MaintenanceStatusFilter />}
+          />
           <Table>
             <TableHeader>
               <TableRow>
@@ -103,7 +112,7 @@ export default async function MaintenancePage({ searchParams }: { searchParams: 
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pageItems.map((record) => (
+              {records.map((record) => (
                 <TableRow key={record.id}>
                   <TableCell>{record.asset.name}</TableCell>
                   <TableCell>{record.serviceDate.toLocaleDateString()}</TableCell>
@@ -131,7 +140,7 @@ export default async function MaintenancePage({ searchParams }: { searchParams: 
               ))}
             </TableBody>
           </Table>
-          <PaginationControls nextCursor={nextCursor} shownCount={pageItems.length} limit={limit} />
+          <TablePagination currentPage={page} totalItems={totalCount} pageSize={pageSize} />
         </CardContent>
       </Card>
     </div>

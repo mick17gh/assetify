@@ -14,6 +14,7 @@ import { deleteStoredFile, uploadAssetFileToSpaces } from "@/lib/storage/spaces"
 const createDocumentSchema = z.object({
   assetId: z.string().cuid(),
   documentType: enumFromConst(DOCUMENT_TYPE),
+  displayName: z.string().trim().min(1).max(200),
 });
 
 export async function uploadDocumentFromRepositoryAction(formData: FormData) {
@@ -26,6 +27,7 @@ export async function uploadDocumentFromRepositoryAction(formData: FormData) {
   const parsed = createDocumentSchema.safeParse({
     assetId: String(formData.get("assetId") ?? ""),
     documentType: String(formData.get("documentType") ?? ""),
+    displayName: String(formData.get("displayName") ?? "").trim() || file.name,
   });
   if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
 
@@ -41,6 +43,7 @@ export async function uploadDocumentFromRepositoryAction(formData: FormData) {
     data: {
       assetId: parsed.data.assetId,
       documentType: parsed.data.documentType,
+      displayName: parsed.data.displayName,
       fileName,
       fileUrl: publicUrl,
       mimeType: file.type || "application/octet-stream",
@@ -55,7 +58,7 @@ export async function uploadDocumentFromRepositoryAction(formData: FormData) {
     action: "document.repository.upload",
     entityType: "AssetDocument",
     entityId: parsed.data.assetId,
-    metadata: { fileName, documentType: parsed.data.documentType },
+    metadata: { fileName, displayName: parsed.data.displayName, documentType: parsed.data.documentType },
   });
 
   revalidatePath(APP_ROUTES.DOCUMENTS);
@@ -66,7 +69,11 @@ export async function updateDocumentTypeAction(formData: FormData) {
   const session = await getRequiredSession();
   assertPermission(session.role, PERMISSION_KEYS.DOCUMENT_WRITE);
 
-  const parsed = updateDocumentSchema.safeParse(Object.fromEntries(formData.entries()));
+  const parsed = updateDocumentSchema.safeParse({
+    id: String(formData.get("id") ?? ""),
+    documentType: String(formData.get("documentType") ?? ""),
+    displayName: String(formData.get("displayName") ?? ""),
+  });
   if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
 
   const doc = await db.assetDocument.findFirst({
@@ -75,9 +82,34 @@ export async function updateDocumentTypeAction(formData: FormData) {
   });
   if (!doc) throw new Error("Document not found.");
 
+  const file = formData.get("document");
+  const hasNewFile = file instanceof File && file.size > 0;
+
+  let fileName = doc.fileName;
+  let fileUrl = doc.fileUrl;
+  let mimeType = doc.mimeType;
+
+  if (hasNewFile) {
+    const uploaded = await uploadAssetFileToSpaces(doc.asset.id, file, "documents");
+    try {
+      await deleteStoredFile(doc.fileUrl);
+    } catch {
+      // ignore missing previous file
+    }
+    fileName = uploaded.fileName;
+    fileUrl = uploaded.publicUrl;
+    mimeType = file.type || "application/octet-stream";
+  }
+
   await db.assetDocument.update({
     where: { id: parsed.data.id },
-    data: { documentType: parsed.data.documentType },
+    data: {
+      documentType: parsed.data.documentType,
+      displayName: parsed.data.displayName,
+      fileName,
+      fileUrl,
+      mimeType,
+    },
   });
 
   await writeAuditLog({
@@ -87,7 +119,11 @@ export async function updateDocumentTypeAction(formData: FormData) {
     action: "document.type.update",
     entityType: "AssetDocument",
     entityId: parsed.data.id,
-    metadata: { documentType: parsed.data.documentType },
+    metadata: {
+      documentType: parsed.data.documentType,
+      displayName: parsed.data.displayName,
+      replacedFile: hasNewFile,
+    },
   });
 
   revalidatePath(APP_ROUTES.DOCUMENTS);

@@ -30,6 +30,8 @@ type RequestRow = {
   reviewComment: string | null;
   createdAt: string;
   requesterName: string;
+  requestedAssetName: string;
+  custodianName: string;
   categoryName: string;
   departmentName: string;
   branchName: string;
@@ -213,7 +215,9 @@ export function AssetRequestTable({
           <TableHeader>
             <TableRow>
               {showRequester ? <TableHead>Requester</TableHead> : null}
+              <TableHead>Asset Name</TableHead>
               <TableHead>Category</TableHead>
+              <TableHead>Custodian</TableHead>
               <TableHead>Department</TableHead>
               <TableHead>Urgency</TableHead>
               <TableHead>Reason</TableHead>
@@ -225,7 +229,7 @@ export function AssetRequestTable({
           <TableBody>
             {requests.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={showRequester ? 8 : 7} className="py-8 text-center text-purple-900/60">
+                <TableCell colSpan={showRequester ? 10 : 9} className="py-8 text-center text-purple-900/60">
                   No asset requests found.
                 </TableCell>
               </TableRow>
@@ -233,7 +237,9 @@ export function AssetRequestTable({
               requests.map((row) => (
                 <TableRow key={row.id}>
                   {showRequester ? <TableCell>{row.requesterName}</TableCell> : null}
+                  <TableCell>{row.requestedAssetName}</TableCell>
                   <TableCell>{row.categoryName}</TableCell>
+                  <TableCell>{row.custodianName}</TableCell>
                   <TableCell>{row.departmentName}</TableCell>
                   <TableCell>{row.urgency}</TableCell>
                   <TableCell className="max-w-[220px]">

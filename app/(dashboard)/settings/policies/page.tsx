@@ -7,9 +7,10 @@ import { ReferenceSelect } from "@/components/shared/reference-selects";
 import { PageLoading } from "@/components/shared/page-loading";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { db } from "@/lib/db";
+import { PAGINATION } from "@/constants";
 import { getRequiredSession } from "@/lib/session";
 import { getOptionalQuery, SearchParams } from "@/lib/filters/query";
-import { getNextCursor, resolveCursorPaginationFromParams } from "@/lib/pagination/cursor";
+import { resolvePagePaginationFromParams } from "@/lib/pagination/page";
 import {
   createReplacementPolicyAction,
   deleteReplacementPolicyAction,
@@ -20,24 +21,27 @@ async function PoliciesContent({ searchParams }: { searchParams: Promise<SearchP
   const session = await getRequiredSession();
   const params = await searchParams;
   const q = getOptionalQuery(params, "q");
-  const { cursor, limit, take } = resolveCursorPaginationFromParams(params);
+  const { page, pageSize, skip, take } = resolvePagePaginationFromParams(params, {
+    defaultPageSize: PAGINATION.SETTINGS_DEFAULT_LIMIT,
+  });
 
-  const [categories, rows] = await Promise.all([
+  const where = {
+    organizationId: session.organizationId ?? undefined,
+    ...(q ? { category: { name: { contains: q, mode: "insensitive" as const } } } : {}),
+  };
+
+  const [categories, rows, totalCount] = await Promise.all([
     db.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
     db.replacementPolicy.findMany({
-      where: {
-        organizationId: session.organizationId ?? undefined,
-        ...(q ? { category: { name: { contains: q, mode: "insensitive" } } } : {}),
-      },
+      where,
       include: { category: true },
       orderBy: { createdAt: "desc" },
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      skip,
       take,
     }),
+    db.replacementPolicy.count({ where }),
   ]);
   const categoryOptions = categories.map((c) => ({ id: c.id, label: c.name }));
-  const nextCursor = getNextCursor(rows, limit);
-  const pageItems = rows.slice(0, limit);
 
   return (
     <>
@@ -48,7 +52,12 @@ async function PoliciesContent({ searchParams }: { searchParams: Promise<SearchP
           <SetupTextField name="disposalGraceMonths" label="Grace months" type="number" required defaultValue="6" />
         </SetupCreateModal>
       </div>
-      <SetupTableShell searchPlaceholder="Search by category" defaultLimit={limit} nextCursor={nextCursor} shownCount={pageItems.length}>
+      <SetupTableShell
+        searchPlaceholder="Search by category"
+        currentPage={page}
+        totalItems={totalCount}
+        pageSize={pageSize}
+      >
         <Table>
           <TableHeader>
             <TableRow>
@@ -59,7 +68,7 @@ async function PoliciesContent({ searchParams }: { searchParams: Promise<SearchP
             </TableRow>
           </TableHeader>
           <TableBody>
-            {pageItems.map((row) => (
+            {rows.map((row) => (
               <TableRow key={row.id}>
                 <TableCell>{row.category.name}</TableCell>
                 <TableCell>{row.replacementYears}</TableCell>

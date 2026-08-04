@@ -6,9 +6,10 @@ import { SetupRowActions } from "@/components/settings/setup-row-actions";
 import { PageLoading } from "@/components/shared/page-loading";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { db } from "@/lib/db";
+import { PAGINATION } from "@/constants";
 import { getRequiredSession } from "@/lib/session";
 import { getOptionalQuery, SearchParams } from "@/lib/filters/query";
-import { getNextCursor, resolveCursorPaginationFromParams } from "@/lib/pagination/cursor";
+import { resolvePagePaginationFromParams } from "@/lib/pagination/page";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { isQrLocationScanningEnabled } from "@/lib/organization-settings";
 import { PrintLocationTagButton } from "@/components/settings/print-location-tag-button";
@@ -18,32 +19,33 @@ async function BranchesContent({ searchParams }: { searchParams: Promise<SearchP
   const session = await getRequiredSession();
   const params = await searchParams;
   const q = getOptionalQuery(params, "q");
-  const { cursor, limit, take } = resolveCursorPaginationFromParams(params);
+  const { page, pageSize, skip, take } = resolvePagePaginationFromParams(params, {
+    defaultPageSize: PAGINATION.SETTINGS_DEFAULT_LIMIT,
+  });
 
   const where: Prisma.BranchWhereInput = {
     organizationId: session.organizationId ?? undefined,
     ...(q ? { name: { contains: q, mode: "insensitive" } } : {}),
   };
 
-  const [qrEnabled, rows] = await Promise.all([
+  const [qrEnabled, rows, totalCount] = await Promise.all([
     session.organizationId ? isQrLocationScanningEnabled(session.organizationId) : Promise.resolve(false),
     db.branch.findMany({
       where,
       include: { _count: { select: { assets: true, users: true } } },
       orderBy: { name: "asc" },
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      skip,
       take,
     }),
+    db.branch.count({ where }),
   ]);
-  const nextCursor = getNextCursor(rows, limit);
-  const pageItems = rows.slice(0, limit);
 
   return (
     <SetupTableShell
       searchPlaceholder="Search branches"
-      defaultLimit={limit}
-      nextCursor={nextCursor}
-      shownCount={pageItems.length}
+      currentPage={page}
+      totalItems={totalCount}
+      pageSize={pageSize}
     >
       <Table>
         <TableHeader>
@@ -56,7 +58,7 @@ async function BranchesContent({ searchParams }: { searchParams: Promise<SearchP
           </TableRow>
         </TableHeader>
         <TableBody>
-          {pageItems.map((branch) => (
+          {rows.map((branch) => (
             <TableRow key={branch.id}>
               <TableCell>{branch.name}</TableCell>
               <TableCell>{branch.code}</TableCell>

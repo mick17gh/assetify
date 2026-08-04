@@ -3,7 +3,7 @@
 import { Loader2 } from "lucide-react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
-import { usePendingForm } from "@/components/shared/pending-form";
+import { useFormValidity, usePendingForm } from "@/components/shared/pending-form";
 
 export function SubmitButton({
   idleLabel,
@@ -22,6 +22,7 @@ export function SubmitButton({
 }) {
   const { pending: formStatusPending } = useFormStatus();
   const pendingFormPending = usePendingForm();
+  const formValid = useFormValidity();
   const pending = formStatusPending || pendingFormPending;
 
   return (
@@ -29,7 +30,7 @@ export function SubmitButton({
       type="submit"
       variant={variant}
       size={size}
-      disabled={pending || disabled}
+      disabled={pending || disabled || !formValid}
       aria-busy={pending}
       className={className}
     >

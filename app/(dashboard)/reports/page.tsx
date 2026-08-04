@@ -8,7 +8,7 @@ import { PageLoading } from "@/components/shared/page-loading";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PaginationControls } from "@/components/shared/pagination-controls";
+import { TablePagination } from "@/components/shared/table-pagination";
 import { TableToolbar } from "@/components/shared/table-toolbar";
 import { db } from "@/lib/db";
 import { PERMISSION_KEYS, RECOMMENDATION_STATE } from "@/constants";
@@ -16,7 +16,7 @@ import { getRequiredSession } from "@/lib/session";
 import { getAssetScopeWhere } from "@/lib/scoping";
 import { hasPermission } from "@/lib/permissions";
 import { getOptionalQuery, SearchParams } from "@/lib/filters/query";
-import { getNextCursor, resolveCursorPaginationFromParams } from "@/lib/pagination/cursor";
+import { resolvePagePaginationFromParams } from "@/lib/pagination/page";
 import { Prisma } from "@/lib/generated/prisma/client";
 import {
   getDepartmentCostReport,
@@ -89,18 +89,19 @@ async function ReportTrendSection({
 }
 
 async function ReportValuationSection({
-  vCursor,
-  vLimit,
+  vPage,
+  vPageSize,
+  vSkip,
   vTake,
 }: {
-  vCursor: string | undefined;
-  vLimit: number;
+  vPage: number;
+  vPageSize: number;
+  vSkip: number;
   vTake: number;
 }) {
   const session = await getRequiredSession();
-  const { rows, nextCursor, totalCount } = await getEndOfLifeValuationPage(session, {
-    cursor: vCursor,
-    limit: vLimit,
+  const { rows, totalCount } = await getEndOfLifeValuationPage(session, {
+    skip: vSkip,
     take: vTake,
   });
 
@@ -114,7 +115,6 @@ async function ReportValuationSection({
       </CardHeader>
       <CardContent>
         <TableToolbar
-          defaultLimit={vLimit}
           paramPrefix="v"
           showSearch={false}
           filters={<ReportExportButtons report="end-of-life-valuation" />}
@@ -141,11 +141,10 @@ async function ReportValuationSection({
             ))}
           </TableBody>
         </Table>
-        <PaginationControls
-          nextCursor={nextCursor}
-          shownCount={rows.length}
-          limit={vLimit}
-          totalCount={totalCount}
+        <TablePagination
+          currentPage={vPage}
+          totalItems={totalCount}
+          pageSize={vPageSize}
           paramPrefix="v"
         />
       </CardContent>
@@ -156,14 +155,16 @@ async function ReportValuationSection({
 async function ReportTableSection({
   q,
   stateQuery,
-  cursor,
-  limit,
+  page,
+  pageSize,
+  skip,
   take,
 }: {
   q: string | undefined;
   stateQuery: string | undefined;
-  cursor: string | undefined;
-  limit: number;
+  page: number;
+  pageSize: number;
+  skip: number;
   take: number;
 }) {
   const session = await getRequiredSession();
@@ -173,20 +174,17 @@ async function ReportTableSection({
       where: whereBase,
       include: { asset: { include: { branch: true } } },
       orderBy: { calculatedAt: "desc" },
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      skip,
       take,
     }),
     db.replacementEvaluation.count({ where: whereBase }),
   ]);
-  const nextCursor = getNextCursor(rows, limit);
-  const pageItems = rows.slice(0, limit);
 
   return (
     <Card className="border-purple-200">
       <CardContent className="pt-6">
         <TableToolbar
           searchPlaceholder="Search by asset name or AIN"
-          defaultLimit={limit}
           filters={
             <>
               <RecommendationStateFilter />
@@ -204,7 +202,7 @@ async function ReportTableSection({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {pageItems.map((row) => (
+            {rows.map((row) => (
               <TableRow key={row.id}>
                 <TableCell>{row.asset.name}</TableCell>
                 <TableCell>{row.asset.branch.name}</TableCell>
@@ -214,7 +212,7 @@ async function ReportTableSection({
             ))}
           </TableBody>
         </Table>
-        <PaginationControls nextCursor={nextCursor} shownCount={pageItems.length} limit={limit} totalCount={totalCount} />
+        <TablePagination currentPage={page} totalItems={totalCount} pageSize={pageSize} />
       </CardContent>
     </Card>
   );
@@ -230,8 +228,10 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   const params = await searchParams;
   const q = getOptionalQuery(params, "q");
   const state = getOptionalQuery(params, "state");
-  const { cursor, limit, take } = resolveCursorPaginationFromParams(params);
-  const { cursor: vCursor, limit: vLimit, take: vTake } = resolveCursorPaginationFromParams(params, "v");
+  const { page, pageSize, skip, take } = resolvePagePaginationFromParams(params);
+  const { page: vPage, pageSize: vPageSize, skip: vSkip, take: vTake } = resolvePagePaginationFromParams(params, {
+    prefix: "v",
+  });
   const stateQuery =
     state && Object.values(RECOMMENDATION_STATE).includes(state.toUpperCase() as (typeof RECOMMENDATION_STATE)[keyof typeof RECOMMENDATION_STATE])
       ? state.toUpperCase()
@@ -254,13 +254,13 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       {canViewFinance ? (
         <div className="mt-4">
           <Suspense fallback={<SectionSkeleton className="h-96" />}>
-            <ReportValuationSection vCursor={vCursor} vLimit={vLimit} vTake={vTake} />
+            <ReportValuationSection vPage={vPage} vPageSize={vPageSize} vSkip={vSkip} vTake={vTake} />
           </Suspense>
         </div>
       ) : null}
       <div className="mt-4">
         <Suspense fallback={<SectionSkeleton className="h-96" />}>
-          <ReportTableSection q={q} stateQuery={stateQuery} cursor={cursor} limit={limit} take={take} />
+          <ReportTableSection q={q} stateQuery={stateQuery} page={page} pageSize={pageSize} skip={skip} take={take} />
         </Suspense>
       </div>
     </div>

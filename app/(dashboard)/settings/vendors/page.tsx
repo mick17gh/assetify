@@ -6,26 +6,36 @@ import { SetupRowActions } from "@/components/settings/setup-row-actions";
 import { PageLoading } from "@/components/shared/page-loading";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { db } from "@/lib/db";
+import { PAGINATION } from "@/constants";
 import { getOptionalQuery, SearchParams } from "@/lib/filters/query";
-import { getNextCursor, resolveCursorPaginationFromParams } from "@/lib/pagination/cursor";
+import { resolvePagePaginationFromParams } from "@/lib/pagination/page";
 import { createVendorAction, deleteVendorAction, updateVendorAction } from "../actions";
 
 async function VendorsContent({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams;
   const q = getOptionalQuery(params, "q");
-  const { cursor, limit, take } = resolveCursorPaginationFromParams(params);
-
-  const rows = await db.vendor.findMany({
-    where: q ? { name: { contains: q, mode: "insensitive" } } : {},
-    orderBy: { name: "asc" },
-    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-    take,
+  const { page, pageSize, skip, take } = resolvePagePaginationFromParams(params, {
+    defaultPageSize: PAGINATION.SETTINGS_DEFAULT_LIMIT,
   });
-  const nextCursor = getNextCursor(rows, limit);
-  const pageItems = rows.slice(0, limit);
+
+  const where = q ? { name: { contains: q, mode: "insensitive" as const } } : {};
+  const [rows, totalCount] = await Promise.all([
+    db.vendor.findMany({
+      where,
+      orderBy: { name: "asc" },
+      skip,
+      take,
+    }),
+    db.vendor.count({ where }),
+  ]);
 
   return (
-    <SetupTableShell searchPlaceholder="Search vendors" defaultLimit={limit} nextCursor={nextCursor} shownCount={pageItems.length}>
+    <SetupTableShell
+      searchPlaceholder="Search vendors"
+      currentPage={page}
+      totalItems={totalCount}
+      pageSize={pageSize}
+    >
       <Table>
         <TableHeader>
           <TableRow>
@@ -36,7 +46,7 @@ async function VendorsContent({ searchParams }: { searchParams: Promise<SearchPa
           </TableRow>
         </TableHeader>
         <TableBody>
-          {pageItems.map((row) => (
+          {rows.map((row) => (
             <TableRow key={row.id}>
               <TableCell>{row.name}</TableCell>
               <TableCell>{row.email ?? "-"}</TableCell>

@@ -5,9 +5,9 @@ import { db } from "@/lib/db";
 import { getRequiredSession } from "@/lib/session";
 import { getUserScopeWhere } from "@/lib/scoping";
 import { getOptionalQuery, SearchParams } from "@/lib/filters/query";
-import { getNextCursor, resolveCursorPaginationFromParams } from "@/lib/pagination/cursor";
+import { resolvePagePaginationFromParams } from "@/lib/pagination/page";
 import { TableToolbar } from "@/components/shared/table-toolbar";
-import { PaginationControls } from "@/components/shared/pagination-controls";
+import { TablePagination } from "@/components/shared/table-pagination";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Prisma } from "@/lib/generated/prisma/client";
@@ -16,7 +16,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
   const session = await getRequiredSession();
   const params = await searchParams;
   const q = getOptionalQuery(params, "q");
-  const { cursor, limit, take } = resolveCursorPaginationFromParams(params);
+  const { page, pageSize, skip, take } = resolvePagePaginationFromParams(params);
   const roleQuery = q && ["ADMIN", "MANAGER", "STAFF"].includes(q.toUpperCase()) ? q.toUpperCase() : undefined;
   const where: Prisma.UserWhereInput = {
     ...getUserScopeWhere(session),
@@ -30,21 +30,21 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
         }
       : {}),
   };
-  const usersPromise = db.user.findMany({
-    where,
-    include: { branch: true },
-    orderBy: { updatedAt: "desc" },
-    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-    take,
-  });
-  const branchesPromise = db.branch.findMany({
-    where: { organizationId: session.organizationId ?? undefined },
-    orderBy: { name: "asc" },
-    select: { id: true, name: true, code: true },
-  });
-  const [users, branches] = await Promise.all([usersPromise, branchesPromise]);
-  const nextCursor = getNextCursor(users, limit);
-  const pageItems = users.slice(0, limit);
+  const [users, totalCount, branches] = await Promise.all([
+    db.user.findMany({
+      where,
+      include: { branch: true },
+      orderBy: { updatedAt: "desc" },
+      skip,
+      take,
+    }),
+    db.user.count({ where }),
+    db.branch.findMany({
+      where: { organizationId: session.organizationId ?? undefined },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, code: true },
+    }),
+  ]);
 
   return (
     <div>
@@ -57,7 +57,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
       />
       <Card className="border-purple-200 shadow-sm">
         <CardContent className="pt-6">
-          <TableToolbar searchPlaceholder="Search user, email, or role" defaultLimit={limit} />
+          <TableToolbar searchPlaceholder="Search user, email, or role" />
           <Table>
             <TableHeader>
               <TableRow>
@@ -69,7 +69,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pageItems.map((user) => (
+              {users.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>
                     <Link href={`/staff/${user.id}`} className="font-medium text-[#6D28D9] hover:underline">
@@ -84,7 +84,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
               ))}
             </TableBody>
           </Table>
-          <PaginationControls nextCursor={nextCursor} shownCount={pageItems.length} limit={limit} />
+          <TablePagination currentPage={page} totalItems={totalCount} pageSize={pageSize} />
         </CardContent>
       </Card>
     </div>

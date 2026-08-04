@@ -28,18 +28,19 @@ export function MaintenanceBoard({
   latestFlags: Array<{
     id: string;
     title: string;
+    notes?: string | null;
     severity: keyof typeof CONDITION_SEVERITY_LABELS;
     assetName: string;
   }>;
 }) {
   return (
     <Card className="border-purple-200 shadow-sm">
-      {/* <CardHeader>
+      <CardHeader>
         <CardTitle>Status and Condition Monitoring</CardTitle>
         <p className="mt-1 text-sm text-purple-900/70">
           Track lifecycle transitions, condition notes, maintenance history, and urgent flags.
         </p>
-      </CardHeader> */}
+      </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-3 md:grid-cols-3">
           <Metric title="Total maintenance records" value={totalRecords.toLocaleString()} />
@@ -54,11 +55,12 @@ export function MaintenanceBoard({
             <div className="space-y-2">
               {latestFlags.map((flag) => (
                 <div key={flag.id} className="flex items-center justify-between gap-3 rounded-md border border-purple-100 p-2.5">
-                  <div className="text-sm">
+                  <div className="min-w-0 text-sm">
                     <p className="font-medium text-purple-950">{flag.title}</p>
                     <p className="text-purple-900/70">{flag.assetName}</p>
+                    {flag.notes ? <p className="mt-1 text-purple-900/60">{flag.notes}</p> : null}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex shrink-0 items-center gap-2">
                     <Badge variant="secondary">{CONDITION_SEVERITY_LABELS[flag.severity]}</Badge>
                     <PendingForm action={resolveConditionFlagAction} successMessage="Condition flag resolved.">
                       <input type="hidden" name="id" value={flag.id} />

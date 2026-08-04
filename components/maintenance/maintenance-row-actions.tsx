@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { MAINTENANCE_STATUS } from "@/constants";
 
-type MaintenanceDocument = { id: string; fileName: string; fileUrl: string };
+type MaintenanceDocument = { id: string; fileName: string; displayName?: string; fileUrl: string };
 
 function displayFileName(fileName: string) {
   // Storage keys are often "{timestamp}-{uuid}-{original}". Prefer a short, readable label.
@@ -105,8 +105,8 @@ export function MaintenanceRowActions({
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-white text-[#7C3AED] shadow-sm">
                       <FileText className="h-4 w-4" />
                     </span>
-                    <span className="min-w-0 flex-1 truncate font-medium" title={doc.fileName}>
-                      {displayFileName(doc.fileName)}
+                    <span className="min-w-0 flex-1 truncate font-medium" title={doc.displayName ?? doc.fileName}>
+                      {doc.displayName ?? displayFileName(doc.fileName)}
                     </span>
                   </a>
                 </li>
@@ -125,14 +125,14 @@ export function MaintenanceRowActions({
             action={updateMaintenanceAction}
             onSuccess={() => setEditOpen(false)}
             successMessage="Maintenance record updated."
-            className="space-y-3"
+            className="min-w-0 space-y-3"
           >
             <input type="hidden" name="id" value={recordId} />
             <ReferenceSelect name="assetId" label="Asset" options={assets} value={assetId} required />
-            <SetupTextField name="description" label="Description" required defaultValue={description} />
+            <SetupTextField name="description" label="Description" required minLength={3} maxLength={2000} defaultValue={description} />
             <SetupTextField name="serviceDate" label="Service date" type="date" required defaultValue={serviceDate} />
             <SetupTextField name="cost" label="Cost" defaultValue={cost} />
-            <SetupTextField name="vendorName" label="Vendor name" defaultValue={vendorName} />
+            <SetupTextField name="vendorName" label="Vendor name" defaultValue={vendorName} maxLength={120} />
             <SetupTextField name="nextServiceDate" label="Next service date" type="date" defaultValue={nextServiceDate} />
             <EnumSelect
               name="status"

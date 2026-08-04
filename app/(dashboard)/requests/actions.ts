@@ -48,6 +48,8 @@ export async function createAssetRequestAction(formData: FormData) {
       branchId,
       departmentId: parseOptionalCuid(parsed.data.departmentId),
       categoryId: parsed.data.categoryId,
+      requestedAssetName: parsed.data.requestedAssetName,
+      custodianId: parseOptionalCuid(parsed.data.custodianId),
       reason: parsed.data.reason,
       urgency: parsed.data.urgency,
       notes: parsed.data.notes ?? null,
@@ -162,7 +164,7 @@ export async function reviewAssetRequestAction(formData: FormData) {
       data: {
         ain: `PEND-${suffix}`,
         serialNumber: `PEND-SN-${suffix}`,
-        name: `Pending: ${request.category.name} for ${request.requester.name}`,
+        name: request.requestedAssetName,
         description: `Created from approved request. Reason: ${request.reason}`,
         purchaseDate: new Date(),
         purchaseCost: 0,
@@ -171,7 +173,7 @@ export async function reviewAssetRequestAction(formData: FormData) {
         branchId: request.branchId,
         departmentId: request.departmentId,
         categoryId: request.categoryId,
-        custodianId: request.requesterId,
+        custodianId: request.custodianId ?? request.requesterId,
         organizationId: orgId(session),
       },
     });

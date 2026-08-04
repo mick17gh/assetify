@@ -12,6 +12,8 @@ type AssetRow = {
   status: string;
   branch: string;
   custodian: string;
+  age: string;
+  purchaseCost: string;
 };
 
 export function AssetTable({
@@ -36,6 +38,8 @@ export function AssetTable({
               <TableHead>Name</TableHead>
               <TableHead>Serial</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Age</TableHead>
+              <TableHead>Purchase Cost</TableHead>
               <TableHead>Branch</TableHead>
               <TableHead>Custodian</TableHead>
               {qrEnabled ? <TableHead className="text-right">Tag</TableHead> : null}
@@ -49,8 +53,12 @@ export function AssetTable({
                     {asset.ain}
                   </Link>
                 </TableCell>
-                <TableCell>
-                  <Link href={`/assets/${asset.id}`} className="hover:underline">
+                <TableCell className="max-w-[220px]">
+                  <Link
+                    href={`/assets/${asset.id}`}
+                    className="block truncate hover:underline"
+                    title={asset.name}
+                  >
                     {asset.name}
                   </Link>
                 </TableCell>
@@ -58,6 +66,8 @@ export function AssetTable({
                 <TableCell>
                   <Badge variant="secondary">{asset.status}</Badge>
                 </TableCell>
+                <TableCell>{asset.age}</TableCell>
+                <TableCell>{asset.purchaseCost}</TableCell>
                 <TableCell>{asset.branch}</TableCell>
                 <TableCell>{asset.custodian}</TableCell>
                 {qrEnabled ? (
