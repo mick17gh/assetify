@@ -119,7 +119,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                   </TableCell>
                   <TableCell>{ENUM_LABELS.documentType[doc.documentType] ?? doc.documentType}</TableCell>
                   <TableCell>
-                    <Link href={`/assets/${doc.assetId}`} className="font-medium text-[#6D28D9] hover:underline">
+                    <Link href={`/assets/${doc.assetId}`} prefetch className="font-medium text-[#6D28D9] hover:underline">
                       {doc.asset.name}
                     </Link>
                   </TableCell>

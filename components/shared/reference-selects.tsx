@@ -9,7 +9,88 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 
-export type ReferenceOption = { id: string; label: string };
+export type ReferenceOption = { id: string; label: string; code?: string };
+
+/** Compact searchable combobox for table cells (no label). */
+export function InlineCombobox({
+  value,
+  options,
+  onValueChange,
+  placeholder = "Select...",
+  allowNone = false,
+  error,
+  className,
+}: {
+  value: string;
+  options: ReferenceOption[];
+  onValueChange: (value: string) => void;
+  placeholder?: string;
+  allowNone?: boolean;
+  error?: boolean;
+  className?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const selectedOption = options.find((option) => option.id === value);
+  const display =
+    !value || value === "NONE" ? placeholder : (selectedOption?.label ?? placeholder);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className={cn(
+            "h-8 w-full min-w-[140px] cursor-pointer justify-between border-purple-200 bg-white px-2 font-normal",
+            error && "border-red-400",
+            (!value || value === "NONE") && "text-muted-foreground",
+            className,
+          )}
+        >
+          <span className="truncate text-left text-xs">{display}</span>
+          <ChevronsUpDown className="ml-1 h-3.5 w-3.5 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[240px] p-0" align="start">
+        <Command>
+          <CommandInput placeholder="Search..." />
+          <CommandList>
+            <CommandEmpty>No options found.</CommandEmpty>
+            <CommandGroup>
+              {allowNone ? (
+                <CommandItem
+                  value="none"
+                  onSelect={() => {
+                    onValueChange("");
+                    setOpen(false);
+                  }}
+                >
+                  <Check className={cn("mr-2 h-4 w-4", !value ? "opacity-100" : "opacity-0")} />
+                  None
+                </CommandItem>
+              ) : null}
+              {options.map((option) => (
+                <CommandItem
+                  key={option.id}
+                  value={`${option.id} ${option.label}`}
+                  onSelect={() => {
+                    onValueChange(option.id);
+                    setOpen(false);
+                  }}
+                >
+                  <Check className={cn("mr-2 h-4 w-4", value === option.id ? "opacity-100" : "opacity-0")} />
+                  <span className="truncate">{option.label}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export function ReferenceSelect({
   name,

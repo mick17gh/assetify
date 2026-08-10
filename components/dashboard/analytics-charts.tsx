@@ -14,10 +14,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ASSET_STATUS, ENUM_LABELS } from "@/constants";
 
 const STATUS_COLORS: Record<string, string> = {
-  [ASSET_STATUS.ACTIVE]: "#7C3AED",
+  [ASSET_STATUS.ACTIVE]: "#16A34A",
   [ASSET_STATUS.UNDER_REPAIR]: "#F59E0B",
   [ASSET_STATUS.FAULTY]: "#EF4444",
-  [ASSET_STATUS.IN_STORAGE]: "#6366F1",
+  [ASSET_STATUS.IN_STORAGE]: "#1E3A8A",
   [ASSET_STATUS.MISSING]: "#64748B",
   [ASSET_STATUS.DISPOSED]: "#94A3B8",
   [ASSET_STATUS.DONATED]: "#14B8A6",

@@ -37,7 +37,11 @@ export const getReferenceDataForSession = cache(async (session: AppSession) => {
   ]);
 
   return {
-    branches: branches.map((b) => ({ id: b.id, label: `${b.name} (${b.code})` })),
+    branches: branches.map((b) => ({
+      id: b.id,
+      label: `${b.name} (${b.code})`,
+      code: b.code,
+    })),
     categories: categories.map((c) => ({ id: c.id, label: c.name })),
     vendors: vendors.map((v) => ({ id: v.id, label: v.name })),
     custodians: users.map((u) => ({ id: u.id, label: `${u.name} (${u.email})` })),

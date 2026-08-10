@@ -85,7 +85,17 @@ export default async function AssetsPage({ searchParams }: { searchParams: Promi
         action={
           canWriteAssets ? (
             <div className="flex flex-wrap items-center gap-2">
-              <ImportAssetsModal />
+              <ImportAssetsModal
+                branches={refs.branches}
+                categories={refs.categories}
+                vendors={refs.vendors}
+                custodians={refs.custodians}
+                locations={{
+                  departments: refs.departments,
+                  rooms: refs.rooms,
+                  shelves: refs.shelves,
+                }}
+              />
               <CreateAssetModal
                 branches={refs.branches}
                 categories={refs.categories}

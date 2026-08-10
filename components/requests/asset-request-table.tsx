@@ -172,7 +172,9 @@ function RequestRowActions({
           ) : null}
           {row.fulfilledAssetId ? (
             <DropdownMenuItem asChild>
-              <Link href={`/assets/${row.fulfilledAssetId}`}>View pending asset</Link>
+              <Link href={`/assets/${row.fulfilledAssetId}`} prefetch>
+                View pending asset
+              </Link>
             </DropdownMenuItem>
           ) : null}
           {showFulfill ? (

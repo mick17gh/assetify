@@ -85,12 +85,12 @@ export function StaffDetailsTabs({
                     return (
                       <TableRow key={asset.id}>
                         <TableCell>
-                          <Link href={`/assets/${asset.id}`} className="font-medium text-[#6D28D9] hover:underline">
+                          <Link href={`/assets/${asset.id}`} prefetch className="font-medium text-[#6D28D9] hover:underline">
                             {asset.ain}
                           </Link>
                         </TableCell>
                         <TableCell>
-                          <Link href={`/assets/${asset.id}`} className="hover:underline">
+                          <Link href={`/assets/${asset.id}`} prefetch className="hover:underline">
                             {asset.name}
                           </Link>
                         </TableCell>
@@ -120,7 +120,7 @@ export function StaffDetailsTabs({
                   <div className="mb-1 flex items-center justify-between gap-2">
                     <p className="flex items-center gap-2 font-medium text-purple-950">
                       <MapPin className="h-4 w-4 text-purple-700" />
-                      <Link href={`/assets/${item.assetId}`} className="hover:underline">
+                      <Link href={`/assets/${item.assetId}`} prefetch className="hover:underline">
                         {item.assetName}
                       </Link>
                     </p>
@@ -147,7 +147,7 @@ export function StaffDetailsTabs({
                 <div key={item.id} className="rounded-lg border border-purple-100 bg-white p-3 text-sm">
                   <div className="mb-1 flex items-center justify-between gap-2">
                     <p className="font-medium text-purple-950">
-                      <Link href={`/assets/${item.assetId}`} className="hover:underline">
+                      <Link href={`/assets/${item.assetId}`} prefetch className="hover:underline">
                         {item.assetName}
                       </Link>
                     </p>

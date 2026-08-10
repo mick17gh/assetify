@@ -49,13 +49,14 @@ export function AssetTable({
             {assets.map((asset) => (
               <TableRow key={asset.id}>
                 <TableCell>
-                  <Link href={`/assets/${asset.id}`} className="font-medium text-[#6D28D9] hover:underline">
+                  <Link href={`/assets/${asset.id}`} prefetch className="font-medium text-[#6D28D9] hover:underline">
                     {asset.ain}
                   </Link>
                 </TableCell>
                 <TableCell className="max-w-[220px]">
                   <Link
                     href={`/assets/${asset.id}`}
+                    prefetch
                     className="block truncate hover:underline"
                     title={asset.name}
                   >

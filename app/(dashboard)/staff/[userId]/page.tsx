@@ -1,18 +1,20 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
-import { StaffDetailsTabs } from "@/components/staff/staff-details-tabs";
+import { DetailTabsLoading } from "@/components/shared/detail-page-loading";
+import { StaffActivityPanel } from "@/components/staff/staff-activity-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { APP_ROUTES } from "@/constants";
 import { db } from "@/lib/db";
 import { getRequiredSession } from "@/lib/session";
 import { getUserScopeWhere, getAssetScopeWhere } from "@/lib/scoping";
 
 export default async function StaffDetailPage({ params }: { params: Promise<{ userId: string }> }) {
-  const session = await getRequiredSession();
-  const { userId } = await params;
+  const [{ userId }, session] = await Promise.all([params, getRequiredSession()]);
   const userScope = getUserScopeWhere(session);
   const assetScope = getAssetScopeWhere(session);
 
@@ -32,36 +34,20 @@ export default async function StaffDetailPage({ params }: { params: Promise<{ us
   if (!member) notFound();
 
   const assetIds = member.assignedAssets.map((asset) => asset.id);
-
-  const [movements, statusHistory] = await Promise.all([
-    db.assetMovement.findMany({
-      where: {
-        OR: [
-          { toCustodianId: member.id },
-          { fromCustodianId: member.id },
-          ...(assetIds.length ? [{ assetId: { in: assetIds } }] : []),
-        ],
-        asset: assetScope,
-      },
-      include: { asset: { select: { id: true, name: true } } },
-      orderBy: { createdAt: "desc" },
-      take: 30,
-    }),
-    assetIds.length
-      ? db.assetStatusHistory.findMany({
-          where: { assetId: { in: assetIds } },
-          include: { asset: { select: { id: true, name: true } } },
-          orderBy: { createdAt: "desc" },
-          take: 30,
-        })
-      : Promise.resolve([]),
-  ]);
+  const allocatedAssets = member.assignedAssets.map((asset) => ({
+    id: asset.id,
+    ain: asset.ain,
+    name: asset.name,
+    status: asset.status,
+    branch: asset.branch.name,
+    location: `${asset.room?.name ?? "N/A"} / ${asset.shelf?.name ?? "N/A"}`,
+  }));
 
   return (
     <div>
       <div className="mb-3">
         <Button variant="ghost" asChild className="cursor-pointer px-0 text-purple-800 hover:bg-transparent">
-          <Link href="/staff">
+          <Link href={APP_ROUTES.STAFF} prefetch>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Staff
           </Link>
@@ -72,33 +58,14 @@ export default async function StaffDetailPage({ params }: { params: Promise<{ us
         description={`Staff profile and asset custody overview for ${member.email}`}
       />
       <div className="grid gap-5 xl:grid-cols-[1.7fr_1fr]">
-        <StaffDetailsTabs
-          allocatedAssets={member.assignedAssets.map((asset) => ({
-            id: asset.id,
-            ain: asset.ain,
-            name: asset.name,
-            status: asset.status,
-            branch: asset.branch.name,
-            location: `${asset.room?.name ?? "N/A"} / ${asset.shelf?.name ?? "N/A"}`,
-          }))}
-          movements={movements.map((item) => ({
-            id: item.id,
-            date: item.createdAt.toLocaleDateString(),
-            assetName: item.asset.name,
-            assetId: item.asset.id,
-            movementType: item.movementType,
-            note: item.note ?? "",
-          }))}
-          history={statusHistory.map((item) => ({
-            id: item.id,
-            date: item.createdAt.toLocaleDateString(),
-            assetName: item.asset.name,
-            assetId: item.asset.id,
-            from: item.fromStatus ?? "N/A",
-            to: item.toStatus,
-            note: item.note ?? "",
-          }))}
-        />
+        <Suspense fallback={<DetailTabsLoading />}>
+          <StaffActivityPanel
+            userId={member.id}
+            assetIds={assetIds}
+            assetScope={assetScope}
+            allocatedAssets={allocatedAssets}
+          />
+        </Suspense>
 
         <Card className="h-fit border-purple-200 shadow-sm">
           <CardHeader>

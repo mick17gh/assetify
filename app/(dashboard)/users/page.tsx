@@ -72,7 +72,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
               {users.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>
-                    <Link href={`/staff/${user.id}`} className="font-medium text-[#6D28D9] hover:underline">
+                    <Link href={`/staff/${user.id}`} prefetch className="font-medium text-[#6D28D9] hover:underline">
                       {user.name}
                     </Link>
                   </TableCell>

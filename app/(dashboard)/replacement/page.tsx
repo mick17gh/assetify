@@ -99,7 +99,7 @@ export default async function ReplacementPage({ searchParams }: { searchParams: 
               {rows.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell>
-                    <Link href={`/assets/${row.assetId}`} className="font-medium text-[#6D28D9] hover:underline">
+                    <Link href={`/assets/${row.assetId}`} prefetch className="font-medium text-[#6D28D9] hover:underline">
                       {row.asset.name}
                     </Link>
                   </TableCell>

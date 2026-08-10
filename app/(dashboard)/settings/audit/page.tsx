@@ -106,7 +106,7 @@ async function AuditContent({ searchParams }: { searchParams: Promise<SearchPara
                   <TableCell>{formatAuditEntityType(row.entityType)}</TableCell>
                   <TableCell>
                     {asset ? (
-                      <Link href={`/assets/${asset.id}`} className="font-medium text-[#6D28D9] hover:underline">
+                      <Link href={`/assets/${asset.id}`} prefetch className="font-medium text-[#6D28D9] hover:underline">
                         {assetLabel}
                       </Link>
                     ) : (

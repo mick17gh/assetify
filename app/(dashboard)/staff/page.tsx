@@ -70,7 +70,7 @@ export default async function StaffListPage({ searchParams }: { searchParams: Pr
                 {staff.map((member) => (
                   <tr key={member.id} className="border-b border-purple-50">
                     <td className="py-3">
-                      <Link href={`/staff/${member.id}`} className="font-medium text-[#6D28D9] hover:underline">
+                      <Link href={`/staff/${member.id}`} prefetch className="font-medium text-[#6D28D9] hover:underline">
                         {member.name}
                       </Link>
                     </td>

@@ -71,7 +71,7 @@ export function AssetRequestForm({
           <div className="min-w-0 sm:col-span-2">
             <ReferenceSelect
               name="categoryId"
-              label="Asset type"
+              label="Category"
               options={categories}
               value={categoryId}
               onValueChange={(value) => {

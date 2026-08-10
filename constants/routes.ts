@@ -34,6 +34,7 @@ export const API_ROUTES = {
   OFFLINE_SYNC: "/api/offline/sync",
   REMINDERS_DISPATCH: "/api/reminders/dispatch",
   CSV_IMPORT: "/api/assets/import",
+  CSV_IMPORT_CONFIRM: "/api/assets/import/confirm",
   CSV_IMPORT_TEMPLATE: "/api/assets/import/template",
   VERSION: "/api/version",
 } as const;
