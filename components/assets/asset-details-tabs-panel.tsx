@@ -78,15 +78,29 @@ export async function AssetDetailsTabsPanel({
               to: statusHistory[0].toStatus,
             }
           : null,
-        currentValue: valuation.currentValue.toLocaleString(),
-        accumulatedDepreciation: valuation.accumulatedDepreciation.toLocaleString(),
-        recommendedSalePrice: valuation.recommendedSalePrice.toLocaleString(),
+        currentValue: valuation.currentValue.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+        accumulatedDepreciation: valuation.accumulatedDepreciation.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+        recommendedSalePrice: valuation.recommendedSalePrice.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
       }}
       maintenance={maintenanceRecords.map((item) => ({
         id: item.id,
         serviceDate: item.serviceDate.toLocaleDateString(),
         description: item.description,
-        cost: item.cost ? Number(item.cost).toLocaleString() : "N/A",
+        cost: item.cost
+          ? Number(item.cost).toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })
+          : "N/A",
         vendorName: item.vendorName ?? "",
         status: item.status,
         documents: item.documents,
@@ -116,7 +130,12 @@ export async function AssetDetailsTabsPanel({
               method: disposalRecord.method,
               disposalDate: disposalRecord.disposalDate.toLocaleDateString(),
               reason: disposalRecord.reason,
-              salePrice: disposalRecord.salePrice ? Number(disposalRecord.salePrice).toLocaleString() : null,
+              salePrice: disposalRecord.salePrice
+                ? Number(disposalRecord.salePrice).toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })
+                : null,
             }
           : null
       }

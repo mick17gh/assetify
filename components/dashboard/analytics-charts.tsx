@@ -38,6 +38,13 @@ const branchChartConfig = {
   count: { label: "Assets", color: "#7C3AED" },
 } as const satisfies ChartConfig;
 
+const BRANCH_LABEL_MAX = 12;
+
+function truncateBranchLabel(value: string) {
+  if (value.length <= BRANCH_LABEL_MAX) return value;
+  return `${value.slice(0, BRANCH_LABEL_MAX - 1)}…`;
+}
+
 function ChartPlaceholder() {
   return <div className="h-[260px] w-full rounded-md bg-purple-50/80" aria-hidden />;
 }
@@ -101,10 +108,18 @@ export function AnalyticsCharts({
         <CardContent>
           {mounted ? (
             <ChartContainer id="assets-by-branch" config={branchChartConfig} className="h-[260px] w-full">
-              <BarChart data={branchData}>
+              <BarChart data={branchData} margin={{ bottom: 8 }}>
                 <CartesianGrid vertical={false} />
-                <XAxis dataKey="name" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} />
+                <XAxis
+                  dataKey="name"
+                  tickLine={false}
+                  axisLine={false}
+                  interval={0}
+                  tick={{ fontSize: 10 }}
+                  tickFormatter={truncateBranchLabel}
+                  height={40}
+                />
+                <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 10 }} />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Bar dataKey="count" fill="var(--color-count)" radius={6} />
               </BarChart>

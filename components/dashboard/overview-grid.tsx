@@ -33,14 +33,14 @@ export function OverviewGrid({
       />
       <KpiCard
         title="Estimated Budget"
-        value={`GHS ${estimatedBudgetGhs.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+        value={`GHS ${estimatedBudgetGhs.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
         hint="Forecast this year"
         href={`${APP_ROUTES.REPORTS}?q=OVERDUE`}
       />
       <KpiCard
         title="Quarter Snapshot"
         value={(quarterSnapshotDue ?? 0).toLocaleString()}
-        hint={`GHS ${(quarterSnapshotCost ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+        hint={`GHS ${(quarterSnapshotCost ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
         href={`${APP_ROUTES.REPORTS}?state=APPROACHING`}
       />
     </section>

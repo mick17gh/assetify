@@ -85,7 +85,10 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
     custodian: asset.custodian?.name ?? "Unassigned",
     vendor: asset.vendor?.name ?? "N/A",
     purchaseDate: asset.purchaseDate.toLocaleDateString(),
-    purchaseCost: Number(asset.purchaseCost).toLocaleString(),
+    purchaseCost: Number(asset.purchaseCost).toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }),
     warrantyExpiry: asset.warrantyExpiryDate ? asset.warrantyExpiryDate.toLocaleDateString() : "N/A",
   };
 
@@ -158,15 +161,32 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
                   </div>
                   <div className="rounded-lg border border-purple-100 bg-white p-3">
                     <p className="text-xs text-purple-900/60">Purchase Cost</p>
-                    <p className="font-medium text-purple-950">{Number(asset.purchaseCost).toLocaleString()}</p>
+                    <p className="font-medium text-purple-950">
+                      {Number(asset.purchaseCost).toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
                   </div>
                   <div className="rounded-lg border border-purple-100 bg-white p-3">
                     <p className="text-xs text-purple-900/60">Current Value</p>
-                    <p className="font-medium text-purple-950">GHS {valuation.currentValue.toLocaleString()}</p>
+                    <p className="font-medium text-purple-950">
+                      GHS{" "}
+                      {valuation.currentValue.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
                   </div>
                   <div className="rounded-lg border border-purple-100 bg-white p-3">
                     <p className="text-xs text-purple-900/60">Recommended Sale Price</p>
-                    <p className="font-medium text-purple-950">GHS {valuation.recommendedSalePrice.toLocaleString()}</p>
+                    <p className="font-medium text-purple-950">
+                      GHS{" "}
+                      {valuation.recommendedSalePrice.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
                   </div>
                   <div className="rounded-lg border border-purple-100 bg-white p-3">
                     <p className="text-xs text-purple-900/60">Age</p>
@@ -174,7 +194,13 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
                   </div>
                   <div className="rounded-lg border border-purple-100 bg-white p-3">
                     <p className="text-xs text-purple-900/60">Depreciation Applied</p>
-                    <p className="font-medium text-purple-950">GHS {valuation.accumulatedDepreciation.toLocaleString()}</p>
+                    <p className="font-medium text-purple-950">
+                      GHS{" "}
+                      {valuation.accumulatedDepreciation.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
                   </div>
                 </div>
               </div>
