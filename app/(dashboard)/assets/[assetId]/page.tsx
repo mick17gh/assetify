@@ -18,14 +18,16 @@ import { AssetQrPreview } from "@/components/assets/asset-qr-preview";
 import { isQrLocationScanningEnabled } from "@/lib/organization-settings";
 import { calculateAssetValuation } from "@/lib/depreciation-service";
 import { hasPermission } from "@/lib/permissions";
-import { APP_ROUTES, PERMISSION_KEYS } from "@/constants";
+import { APP_ROUTES, PERMISSION_KEYS, USER_ROLES } from "@/constants";
+import { getReferenceDataForSession } from "@/lib/reference-data";
 
 export default async function AssetDetailsPage({ params }: { params: Promise<{ assetId: string }> }) {
   const [{ assetId }, session] = await Promise.all([params, getRequiredSession()]);
   const canUploadDocuments = hasPermission(session.role, PERMISSION_KEYS.DOCUMENT_WRITE);
+  const canEditCategoryAndCost = session.role === USER_ROLES.ADMIN;
   const scope = getAssetScopeWhere(session);
 
-  const [asset, qrEnabled] = await Promise.all([
+  const [asset, qrEnabled, refs] = await Promise.all([
     db.asset.findFirst({
       where: {
         id: assetId,
@@ -44,6 +46,7 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
       },
     }),
     session.organizationId ? isQrLocationScanningEnabled(session.organizationId) : Promise.resolve(false),
+    getReferenceDataForSession(session),
   ]);
 
   if (!asset) notFound();
@@ -114,6 +117,10 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
               initialDescription={asset.description ?? ""}
               initialStatus={asset.status}
               initialCondition={asset.condition}
+              initialCategoryId={asset.categoryId}
+              initialPurchaseCost={Number(asset.purchaseCost).toFixed(2)}
+              categories={refs.categories}
+              canEditCategoryAndCost={canEditCategoryAndCost}
               recommendedSalePrice={valuation.recommendedSalePrice}
               depreciationUsefulLifeYears={asset.depreciationUsefulLifeYears ? String(asset.depreciationUsefulLifeYears) : ""}
               depreciationSalvageValue={asset.depreciationSalvageValue ? String(asset.depreciationSalvageValue) : ""}

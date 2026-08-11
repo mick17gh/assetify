@@ -5,7 +5,15 @@ import { db } from "@/lib/db";
 import { getRequiredSession } from "@/lib/session";
 import { assertPermission } from "@/lib/permissions";
 import { writeAuditLog } from "@/lib/audit";
-import { PERMISSION_KEYS, ASSET_STATUS, ERROR_MESSAGES, DISPOSAL_METHOD, MAINTENANCE_STATUS } from "@/constants";
+import {
+  PERMISSION_KEYS,
+  ASSET_STATUS,
+  ERROR_MESSAGES,
+  DISPOSAL_METHOD,
+  MAINTENANCE_STATUS,
+  REGEX,
+  USER_ROLES,
+} from "@/constants";
 import {
   updateAssetDepreciationSchema,
   updateAssetSchema,
@@ -105,13 +113,44 @@ export async function updateAssetDetailsAction(formData: FormData) {
   const description = String(formData.get("description") ?? "");
   if (!assetId || !name.trim()) throw new Error("Asset name is required.");
 
+  const isAdmin = session.role === USER_ROLES.ADMIN;
+  const fields = ["name", "description"];
+  const data: {
+    name: string;
+    description: string | null;
+    categoryId?: string;
+    purchaseCost?: string;
+  } = {
+    name: name.trim(),
+    description: description.trim() || null,
+  };
+
+  if (isAdmin) {
+    const categoryId = String(formData.get("categoryId") ?? "").trim();
+    const purchaseCost = String(formData.get("purchaseCost") ?? "").trim();
+    if (!categoryId) throw new Error("Category is required.");
+    if (!REGEX.CURRENCY.test(purchaseCost)) throw new Error("Invalid purchase cost.");
+
+    const category = await db.category.findFirst({
+      where: { id: categoryId },
+      select: { id: true },
+    });
+    if (!category) throw new Error("Category not found.");
+
+    data.categoryId = categoryId;
+    data.purchaseCost = purchaseCost;
+    fields.push("categoryId", "purchaseCost");
+  }
+
   await db.asset.updateMany({
     where: { id: assetId, organizationId: session.organizationId ?? undefined },
-    data: {
-      name: name.trim(),
-      description: description.trim() || null,
-    },
+    data,
   });
+
+  if (isAdmin) {
+    await syncReplacementForAsset(assetId);
+    await syncRemindersForAsset(assetId);
+  }
 
   await writeAuditLog({
     actorUserId: session.userId,
@@ -120,7 +159,7 @@ export async function updateAssetDetailsAction(formData: FormData) {
     action: "asset.edit",
     entityType: "Asset",
     entityId: assetId,
-    metadata: { fields: ["name", "description"] },
+    metadata: { fields },
   });
 
   revalidatePath(`/assets/${assetId}`);

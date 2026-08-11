@@ -14,6 +14,7 @@ import {
 import { DisposalModal } from "@/components/assets/disposal-modal";
 import { ASSET_CONDITION, ASSET_STATUS, DEPRECIATION_METHOD, DOCUMENT_TYPE } from "@/constants";
 import { EnumSelect } from "@/components/shared/enum-select";
+import { ReferenceSelect, type ReferenceOption } from "@/components/shared/reference-selects";
 import { SetupTextField } from "@/components/settings/setup-create-modal";
 import { SubmitButton } from "@/components/shared/submit-button";
 import { PendingForm } from "@/components/shared/pending-form";
@@ -31,6 +32,10 @@ export function AssetDetailsActions({
   initialDescription,
   initialStatus,
   initialCondition,
+  initialCategoryId,
+  initialPurchaseCost,
+  categories,
+  canEditCategoryAndCost,
   recommendedSalePrice,
   depreciationUsefulLifeYears,
   depreciationSalvageValue,
@@ -41,6 +46,10 @@ export function AssetDetailsActions({
   initialDescription: string;
   initialStatus: string;
   initialCondition: string;
+  initialCategoryId: string;
+  initialPurchaseCost: string;
+  categories: ReferenceOption[];
+  canEditCategoryAndCost: boolean;
   recommendedSalePrice: number;
   depreciationUsefulLifeYears: string;
   depreciationSalvageValue: string;
@@ -137,6 +146,24 @@ export function AssetDetailsActions({
                   <Label htmlFor="description">Description</Label>
                   <Textarea id="description" name="description" defaultValue={initialDescription} />
                 </div>
+                {canEditCategoryAndCost ? (
+                  <>
+                    <ReferenceSelect
+                      name="categoryId"
+                      label="Category"
+                      options={categories}
+                      defaultValue={initialCategoryId}
+                      required
+                    />
+                    <SetupTextField
+                      name="purchaseCost"
+                      label="Purchase Cost (GHS)"
+                      required
+                      defaultValue={initialPurchaseCost}
+                      pattern="^\d+(\.\d{1,2})?$"
+                    />
+                  </>
+                ) : null}
                 <SubmitButton idleLabel="Save changes" pendingLabel="Saving..." className="w-full cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]" />
               </PendingForm>
             </DialogContent>
