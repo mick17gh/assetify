@@ -51,7 +51,7 @@ export function CreateAssetModal({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-[#7C3AED] hover:bg-[#6D28D9] cursor-pointer">
+        <Button className="bg-navy-900 hover:bg-navy-950 cursor-pointer">
           <Plus className="mr-2 h-4 w-4" />
           Add Asset
         </Button>
@@ -89,7 +89,7 @@ export function CreateAssetModal({
           <EnumSelect name="status" label="Status" labelKey="assetStatus" values={ASSET_STATUS} defaultValue={ASSET_STATUS.ACTIVE} />
           <EnumSelect name="condition" label="Condition" labelKey="assetCondition" values={ASSET_CONDITION} defaultValue={ASSET_CONDITION.GOOD} />
           <div className="md:col-span-2">
-            <SubmitButton idleLabel="Save Asset" pendingLabel="Saving..." className="w-full cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]" />
+            <SubmitButton idleLabel="Save Asset" pendingLabel="Saving..." className="w-full cursor-pointer bg-navy-900 hover:bg-navy-950" />
           </div>
         </PendingForm>
       </DialogContent>

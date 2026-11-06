@@ -68,7 +68,7 @@ export function AssetDetailsActions({
     <div className="flex flex-wrap items-center gap-2">
       <Dialog open={workOrderOpen} onOpenChange={setWorkOrderOpen}>
         <DialogTrigger asChild>
-          <Button className="cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]">
+          <Button className="cursor-pointer bg-navy-900 hover:bg-navy-950">
             <PlusCircle className="mr-2 h-4 w-4" />
             Create Work Order
           </Button>
@@ -113,7 +113,7 @@ export function AssetDetailsActions({
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="cursor-pointer border-purple-200">
+          <Button variant="outline" className="cursor-pointer border-navy-200">
             <MoreHorizontal className="mr-2 h-4 w-4" />
             More
           </Button>
@@ -164,7 +164,7 @@ export function AssetDetailsActions({
                     />
                   </>
                 ) : null}
-                <SubmitButton idleLabel="Save changes" pendingLabel="Saving..." className="w-full cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]" />
+                <SubmitButton idleLabel="Save changes" pendingLabel="Saving..." className="w-full cursor-pointer bg-navy-900 hover:bg-navy-950" />
               </PendingForm>
             </DialogContent>
           </Dialog>
@@ -211,7 +211,7 @@ export function AssetDetailsActions({
                   values={DEPRECIATION_METHOD}
                   defaultValue={depreciationMethodOverride || DEPRECIATION_METHOD.STRAIGHT_LINE}
                 />
-                <SubmitButton idleLabel="Save overrides" pendingLabel="Saving..." className="w-full cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]" />
+                <SubmitButton idleLabel="Save overrides" pendingLabel="Saving..." className="w-full cursor-pointer bg-navy-900 hover:bg-navy-950" />
               </PendingForm>
             </DialogContent>
           </Dialog>

@@ -30,7 +30,7 @@ export function MaintenanceDocumentUpload({
           type="button"
           variant="outline"
           size="sm"
-          className="h-7 cursor-pointer border-purple-200 px-2 text-xs"
+          className="h-7 cursor-pointer border-navy-200 px-2 text-xs"
         >
           <Upload className="mr-1 h-3 w-3" />
           Invoice

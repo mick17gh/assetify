@@ -22,7 +22,7 @@ export function SettingsNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="mb-6 flex flex-wrap gap-2 border-b border-purple-100 pb-4">
+    <nav className="mb-6 flex flex-wrap gap-2 border-b border-navy-100 pb-4">
       {links.map((link) => (
         <Link
           key={link.href}
@@ -31,8 +31,8 @@ export function SettingsNav() {
           className={cn(
             "cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
             pathname === link.href || pathname.startsWith(`${link.href}/`)
-              ? "bg-purple-100 text-purple-900"
-              : "text-purple-800/70 hover:bg-purple-50 hover:text-purple-900",
+              ? "bg-navy-100 text-navy-900"
+              : "text-navy-800/70 hover:bg-navy-50 hover:text-navy-900",
           )}
         >
           {link.label}

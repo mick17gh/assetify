@@ -37,27 +37,27 @@ export function MaintenanceTimeline({
           <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">High maintenance cost — review for replacement</Badge>
         ) : null}
       </div>
-      <div className="relative space-y-4 border-l-2 border-purple-200 pl-4">
+      <div className="relative space-y-4 border-l-2 border-navy-200 pl-4">
         {items.length === 0 ? (
-          <p className="text-sm text-purple-900/60">No maintenance records yet.</p>
+          <p className="text-sm text-navy-900/60">No maintenance records yet.</p>
         ) : (
           items.map((item) => (
             <div key={item.id} className="relative">
-              <span className="absolute -left-[21px] top-1 h-3 w-3 rounded-full bg-[#7C3AED]" />
-              <div className="rounded-lg border border-purple-100 bg-white p-3">
+              <span className="absolute -left-[21px] top-1 h-3 w-3 rounded-full bg-navy-900" />
+              <div className="rounded-lg border border-navy-100 bg-white p-3">
                 <div className="mb-1 flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-medium text-purple-950">{item.serviceDate}</span>
+                  <span className="text-sm font-medium text-navy-950">{item.serviceDate}</span>
                   <Badge variant="secondary">{ENUM_LABELS.maintenanceStatus[item.status] ?? item.status}</Badge>
-                  {item.cost !== "N/A" ? <span className="text-sm text-purple-900/70">GHS {item.cost}</span> : null}
+                  {item.cost !== "N/A" ? <span className="text-sm text-navy-900/70">GHS {item.cost}</span> : null}
                   <MaintenanceDocumentUpload recordId={item.id} canUpload={canUpload} />
                 </div>
-                <p className="text-sm text-purple-900/80">{item.description}</p>
-                {item.vendorName ? <p className="mt-1 text-xs text-purple-900/60">Vendor: {item.vendorName}</p> : null}
+                <p className="text-sm text-navy-900/80">{item.description}</p>
+                {item.vendorName ? <p className="mt-1 text-xs text-navy-900/60">Vendor: {item.vendorName}</p> : null}
                 {item.documents.length > 0 ? (
                   <ul className="mt-2 space-y-1 text-xs">
                     {item.documents.map((doc) => (
                       <li key={doc.id}>
-                        <a href={doc.fileUrl} target="_blank" rel="noreferrer" className="text-[#6D28D9] hover:underline">
+                        <a href={doc.fileUrl} target="_blank" rel="noreferrer" className="text-navy-900 hover:underline">
                           {doc.fileName}
                         </a>
                       </li>

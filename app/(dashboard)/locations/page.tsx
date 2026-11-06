@@ -82,7 +82,7 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
         action={
           <div className="flex flex-wrap gap-2">
             {qrEnabled ? (
-              <Button variant="outline" asChild className="cursor-pointer border-purple-200">
+              <Button variant="outline" asChild className="cursor-pointer border-navy-200">
                 <Link href="/locations/scan">Scan location</Link>
               </Button>
             ) : null}
@@ -97,7 +97,7 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
           </div>
         }
       />
-      <Card className="border-purple-200 shadow-sm">
+      <Card className="border-navy-200 shadow-sm">
         <CardContent className="pt-6">
           <TableToolbar searchPlaceholder="Filter by movement note or asset" />
           <Table>
@@ -113,7 +113,7 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
               {rows.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell>
-                    <Link href={`/assets/${row.assetId}`} prefetch className="font-medium text-[#6D28D9] hover:underline">
+                    <Link href={`/assets/${row.assetId}`} prefetch className="font-medium text-navy-900 hover:underline">
                       {row.asset.name}
                     </Link>
                   </TableCell>

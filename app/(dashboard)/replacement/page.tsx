@@ -70,7 +70,7 @@ export default async function ReplacementPage({ searchParams }: { searchParams: 
         description="Policy-driven replacement timelines, indicators, and disposal recommendations."
         action={
           <PendingForm action={recomputeReplacementAction} successMessage="Replacement evaluations recomputed.">
-            <SubmitButton idleLabel="Recompute" pendingLabel="Recomputing..." className="cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]" />
+            <SubmitButton idleLabel="Recompute" pendingLabel="Recomputing..." className="cursor-pointer bg-navy-900 hover:bg-navy-950" />
           </PendingForm>
         }
       />
@@ -79,7 +79,7 @@ export default async function ReplacementPage({ searchParams }: { searchParams: 
         approaching={approaching}
         overdue={overdue}
       />
-      <Card className="mt-4 border-purple-200 shadow-sm">
+      <Card className="mt-4 border-navy-200 shadow-sm">
         <CardContent className="pt-6">
           <TableToolbar searchPlaceholder="Search by asset name or AIN" />
           <div className="mb-4 flex justify-end">
@@ -99,7 +99,7 @@ export default async function ReplacementPage({ searchParams }: { searchParams: 
               {rows.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell>
-                    <Link href={`/assets/${row.assetId}`} prefetch className="font-medium text-[#6D28D9] hover:underline">
+                    <Link href={`/assets/${row.assetId}`} prefetch className="font-medium text-navy-900 hover:underline">
                       {row.asset.name}
                     </Link>
                   </TableCell>
@@ -113,7 +113,7 @@ export default async function ReplacementPage({ searchParams }: { searchParams: 
                         <SubmitButton
                           idleLabel="Acknowledge disposal"
                           pendingLabel="Acknowledging..."
-                          className="h-7 cursor-pointer border-purple-200 bg-white px-2.5 text-xs text-purple-800 shadow-none hover:bg-purple-50"
+                          className="h-7 cursor-pointer border-navy-200 bg-white px-2.5 text-xs text-navy-800 shadow-none hover:bg-navy-50"
                         />
                       </PendingForm>
                     ) : (

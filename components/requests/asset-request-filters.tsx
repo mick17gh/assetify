@@ -42,7 +42,7 @@ export function AssetRequestFilters({
             });
           }}
         >
-          <SelectTrigger className="h-9 w-[180px] cursor-pointer border-purple-200">
+          <SelectTrigger className="h-9 w-[180px] cursor-pointer border-navy-200">
             <SelectValue placeholder="All branches" />
           </SelectTrigger>
           <SelectContent>

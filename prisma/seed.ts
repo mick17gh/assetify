@@ -16,9 +16,9 @@ const db = new PrismaClient();
 
 async function main() {
   const organization = await db.organization.upsert({
-    where: { name: "NY Assetify Demo Org" },
+    where: { name: "NY VortAsset Demo Org" },
     update: { maintenanceCostThresholdPercent: 50 },
-    create: { name: "NY Assetify Demo Org", maintenanceCostThresholdPercent: 50 },
+    create: { name: "NY VortAsset Demo Org", maintenanceCostThresholdPercent: 50 },
   });
 
   const branch = await db.branch.upsert({
@@ -123,7 +123,7 @@ async function main() {
   const adminUser = await db.user.upsert({
     where: { email: adminEmail },
     update: {
-      name: "Assetify Admin",
+      name: "VortAsset Admin",
       role: USER_ROLES.ADMIN,
       isActive: true,
       branchId: branch.id,
@@ -131,7 +131,7 @@ async function main() {
       emailVerified: true,
     },
     create: {
-      name: "Assetify Admin",
+      name: "VortAsset Admin",
       email: adminEmail,
       emailVerified: true,
       role: USER_ROLES.ADMIN,

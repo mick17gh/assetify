@@ -12,42 +12,42 @@ export function AssetScanProfileCard({
 }) {
   if (variant === "compact") {
     return (
-      <Card className="border-purple-200 shadow-sm">
+      <Card className="border-navy-200 shadow-sm">
         <CardContent className="flex flex-wrap items-center gap-3 pt-6 text-sm">
           <div className="min-w-0 flex-1">
-            <p className="font-semibold text-purple-950">{profile.name}</p>
-            <p className="text-purple-900/70">
+            <p className="font-semibold text-navy-950">{profile.name}</p>
+            <p className="text-navy-900/70">
               {profile.ain} · {profile.branch}
               {profile.room !== "N/A" ? ` · ${profile.room}` : ""}
             </p>
           </div>
           <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">{profile.status}</Badge>
-          <span className="text-purple-900/65">Custodian: {profile.custodian}</span>
+          <span className="text-navy-900/65">Custodian: {profile.custodian}</span>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="border-purple-200 shadow-sm">
+    <Card className="border-navy-200 shadow-sm">
       <CardContent className="grid gap-5 pt-6 md:grid-cols-[220px_1fr]">
-        <div className="rounded-xl border border-purple-100 bg-gradient-to-br from-purple-50 to-white p-3">
+        <div className="rounded-xl border border-navy-100 bg-gradient-to-br from-navy-50 to-white p-3">
           {profile.photoUrl ? (
             <Image
               src={profile.photoUrl}
               alt={`${profile.name} photo`}
               width={400}
               height={170}
-              className="h-[160px] w-full rounded-lg border border-purple-100 object-cover"
+              className="h-[160px] w-full rounded-lg border border-navy-100 object-cover"
             />
           ) : (
-            <div className="flex h-[160px] items-center justify-center rounded-lg border border-purple-100 bg-white text-sm text-purple-900/55">
+            <div className="flex h-[160px] items-center justify-center rounded-lg border border-navy-100 bg-white text-sm text-navy-900/55">
               No photo uploaded
             </div>
           )}
           <div className="mt-3">
-            <p className="font-semibold text-purple-950">{profile.name}</p>
-            <p className="text-sm text-purple-900/65">{profile.serialNumber}</p>
+            <p className="font-semibold text-navy-950">{profile.name}</p>
+            <p className="text-sm text-navy-900/65">{profile.serialNumber}</p>
           </div>
         </div>
         <div>
@@ -73,9 +73,9 @@ export function AssetScanProfileCard({
 
 function ProfileField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-purple-100 bg-white p-3">
-      <p className="text-xs text-purple-900/60">{label}</p>
-      <p className="font-medium text-purple-950">{value}</p>
+    <div className="rounded-lg border border-navy-100 bg-white p-3">
+      <p className="text-xs text-navy-900/60">{label}</p>
+      <p className="font-medium text-navy-950">{value}</p>
     </div>
   );
 }

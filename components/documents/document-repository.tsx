@@ -38,11 +38,11 @@ export function DocumentRepository({
         <Label htmlFor="document">Document</Label>
         <Input id="document" name="document" type="file" required />
       </div>
-      <Card className="border-purple-100 bg-purple-50/70">
+      <Card className="border-navy-100 bg-navy-50/70">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm text-purple-950">Repository summary</CardTitle>
+          <CardTitle className="text-sm text-navy-950">Repository summary</CardTitle>
         </CardHeader>
-        <CardContent className="pt-0 text-sm text-purple-900/70">
+        <CardContent className="pt-0 text-sm text-navy-900/70">
           {totalDocuments.toLocaleString()} document{totalDocuments === 1 ? "" : "s"} currently stored.
         </CardContent>
       </Card>

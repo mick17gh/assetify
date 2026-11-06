@@ -34,9 +34,9 @@ export function ReportCenter({
   canViewFinance: boolean;
 }) {
   return (
-    <Card className="border-purple-200 shadow-sm">
+    <Card className="border-navy-200 shadow-sm">
       <CardHeader>
-        <CardTitle className="text-base text-purple-950">Report Center</CardTitle>
+        <CardTitle className="text-base text-navy-950">Report Center</CardTitle>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="replacement">
@@ -48,18 +48,18 @@ export function ReportCenter({
 
           <TabsContent value="replacement" className="space-y-4">
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="rounded-lg border border-purple-100 bg-purple-50/80 p-3.5">
-                <p className="text-xl font-semibold text-[#7C3AED]">{dueCount}</p>
-                <p className="text-purple-900/70">Assets due for replacement</p>
+              <div className="rounded-lg border border-navy-100 bg-navy-50/80 p-3.5">
+                <p className="text-xl font-semibold text-navy-900">{dueCount}</p>
+                <p className="text-navy-900/70">Assets due for replacement</p>
               </div>
-              <div className="rounded-lg border border-purple-100 bg-purple-50/80 p-3.5">
-                <p className="text-xl font-semibold text-[#7C3AED]">
+              <div className="rounded-lg border border-navy-100 bg-navy-50/80 p-3.5">
+                <p className="text-xl font-semibold text-navy-900">
                   GHS {dueCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                 </p>
-                <p className="text-purple-900/70">Estimated replacement cost</p>
+                <p className="text-navy-900/70">Estimated replacement cost</p>
               </div>
             </div>
-            <p className="text-sm text-purple-900/65">
+            <p className="text-sm text-navy-900/65">
               Use PDF / Excel next to the table below. Exports include all matching rows (up to 10,000) and respect
               the current state and search filters.
             </p>

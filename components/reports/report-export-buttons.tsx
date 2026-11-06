@@ -58,7 +58,7 @@ export function ReportExportButtons({
         size="sm"
         disabled={exporting !== null}
         onClick={() => handleExport("excel")}
-        className="h-9 cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]"
+        className="h-9 cursor-pointer bg-navy-900 hover:bg-navy-950"
       >
         {exporting === "excel" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
         {exporting === "excel" ? "Exporting..." : "Excel"}

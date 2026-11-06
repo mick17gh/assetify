@@ -94,7 +94,7 @@ export default async function MaintenancePage({ searchParams }: { searchParams: 
           assetName: flag.asset.name,
         }))}
       />
-      <Card className="mt-4 border-purple-200 shadow-sm">
+      <Card className="mt-4 border-navy-200 shadow-sm">
         <CardContent className="pt-6">
           <TableToolbar
             searchPlaceholder="Search by asset, description, or vendor"

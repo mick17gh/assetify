@@ -37,7 +37,7 @@ export function AssetFilters({ branches }: { branches: ReferenceOption[] }) {
             });
           }}
         >
-          <SelectTrigger id="branch-filter" className="h-9 w-[180px] cursor-pointer border-purple-200">
+          <SelectTrigger id="branch-filter" className="h-9 w-[180px] cursor-pointer border-navy-200">
             <SelectValue placeholder="All branches" />
           </SelectTrigger>
           <SelectContent>

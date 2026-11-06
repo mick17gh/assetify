@@ -98,7 +98,7 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
   return (
     <div>
       <div className="mb-3">
-        <Button variant="ghost" asChild className="cursor-pointer px-0 text-purple-800 hover:bg-transparent">
+        <Button variant="ghost" asChild className="cursor-pointer px-0 text-navy-800 hover:bg-transparent">
           <Link href={APP_ROUTES.ASSETS} prefetch>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Assets
@@ -131,26 +131,26 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
       />
       <div className="grid gap-5 xl:grid-cols-[1.7fr_1fr]">
         <div className="space-y-5">
-          <Card className="border-purple-200 shadow-sm">
+          <Card className="border-navy-200 shadow-sm">
             <CardContent className="grid gap-5 pt-6 md:grid-cols-[260px_1fr]">
-              <div className="rounded-xl border border-purple-100 bg-gradient-to-br from-purple-50 to-white p-4">
+              <div className="rounded-xl border border-navy-100 bg-gradient-to-br from-navy-50 to-white p-4">
                 {asset.photos[0]?.url ? (
                   <Image
                     src={asset.photos[0].url}
                     alt={`${asset.name} photo`}
                     width={400}
                     height={170}
-                    className="h-[170px] w-full rounded-lg border border-purple-100 object-cover"
+                    className="h-[170px] w-full rounded-lg border border-navy-100 object-cover"
                     priority
                   />
                 ) : (
-                  <div className="flex h-[170px] items-center justify-center rounded-lg border border-purple-100 bg-white text-sm text-purple-900/55">
+                  <div className="flex h-[170px] items-center justify-center rounded-lg border border-navy-100 bg-white text-sm text-navy-900/55">
                     No photo uploaded
                   </div>
                 )}
                 <div className="mt-3">
-                  <p className="font-semibold text-purple-950">{asset.name}</p>
-                  <p className="text-sm text-purple-900/65">{asset.serialNumber}</p>
+                  <p className="font-semibold text-navy-950">{asset.name}</p>
+                  <p className="text-sm text-navy-900/65">{asset.serialNumber}</p>
                 </div>
               </div>
               <div>
@@ -158,26 +158,26 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
                   <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">{asset.status}</Badge>
                   <Badge variant="secondary">{asset.condition}</Badge>
                 </div>
-                <p className="text-sm text-purple-900/75">
+                <p className="text-sm text-navy-900/75">
                   {asset.description || "No description provided for this asset yet."}
                 </p>
                 <div className="mt-4 grid gap-3 text-sm md:grid-cols-2">
-                  <div className="rounded-lg border border-purple-100 bg-white p-3">
-                    <p className="text-xs text-purple-900/60">Category</p>
-                    <p className="font-medium text-purple-950">{asset.category.name}</p>
+                  <div className="rounded-lg border border-navy-100 bg-white p-3">
+                    <p className="text-xs text-navy-900/60">Category</p>
+                    <p className="font-medium text-navy-950">{asset.category.name}</p>
                   </div>
-                  <div className="rounded-lg border border-purple-100 bg-white p-3">
-                    <p className="text-xs text-purple-900/60">Purchase Cost</p>
-                    <p className="font-medium text-purple-950">
+                  <div className="rounded-lg border border-navy-100 bg-white p-3">
+                    <p className="text-xs text-navy-900/60">Purchase Cost</p>
+                    <p className="font-medium text-navy-950">
                       {Number(asset.purchaseCost).toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })}
                     </p>
                   </div>
-                  <div className="rounded-lg border border-purple-100 bg-white p-3">
-                    <p className="text-xs text-purple-900/60">Current Value</p>
-                    <p className="font-medium text-purple-950">
+                  <div className="rounded-lg border border-navy-100 bg-white p-3">
+                    <p className="text-xs text-navy-900/60">Current Value</p>
+                    <p className="font-medium text-navy-950">
                       GHS{" "}
                       {valuation.currentValue.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
@@ -185,9 +185,9 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
                       })}
                     </p>
                   </div>
-                  <div className="rounded-lg border border-purple-100 bg-white p-3">
-                    <p className="text-xs text-purple-900/60">Recommended Sale Price</p>
-                    <p className="font-medium text-purple-950">
+                  <div className="rounded-lg border border-navy-100 bg-white p-3">
+                    <p className="text-xs text-navy-900/60">Recommended Sale Price</p>
+                    <p className="font-medium text-navy-950">
                       GHS{" "}
                       {valuation.recommendedSalePrice.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
@@ -195,13 +195,13 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
                       })}
                     </p>
                   </div>
-                  <div className="rounded-lg border border-purple-100 bg-white p-3">
-                    <p className="text-xs text-purple-900/60">Age</p>
-                    <p className="font-medium text-purple-950">{valuation.ageMonths} months</p>
+                  <div className="rounded-lg border border-navy-100 bg-white p-3">
+                    <p className="text-xs text-navy-900/60">Age</p>
+                    <p className="font-medium text-navy-950">{valuation.ageMonths} months</p>
                   </div>
-                  <div className="rounded-lg border border-purple-100 bg-white p-3">
-                    <p className="text-xs text-purple-900/60">Depreciation Applied</p>
-                    <p className="font-medium text-purple-950">
+                  <div className="rounded-lg border border-navy-100 bg-white p-3">
+                    <p className="text-xs text-navy-900/60">Depreciation Applied</p>
+                    <p className="font-medium text-navy-950">
                       GHS{" "}
                       {valuation.accumulatedDepreciation.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
@@ -230,9 +230,9 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
           </Suspense>
         </div>
 
-        <Card className="h-fit border-purple-200 shadow-sm">
+        <Card className="h-fit border-navy-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-base text-purple-950">Specifications</CardTitle>
+            <CardTitle className="text-base text-navy-950">Specifications</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             {qrEnabled ? <AssetQrPreview assetId={asset.id} ain={asset.ain} branchName={asset.branch.name} /> : null}
@@ -251,9 +251,9 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
 
 function Spec({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid grid-cols-[120px_1fr] gap-2 rounded-lg border border-purple-100 bg-white p-2.5">
-      <p className="text-xs text-purple-900/60">{label}</p>
-      <p className="font-medium text-purple-950">{value}</p>
+    <div className="grid grid-cols-[120px_1fr] gap-2 rounded-lg border border-navy-100 bg-white p-2.5">
+      <p className="text-xs text-navy-900/60">{label}</p>
+      <p className="font-medium text-navy-950">{value}</p>
     </div>
   );
 }

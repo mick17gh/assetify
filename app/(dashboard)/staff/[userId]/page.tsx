@@ -46,7 +46,7 @@ export default async function StaffDetailPage({ params }: { params: Promise<{ us
   return (
     <div>
       <div className="mb-3">
-        <Button variant="ghost" asChild className="cursor-pointer px-0 text-purple-800 hover:bg-transparent">
+        <Button variant="ghost" asChild className="cursor-pointer px-0 text-navy-800 hover:bg-transparent">
           <Link href={APP_ROUTES.STAFF} prefetch>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Staff
@@ -67,9 +67,9 @@ export default async function StaffDetailPage({ params }: { params: Promise<{ us
           />
         </Suspense>
 
-        <Card className="h-fit border-purple-200 shadow-sm">
+        <Card className="h-fit border-navy-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-base text-purple-950">Staff Profile</CardTitle>
+            <CardTitle className="text-base text-navy-950">Staff Profile</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <ProfileField label="Email" value={member.email} />
@@ -78,9 +78,9 @@ export default async function StaffDetailPage({ params }: { params: Promise<{ us
             <ProfileField label="Employee code" value={member.staffProfile?.employeeCode ?? "—"} />
             <ProfileField label="Title" value={member.staffProfile?.title ?? "—"} />
             <ProfileField label="Department" value={member.staffProfile?.department ?? "—"} />
-            <div className="rounded-lg border border-purple-100 bg-purple-50/50 p-3">
-              <p className="text-xs text-purple-900/60">Allocated assets</p>
-              <p className="text-2xl font-semibold text-[#7C3AED]">{member.assignedAssets.length}</p>
+            <div className="rounded-lg border border-navy-100 bg-navy-50/50 p-3">
+              <p className="text-xs text-navy-900/60">Allocated assets</p>
+              <p className="text-2xl font-semibold text-navy-900">{member.assignedAssets.length}</p>
             </div>
             <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
               {member.isActive ? "Active" : "Inactive"}
@@ -94,9 +94,9 @@ export default async function StaffDetailPage({ params }: { params: Promise<{ us
 
 function ProfileField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid grid-cols-[120px_1fr] gap-2 rounded-lg border border-purple-100 bg-white p-2.5">
-      <p className="text-xs text-purple-900/60">{label}</p>
-      <p className="font-medium text-purple-950">{value}</p>
+    <div className="grid grid-cols-[120px_1fr] gap-2 rounded-lg border border-navy-100 bg-white p-2.5">
+      <p className="text-xs text-navy-900/60">{label}</p>
+      <p className="font-medium text-navy-950">{value}</p>
     </div>
   );
 }

@@ -76,7 +76,7 @@ export async function GET(request: Request) {
     }
 
     const buffer = await buildPdfReport(
-      "Assetify Department Cost Report",
+      "VortAsset Department Cost Report",
       columns,
       rows.map((r) => ({
         department: r.departmentName,
@@ -144,7 +144,7 @@ export async function GET(request: Request) {
       sale: r.salePrice != null ? Number(r.salePrice).toLocaleString() : "—",
       reason: r.reason,
     }));
-    const buffer = await buildPdfReport("Assetify Disposal Summary", columns, data, { note });
+    const buffer = await buildPdfReport("VortAsset Disposal Summary", columns, data, { note });
     return fileResponse(buffer, `disposal-summary-${dateStamp}.pdf`, "application/pdf");
   }
 
@@ -186,7 +186,7 @@ export async function GET(request: Request) {
     }
 
     const buffer = await buildPdfReport(
-      "Assetify End-of-Life Valuation Report",
+      "VortAsset End-of-Life Valuation Report",
       columns,
       excelData.map((r) => ({
         ...r,
@@ -242,7 +242,7 @@ export async function GET(request: Request) {
   }
 
   const buffer = await buildPdfReport(
-    `Assetify Replacement Report${titleSuffix}`,
+    `VortAsset Replacement Report${titleSuffix}`,
     columns,
     excelData.map((r) => ({ ...r, cost: Number(r.cost).toLocaleString() })),
     { note },

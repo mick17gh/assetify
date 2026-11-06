@@ -55,10 +55,12 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
 
   return (
     <SidebarProvider>
-      <Sidebar collapsible="icon" className="border-r border-purple-200/70 bg-white/80 backdrop-blur">
-        <SidebarHeader className="border-b border-purple-200/70">
-          <div className="flex items-center justify-between px-2">
-            <span className="text-lg font-semibold tracking-tight text-[#6D28D9]">Assetify</span>
+      <Sidebar collapsible="icon" className="border-r border-navy-200/70 bg-white/80 backdrop-blur">
+        <SidebarHeader className="border-b border-navy-200/70 group-data-[collapsible=icon]:items-center">
+          <div className="flex items-center justify-between px-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+            <span className="text-lg font-semibold tracking-tight text-navy-900 group-data-[collapsible=icon]:hidden">
+              VortAsset
+            </span>
             <SidebarTrigger className="cursor-pointer" />
           </div>
         </SidebarHeader>
@@ -74,7 +76,7 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
                         asChild
                         isActive={pathname.startsWith(link.href)}
                         tooltip={link.label}
-                        className="cursor-pointer rounded-lg data-[active=true]:bg-purple-100 data-[active=true]:text-purple-900"
+                        className="cursor-pointer rounded-lg data-[active=true]:bg-navy-100 data-[active=true]:text-navy-900"
                       >
                         <Link href={link.href} prefetch>
                           <Icon className="h-4 w-4" />
@@ -88,13 +90,13 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
-        <SidebarFooter className="gap-3 border-t border-purple-200/70 bg-white/70 p-3">
+        <SidebarFooter className="gap-2 overflow-hidden border-t border-navy-200/70 bg-white/70 p-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-1.5 group-data-[collapsible=icon]:py-2">
           <OfflineSyncIndicator />
           <LogoutButton />
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>
-      <SidebarInset className="text-[#3B1E63]">
+      <SidebarInset className="text-navy-900">
         <main className="mx-auto w-full max-w-7xl px-5 py-7">{children}</main>
       </SidebarInset>
     </SidebarProvider>

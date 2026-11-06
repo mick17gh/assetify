@@ -19,7 +19,7 @@ export function isStaleClientError(error: unknown): boolean {
 export function notifyUpdateAvailable(reason?: string) {
   toast.info("Update available", {
     id: UPDATE_TOAST_ID,
-    description: reason ?? "A new version of Assetify is ready. Refresh to continue.",
+    description: reason ?? "A new version of VortAsset is ready. Refresh to continue.",
     duration: Infinity,
     action: {
       label: "Refresh",

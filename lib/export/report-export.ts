@@ -64,7 +64,7 @@ function drawTablePage({
   const tableWidth = columnWidths.reduce((sum, width) => sum + width, 0);
   const tableLeft = MARGIN_X;
 
-  page.drawText(title, { x: tableLeft, y: PAGE_HEIGHT - MARGIN_TOP, size: TITLE_SIZE, font: bold, color: rgb(0.24, 0.12, 0.45) });
+  page.drawText(title, { x: tableLeft, y: PAGE_HEIGHT - MARGIN_TOP, size: TITLE_SIZE, font: bold, color: rgb(0.004, 0.184, 0.42) });
   page.drawText(pageLabel, {
     x: tableLeft,
     y: PAGE_HEIGHT - MARGIN_TOP - 18,

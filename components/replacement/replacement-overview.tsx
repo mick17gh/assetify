@@ -12,11 +12,11 @@ export function ReplacementOverview({
   overdue: number;
 }) {
   return (
-    <Card className="border-purple-200 shadow-sm">
+    <Card className="border-navy-200 shadow-sm">
       {/* <CardHeader>
         <CardTitle>Replacement and Disposal Engine</CardTitle>
       </CardHeader> */}
-      <CardContent className="text-sm text-purple-900/70">
+      <CardContent className="text-sm text-navy-900/70">
         <p className="mb-3">
           Calculates end-of-life, replacement due windows, disposal eligibility, and budget impact by quarter and
           year.

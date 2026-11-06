@@ -53,7 +53,7 @@ export function DisposalModal({
           <SetupTextField name="reason" label="Reason" required />
           {method === DISPOSAL_METHOD.SOLD ? (
             <>
-              <p className="text-sm text-purple-900/70">
+              <p className="text-sm text-navy-900/70">
                 Recommended sale price: <strong>GHS {recommendedSalePrice.toLocaleString()}</strong>
               </p>
               <SetupTextField

@@ -16,7 +16,7 @@ async function RemindersForm() {
   const warrantyDays = settings.reminders?.[REMINDER_TYPE.WARRANTY_EXPIRY] ?? 30;
 
   return (
-    <Card className="border-purple-200 shadow-sm">
+    <Card className="border-navy-200 shadow-sm">
       <CardContent className="pt-6">
         <form action={updateReminderSettingsAction} className="max-w-md space-y-3">
           <EnumSelect

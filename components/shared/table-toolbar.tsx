@@ -15,7 +15,7 @@ export function TableToolbar({
   showSearch?: boolean;
 }) {
   return (
-    <div className="mb-4 flex flex-col gap-3 border-b border-purple-100 pb-4 md:flex-row md:items-center md:justify-between">
+    <div className="mb-4 flex flex-col gap-3 border-b border-navy-100 pb-4 md:flex-row md:items-center md:justify-between">
       {showSearch && searchPlaceholder ? <TableSearch placeholder={searchPlaceholder} /> : <div />}
       <div className="flex flex-wrap items-center gap-2">{filters}</div>
     </div>

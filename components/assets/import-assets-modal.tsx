@@ -146,7 +146,7 @@ function PreviewCellInput({
       value={value}
       onChange={(event) => onChange(event.target.value)}
       className={cn(
-        "h-8 min-w-[110px] border-purple-200 px-2 text-xs",
+        "h-8 min-w-[110px] border-navy-200 px-2 text-xs",
         error && "border-red-400",
         className,
       )}
@@ -415,7 +415,7 @@ export function ImportAssetsModal({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="cursor-pointer border-purple-200">
+        <Button variant="outline" className="cursor-pointer border-navy-200">
           <FileSpreadsheet className="mr-2 h-4 w-4" />
           Import CSV
         </Button>
@@ -440,7 +440,7 @@ export function ImportAssetsModal({
             <Button
               variant="outline"
               asChild
-              className={cn("w-full cursor-pointer border-purple-200", parsing && "pointer-events-none opacity-60")}
+              className={cn("w-full cursor-pointer border-navy-200", parsing && "pointer-events-none opacity-60")}
             >
               <a href={API_ROUTES.CSV_IMPORT_TEMPLATE} download>
                 <Download className="mr-2 h-4 w-4" />
@@ -458,11 +458,11 @@ export function ImportAssetsModal({
               }}
             />
             {parsing ? (
-              <div className="flex items-center justify-center gap-3 rounded-md border border-purple-100 bg-purple-50/60 px-4 py-6 text-sm text-purple-900">
-                <Loader2 className="h-5 w-5 shrink-0 animate-spin text-[#7C3AED]" />
+              <div className="flex items-center justify-center gap-3 rounded-md border border-navy-100 bg-navy-50/60 px-4 py-6 text-sm text-navy-900">
+                <Loader2 className="h-5 w-5 shrink-0 animate-spin text-navy-900" />
                 <div>
                   <p className="font-medium">Preparing preview…</p>
-                  <p className="text-xs text-purple-900/70">
+                  <p className="text-xs text-navy-900/70">
                     {parseProgress
                       ? `Matching lookups ${parseProgress.done} of ${parseProgress.total}`
                       : "Reading file and parsing rows"}
@@ -475,8 +475,8 @@ export function ImportAssetsModal({
         ) : (
           <div className="flex min-h-0 flex-1 flex-col gap-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="text-sm text-purple-900/75">
-                <span className="font-medium text-purple-950">{rows.length}</span> rows from{" "}
+              <div className="text-sm text-navy-900/75">
+                <span className="font-medium text-navy-950">{rows.length}</span> rows from{" "}
                 <span className="font-medium">{fileName}</span>
                 {unmatchedLookups > 0 ? (
                   <span className="ml-2 text-amber-700">
@@ -506,9 +506,9 @@ export function ImportAssetsModal({
               </Button>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-auto rounded-md border border-purple-100">
+            <div className="min-h-0 flex-1 overflow-auto rounded-md border border-navy-100">
               <table className="w-max min-w-full border-collapse text-left text-xs">
-                <thead className="sticky top-0 z-10 bg-purple-50 text-[11px] uppercase tracking-wide text-purple-900/70">
+                <thead className="sticky top-0 z-10 bg-navy-50 text-[11px] uppercase tracking-wide text-navy-900/70">
                   <tr>
                     <th className="px-2 py-2">#</th>
                     <th className="px-2 py-2">AIN</th>
@@ -544,8 +544,8 @@ export function ImportAssetsModal({
                       .map((s) => ({ id: s.id, label: s.name }));
 
                     return (
-                      <tr key={row.key} className="border-t border-purple-50 align-top">
-                        <td className="px-2 py-1.5 text-purple-900/60">{row.rowNumber}</td>
+                      <tr key={row.key} className="border-t border-navy-50 align-top">
+                        <td className="px-2 py-1.5 text-navy-900/60">{row.rowNumber}</td>
                         <td className="px-2 py-1.5">
                           <PreviewCellInput
                             value={row.ain}
@@ -677,7 +677,7 @@ export function ImportAssetsModal({
                             value={row.status}
                             onValueChange={(status) => updateRow(row.key, { status })}
                           >
-                            <SelectTrigger className="h-8 min-w-[120px] cursor-pointer border-purple-200 text-xs">
+                            <SelectTrigger className="h-8 min-w-[120px] cursor-pointer border-navy-200 text-xs">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -694,7 +694,7 @@ export function ImportAssetsModal({
                             value={row.condition}
                             onValueChange={(condition) => updateRow(row.key, { condition })}
                           >
-                            <SelectTrigger className="h-8 min-w-[110px] cursor-pointer border-purple-200 text-xs">
+                            <SelectTrigger className="h-8 min-w-[110px] cursor-pointer border-navy-200 text-xs">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -736,7 +736,7 @@ export function ImportAssetsModal({
               <Button
                 onClick={() => void handleConfirm()}
                 disabled={!rows.length || submitting || invalidCount > 0}
-                className="w-full cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]"
+                className="w-full cursor-pointer bg-navy-900 hover:bg-navy-950"
               >
                 {submitting ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -747,7 +747,7 @@ export function ImportAssetsModal({
               </Button>
               {error ? <p className="text-sm text-destructive">{error}</p> : null}
               {result ? (
-                <p className="text-sm text-purple-900/75">
+                <p className="text-sm text-navy-900/75">
                   Imported {result.successRows} of {result.totalRows} rows
                   {result.failedRows ? ` (${result.failedRows} failed)` : ""}.
                 </p>

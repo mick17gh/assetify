@@ -64,8 +64,8 @@ export function TablePagination({
   }
 
   return (
-    <div className="mt-4 flex flex-col gap-3 border-t border-purple-100 pt-4 md:flex-row md:items-center md:justify-between">
-      <p className="text-xs font-medium text-purple-900/65">
+    <div className="mt-4 flex flex-col gap-3 border-t border-navy-100 pt-4 md:flex-row md:items-center md:justify-between">
+      <p className="text-xs font-medium text-navy-900/65">
         {totalItems === 0
           ? "Showing 0 results"
           : `Showing ${from.toLocaleString()} to ${to.toLocaleString()} of ${totalItems.toLocaleString()}`}
@@ -73,9 +73,9 @@ export function TablePagination({
       <div className="flex flex-wrap items-center gap-2">
         {showPageSize ? (
           <>
-            <span className="text-xs font-medium text-purple-900/65">Rows</span>
+            <span className="text-xs font-medium text-navy-900/65">Rows</span>
             <Select value={String(pageSize)} onValueChange={changePageSize} disabled={isPending}>
-              <SelectTrigger className="h-9 w-[110px] cursor-pointer rounded-lg border-purple-200 bg-white">
+              <SelectTrigger className="h-9 w-[110px] cursor-pointer rounded-lg border-navy-200 bg-white">
                 <SelectValue placeholder="Rows" />
               </SelectTrigger>
               <SelectContent>
@@ -93,7 +93,7 @@ export function TablePagination({
           size="icon"
           onClick={() => goToPage(1)}
           disabled={page <= 1 || isPending}
-          className="h-9 w-9 cursor-pointer border-purple-200"
+          className="h-9 w-9 cursor-pointer border-navy-200"
           aria-label="First page"
         >
           {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ChevronsLeft className="h-4 w-4" />}
@@ -102,18 +102,18 @@ export function TablePagination({
           variant="outline"
           onClick={() => goToPage(page - 1)}
           disabled={page <= 1 || isPending}
-          className="h-9 cursor-pointer border-purple-200"
+          className="h-9 cursor-pointer border-navy-200"
         >
           <ChevronLeft className="mr-1 h-4 w-4" />
           Previous
         </Button>
-        <span className="min-w-[88px] text-center text-xs font-medium text-purple-900/80">
+        <span className="min-w-[88px] text-center text-xs font-medium text-navy-900/80">
           Page {page} of {totalPages}
         </span>
         <Button
           onClick={() => goToPage(page + 1)}
           disabled={page >= totalPages || isPending}
-          className="h-9 cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]"
+          className="h-9 cursor-pointer bg-navy-900 hover:bg-navy-950"
         >
           Next
           <ChevronRight className="ml-1 h-4 w-4" />
@@ -123,7 +123,7 @@ export function TablePagination({
           size="icon"
           onClick={() => goToPage(totalPages)}
           disabled={page >= totalPages || isPending}
-          className="h-9 w-9 cursor-pointer border-purple-200"
+          className="h-9 w-9 cursor-pointer border-navy-200"
           aria-label="Last page"
         >
           <ChevronsRight className="h-4 w-4" />

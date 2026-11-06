@@ -31,8 +31,8 @@ function Section({
 }) {
   return (
     <section id={id} className="scroll-mt-6 space-y-3">
-      <h2 className="text-xl font-semibold text-[#6D28D9]">{title}</h2>
-      <div className="space-y-3 text-sm leading-relaxed text-purple-950/85">{children}</div>
+      <h2 className="text-xl font-semibold text-navy-900">{title}</h2>
+      <div className="space-y-3 text-sm leading-relaxed text-navy-950/85">{children}</div>
     </section>
   );
 }
@@ -40,7 +40,7 @@ function Section({
 export function UsageManualContent() {
   return (
     <div className="space-y-8">
-      <Card className="border-purple-200">
+      <Card className="border-navy-200">
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Table of contents</CardTitle>
         </CardHeader>
@@ -50,7 +50,7 @@ export function UsageManualContent() {
               <a
                 key={item.id}
                 href={`#${item.id}`}
-                className="rounded-md px-2 py-1.5 text-sm text-purple-800 underline-offset-2 hover:bg-purple-50 hover:underline"
+                className="rounded-md px-2 py-1.5 text-sm text-navy-800 underline-offset-2 hover:bg-navy-50 hover:underline"
               >
                 {item.label}
               </a>
@@ -61,7 +61,7 @@ export function UsageManualContent() {
 
       <Section id="introduction" title="Introduction">
         <p>
-          Assetify is an asset management system for tracking company equipment across branches, departments,
+          VortAsset is an asset management system for tracking company equipment across branches, departments,
           rooms, and staff. It helps you answer: what you own, where it is, who is responsible, what it costs,
           and when it should be replaced, sold, or disposed.
         </p>
@@ -185,7 +185,7 @@ export function UsageManualContent() {
 
       <Section id="depreciation" title="Depreciation & valuation">
         <p>
-          Assetify calculates fair market / book value using straight-line depreciation. Rules are resolved in
+          VortAsset calculates fair market / book value using straight-line depreciation. Rules are resolved in
           this order:
         </p>
         <ol className="list-decimal space-y-1 pl-5">
@@ -294,7 +294,7 @@ export function UsageManualContent() {
         </p>
         <p>
           When cumulative maintenance cost reaches the organization threshold (default 50% of purchase cost),
-          Assetify creates a condition flag: &quot;High maintenance cost — review for replacement.&quot; Change the
+          VortAsset creates a condition flag: &quot;High maintenance cost — review for replacement.&quot; Change the
           threshold under <strong>Settings → Organization</strong>. Resolve open flags from the Maintenance board.
         </p>
       </Section>
@@ -313,7 +313,7 @@ export function UsageManualContent() {
           Approve or Reject with an optional comment. Requesters are notified by email (also logged in the system).
         </p>
         <p>
-          <strong>On approve:</strong> Assetify creates a pending asset in storage (placeholder AIN/serial) linked
+          <strong>On approve:</strong> VortAsset creates a pending asset in storage (placeholder AIN/serial) linked
           to the request. Open that asset to enter real purchase details, then use <strong>Mark fulfilled</strong>{" "}
           when assignment is complete (Managers/Admins with write access).
         </p>
@@ -322,7 +322,7 @@ export function UsageManualContent() {
 
       <Section id="replacement" title="Replacement">
         <p>
-          Assetify evaluates assets against category replacement years and organization policies (including disposal
+          VortAsset evaluates assets against category replacement years and organization policies (including disposal
           grace months). States:
         </p>
         <ul className="list-disc space-y-1 pl-5">

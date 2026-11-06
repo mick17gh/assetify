@@ -9,7 +9,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const reportConfig = {
-  cost: { label: "Replacement Cost", color: "#7C3AED" },
+  cost: { label: "Replacement Cost", color: "#012f6b" },
 } as const;
 
 export function ReportCharts({
@@ -18,9 +18,9 @@ export function ReportCharts({
   trendData: Array<{ month: string; cost: number }>;
 }) {
   return (
-    <Card className="border-purple-200 shadow-sm">
+    <Card className="border-navy-200 shadow-sm">
       <CardHeader>
-        <CardTitle className="text-base text-purple-950">Replacement Cost Trend</CardTitle>
+        <CardTitle className="text-base text-navy-950">Replacement Cost Trend</CardTitle>
       </CardHeader>
       <CardContent>
         <ChartContainer config={reportConfig} className="h-[250px] w-full">

@@ -15,8 +15,8 @@ export async function AssetQrPreview({
   const dataUrl = await QRCode.toDataURL(scanUrl, { margin: 1, width: 220 });
 
   return (
-    <div className="rounded-lg border border-purple-100 bg-gradient-to-br from-purple-50 to-white p-3">
-      <p className="mb-2 text-xs font-medium uppercase tracking-wide text-purple-900/60">Asset QR</p>
+    <div className="rounded-lg border border-navy-100 bg-gradient-to-br from-navy-50 to-white p-3">
+      <p className="mb-2 text-xs font-medium uppercase tracking-wide text-navy-900/60">Asset QR</p>
       <div className="flex items-start gap-3">
         <Image
           src={dataUrl}
@@ -24,16 +24,16 @@ export async function AssetQrPreview({
           width={110}
           height={110}
           unoptimized
-          className="rounded-md border border-purple-100 bg-white p-1"
+          className="rounded-md border border-navy-100 bg-white p-1"
         />
-        <div className="min-w-0 space-y-1 text-xs text-purple-900/75">
+        <div className="min-w-0 space-y-1 text-xs text-navy-900/75">
           <p>
-            <span className="font-medium text-purple-950">AIN:</span> {ain}
+            <span className="font-medium text-navy-950">AIN:</span> {ain}
           </p>
           <p>
-            <span className="font-medium text-purple-950">Branch:</span> {branchName}
+            <span className="font-medium text-navy-950">Branch:</span> {branchName}
           </p>
-          <p className="break-all text-[11px] leading-relaxed text-purple-900/60">{scanUrl}</p>
+          <p className="break-all text-[11px] leading-relaxed text-navy-900/60">{scanUrl}</p>
         </div>
       </div>
     </div>

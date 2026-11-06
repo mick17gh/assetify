@@ -43,7 +43,7 @@ const statusMeta: Record<string, { badge: string; icon: React.ComponentType<{ cl
   IN_STORAGE: { badge: "bg-blue-100 text-blue-700", icon: Package },
   MISSING: { badge: "bg-rose-100 text-rose-700", icon: XCircle },
   DISPOSED: { badge: "bg-zinc-100 text-zinc-700", icon: XCircle },
-  "N/A": { badge: "bg-purple-100 text-purple-700", icon: Clock3 },
+  "N/A": { badge: "bg-navy-100 text-navy-700", icon: Clock3 },
 };
 
 export function StaffDetailsTabs({
@@ -57,17 +57,17 @@ export function StaffDetailsTabs({
 }) {
   return (
     <Tabs defaultValue="assets" className="w-full">
-      <TabsList className="mb-4 h-10 rounded-lg bg-purple-50">
+      <TabsList className="mb-4 h-10 rounded-lg bg-navy-50">
         <TabsTrigger value="assets">Allocated Assets</TabsTrigger>
         <TabsTrigger value="movements">Movement History</TabsTrigger>
         <TabsTrigger value="history">Status History</TabsTrigger>
       </TabsList>
 
       <TabsContent value="assets">
-        <Card className="border-purple-200 shadow-sm">
+        <Card className="border-navy-200 shadow-sm">
           <CardContent className="pt-6">
             {allocatedAssets.length === 0 ? (
-              <p className="text-sm text-purple-900/70">No assets currently assigned to this staff member.</p>
+              <p className="text-sm text-navy-900/70">No assets currently assigned to this staff member.</p>
             ) : (
               <Table>
                 <TableHeader>
@@ -85,7 +85,7 @@ export function StaffDetailsTabs({
                     return (
                       <TableRow key={asset.id}>
                         <TableCell>
-                          <Link href={`/assets/${asset.id}`} prefetch className="font-medium text-[#6D28D9] hover:underline">
+                          <Link href={`/assets/${asset.id}`} prefetch className="font-medium text-navy-900 hover:underline">
                             {asset.ain}
                           </Link>
                         </TableCell>
@@ -110,23 +110,23 @@ export function StaffDetailsTabs({
       </TabsContent>
 
       <TabsContent value="movements">
-        <Card className="border-purple-200 shadow-sm">
+        <Card className="border-navy-200 shadow-sm">
           <CardContent className="space-y-3 pt-6">
             {movements.length === 0 ? (
-              <p className="text-sm text-purple-900/70">No movement activity recorded for this staff member.</p>
+              <p className="text-sm text-navy-900/70">No movement activity recorded for this staff member.</p>
             ) : (
               movements.map((item) => (
-                <div key={item.id} className="rounded-lg border border-purple-100 bg-white p-3 text-sm">
+                <div key={item.id} className="rounded-lg border border-navy-100 bg-white p-3 text-sm">
                   <div className="mb-1 flex items-center justify-between gap-2">
-                    <p className="flex items-center gap-2 font-medium text-purple-950">
-                      <MapPin className="h-4 w-4 text-purple-700" />
+                    <p className="flex items-center gap-2 font-medium text-navy-950">
+                      <MapPin className="h-4 w-4 text-navy-700" />
                       <Link href={`/assets/${item.assetId}`} prefetch className="hover:underline">
                         {item.assetName}
                       </Link>
                     </p>
-                    <span className="text-xs text-purple-900/60">{item.date}</span>
+                    <span className="text-xs text-navy-900/60">{item.date}</span>
                   </div>
-                  <p className="text-purple-900/75">
+                  <p className="text-navy-900/75">
                     {item.movementType}
                     {item.note ? ` — ${item.note}` : ""}
                   </p>
@@ -138,22 +138,22 @@ export function StaffDetailsTabs({
       </TabsContent>
 
       <TabsContent value="history">
-        <Card className="border-purple-200 shadow-sm">
+        <Card className="border-navy-200 shadow-sm">
           <CardContent className="space-y-3 pt-6">
             {history.length === 0 ? (
-              <p className="text-sm text-purple-900/70">No status history for assets assigned to this staff member.</p>
+              <p className="text-sm text-navy-900/70">No status history for assets assigned to this staff member.</p>
             ) : (
               history.map((item) => (
-                <div key={item.id} className="rounded-lg border border-purple-100 bg-white p-3 text-sm">
+                <div key={item.id} className="rounded-lg border border-navy-100 bg-white p-3 text-sm">
                   <div className="mb-1 flex items-center justify-between gap-2">
-                    <p className="font-medium text-purple-950">
+                    <p className="font-medium text-navy-950">
                       <Link href={`/assets/${item.assetId}`} prefetch className="hover:underline">
                         {item.assetName}
                       </Link>
                     </p>
-                    <span className="text-xs text-purple-900/60">{item.date}</span>
+                    <span className="text-xs text-navy-900/60">{item.date}</span>
                   </div>
-                  <p className="text-purple-900/75">
+                  <p className="text-navy-900/75">
                     {item.from} → {item.to}
                     {item.note ? ` — ${item.note}` : ""}
                   </p>

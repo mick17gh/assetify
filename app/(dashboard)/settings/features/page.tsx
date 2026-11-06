@@ -13,14 +13,14 @@ async function FeaturesForm() {
   const qrLocationScanning = isQrLocationScanningEnabledFromSettings(settings);
 
   return (
-    <Card className="border-purple-200 shadow-sm">
+    <Card className="border-navy-200 shadow-sm">
       <CardContent className="pt-6">
         <form action={updateFeatureSettingsAction} className="max-w-lg space-y-4">
-          <div className="rounded-lg border border-purple-100 bg-purple-50/40 p-4">
+          <div className="rounded-lg border border-navy-100 bg-navy-50/40 p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="font-medium text-purple-950">QR location scanning</p>
-                <p className="text-sm text-purple-900/70">
+                <p className="font-medium text-navy-950">QR location scanning</p>
+                <p className="text-sm text-navy-900/70">
                   Allow scanning asset and location QR codes, and enable printable QR tags.
                 </p>
               </div>
@@ -30,7 +30,7 @@ async function FeaturesForm() {
                   name="qrLocationScanning"
                   value="true"
                   defaultChecked={qrLocationScanning}
-                  className="h-4 w-4 rounded border-purple-300 text-purple-700"
+                  className="h-4 w-4 rounded border-navy-300 text-navy-700"
                 />
                 Enabled
               </label>

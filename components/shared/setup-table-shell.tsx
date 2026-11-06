@@ -23,7 +23,7 @@ export function SetupTableShell({
   const resolvedPageSize = pageSize ?? defaultLimit;
 
   return (
-    <Card className="border-purple-200 shadow-sm">
+    <Card className="border-navy-200 shadow-sm">
       <CardContent className="pt-6">
         <TableToolbar searchPlaceholder={searchPlaceholder} showSearch={showSearch} />
         {children}

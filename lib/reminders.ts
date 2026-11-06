@@ -15,7 +15,7 @@ export async function dispatchDueWarrantyReminders() {
   for (const schedule of schedules) {
     const payload = schedule.payload as { email?: string; name?: string; assetName?: string };
     if (!payload.email) continue;
-    const subject = "Assetify warranty reminder";
+    const subject = "VortAsset warranty reminder";
     const body = `Warranty for ${payload.assetName ?? "asset"} is due. Please review.`;
 
     await sendEmail({

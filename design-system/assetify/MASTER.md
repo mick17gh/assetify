@@ -6,7 +6,7 @@
 
 ---
 
-**Project:** Assetify
+**Project:** VortAsset
 **Generated:** 2026-07-09 09:21:24
 **Category:** Analytics Dashboard
 
@@ -18,13 +18,13 @@
 
 | Role | Hex | CSS Variable |
 |------|-----|--------------|
-| Primary | `#7C3AED` | `--color-primary` |
-| Secondary | `#A78BFA` | `--color-secondary` |
+| Primary | `#012f6b` | `--color-primary` |
+| Secondary | `#456484` | `--color-secondary` |
 | CTA/Accent | `#F97316` | `--color-cta` |
-| Background | `#FAF5FF` | `--color-background` |
-| Text | `#4C1D95` | `--color-text` |
+| Background | `#F4F7FB` | `--color-background` |
+| Text | `#012f6b` | `--color-text` |
 
-**Color Notes:** Excitement purple + action orange
+**Color Notes:** Deep navy with a light slate background
 
 ### Typography
 
@@ -85,8 +85,8 @@
 /* Secondary Button */
 .btn-secondary {
   background: transparent;
-  color: #7C3AED;
-  border: 2px solid #7C3AED;
+  color: #012f6b;
+  border: 2px solid #012f6b;
   padding: 12px 24px;
   border-radius: 8px;
   font-weight: 600;
@@ -99,7 +99,7 @@
 
 ```css
 .card {
-  background: #FAF5FF;
+  background: #F4F7FB;
   border-radius: 12px;
   padding: 24px;
   box-shadow: var(--shadow-md);
@@ -125,9 +125,9 @@
 }
 
 .input:focus {
-  border-color: #7C3AED;
+  border-color: #012f6b;
   outline: none;
-  box-shadow: 0 0 0 3px #7C3AED20;
+  box-shadow: 0 0 0 3px #012f6b20;
 }
 ```
 

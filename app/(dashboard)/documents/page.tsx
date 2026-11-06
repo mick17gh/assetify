@@ -91,7 +91,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
           <DocumentRepository assets={assetOptions} totalDocuments={totalDocuments} />
         }
       />
-      <Card className="border-purple-200 shadow-sm">
+      <Card className="border-navy-200 shadow-sm">
         <CardContent className="pt-6">
           <TableToolbar
             searchPlaceholder="Search name, type, or asset"
@@ -113,13 +113,13 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                 <TableRow key={doc.id}>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 shrink-0 text-purple-700" />
+                      <FileText className="h-4 w-4 shrink-0 text-navy-700" />
                       <span>{doc.displayName}</span>
                     </div>
                   </TableCell>
                   <TableCell>{ENUM_LABELS.documentType[doc.documentType] ?? doc.documentType}</TableCell>
                   <TableCell>
-                    <Link href={`/assets/${doc.assetId}`} prefetch className="font-medium text-[#6D28D9] hover:underline">
+                    <Link href={`/assets/${doc.assetId}`} prefetch className="font-medium text-navy-900 hover:underline">
                       {doc.asset.name}
                     </Link>
                   </TableCell>

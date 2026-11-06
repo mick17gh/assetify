@@ -55,7 +55,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
           <UserAdmin branches={branches.map((b) => ({ id: b.id, label: `${b.name} (${b.code})` }))} />
         }
       />
-      <Card className="border-purple-200 shadow-sm">
+      <Card className="border-navy-200 shadow-sm">
         <CardContent className="pt-6">
           <TableToolbar searchPlaceholder="Search user, email, or role" />
           <Table>
@@ -72,7 +72,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
               {users.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>
-                    <Link href={`/staff/${user.id}`} prefetch className="font-medium text-[#6D28D9] hover:underline">
+                    <Link href={`/staff/${user.id}`} prefetch className="font-medium text-navy-900 hover:underline">
                       {user.name}
                     </Link>
                   </TableCell>

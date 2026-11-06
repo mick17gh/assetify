@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Assetify",
+  title: "VortAsset",
   description: "Enterprise asset management platform for multi-branch operations.",
   icons: {
     icon: "/favicon.png",

@@ -29,13 +29,13 @@ const statusChartConfig = Object.fromEntries(
     status,
     {
       label: ENUM_LABELS.assetStatus[status] ?? status,
-      color: STATUS_COLORS[status] ?? "#A78BFA",
+      color: STATUS_COLORS[status] ?? "#456484",
     },
   ]),
 ) as ChartConfig;
 
 const branchChartConfig = {
-  count: { label: "Assets", color: "#7C3AED" },
+  count: { label: "Assets", color: "#012f6b" },
 } as const satisfies ChartConfig;
 
 const BRANCH_LABEL_MAX = 12;
@@ -46,7 +46,7 @@ function truncateBranchLabel(value: string) {
 }
 
 function ChartPlaceholder() {
-  return <div className="h-[260px] w-full rounded-md bg-purple-50/80" aria-hidden />;
+  return <div className="h-[260px] w-full rounded-md bg-navy-50/80" aria-hidden />;
 }
 
 export function AnalyticsCharts({
@@ -69,9 +69,9 @@ export function AnalyticsCharts({
 
   return (
     <section className="mt-5 grid gap-4 lg:grid-cols-2">
-      <Card className="border-purple-200 shadow-sm">
+      <Card className="border-navy-200 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-base text-purple-950">Asset Status Distribution</CardTitle>
+          <CardTitle className="text-base text-navy-950">Asset Status Distribution</CardTitle>
         </CardHeader>
         <CardContent>
           {mounted ? (
@@ -101,9 +101,9 @@ export function AnalyticsCharts({
           )}
         </CardContent>
       </Card>
-      <Card className="border-purple-200 shadow-sm">
+      <Card className="border-navy-200 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-base text-purple-950">Assets by Branch</CardTitle>
+          <CardTitle className="text-base text-navy-950">Assets by Branch</CardTitle>
         </CardHeader>
         <CardContent>
           {mounted ? (

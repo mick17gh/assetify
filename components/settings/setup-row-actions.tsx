@@ -94,7 +94,7 @@ export function SetupRowActions({
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon" className="h-8 w-8 cursor-pointer border-purple-200">
+          <Button variant="outline" size="icon" className="h-8 w-8 cursor-pointer border-navy-200">
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>

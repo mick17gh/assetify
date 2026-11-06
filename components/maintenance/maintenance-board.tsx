@@ -34,10 +34,10 @@ export function MaintenanceBoard({
   }>;
 }) {
   return (
-    <Card className="border-purple-200 shadow-sm">
+    <Card className="border-navy-200 shadow-sm">
       <CardHeader>
         <CardTitle>Status and Condition Monitoring</CardTitle>
-        <p className="mt-1 text-sm text-purple-900/70">
+        <p className="mt-1 text-sm text-navy-900/70">
           Track lifecycle transitions, condition notes, maintenance history, and urgent flags.
         </p>
       </CardHeader>
@@ -47,18 +47,18 @@ export function MaintenanceBoard({
           <Metric title="Open condition flags" value={openFlags.toLocaleString()} />
           <Metric title="Critical open flags" value={criticalFlags.toLocaleString()} />
         </div>
-        <div className="rounded-lg border border-purple-100 bg-white p-3">
-          <p className="mb-2 text-sm font-medium text-purple-950">Latest open flags</p>
+        <div className="rounded-lg border border-navy-100 bg-white p-3">
+          <p className="mb-2 text-sm font-medium text-navy-950">Latest open flags</p>
           {latestFlags.length === 0 ? (
-            <p className="text-sm text-purple-900/65">No unresolved condition flags.</p>
+            <p className="text-sm text-navy-900/65">No unresolved condition flags.</p>
           ) : (
             <div className="space-y-2">
               {latestFlags.map((flag) => (
-                <div key={flag.id} className="flex items-center justify-between gap-3 rounded-md border border-purple-100 p-2.5">
+                <div key={flag.id} className="flex items-center justify-between gap-3 rounded-md border border-navy-100 p-2.5">
                   <div className="min-w-0 text-sm">
-                    <p className="font-medium text-purple-950">{flag.title}</p>
-                    <p className="text-purple-900/70">{flag.assetName}</p>
-                    {flag.notes ? <p className="mt-1 text-purple-900/60">{flag.notes}</p> : null}
+                    <p className="font-medium text-navy-950">{flag.title}</p>
+                    <p className="text-navy-900/70">{flag.assetName}</p>
+                    {flag.notes ? <p className="mt-1 text-navy-900/60">{flag.notes}</p> : null}
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     <Badge variant="secondary">{CONDITION_SEVERITY_LABELS[flag.severity]}</Badge>
@@ -67,7 +67,7 @@ export function MaintenanceBoard({
                       <SubmitButton
                         idleLabel="Resolve"
                         pendingLabel="Resolving..."
-                        className="h-7 cursor-pointer border-purple-200 bg-white px-2.5 text-xs text-purple-800 shadow-none hover:bg-purple-50"
+                        className="h-7 cursor-pointer border-navy-200 bg-white px-2.5 text-xs text-navy-800 shadow-none hover:bg-navy-50"
                       />
                     </PendingForm>
                   </div>
@@ -83,9 +83,9 @@ export function MaintenanceBoard({
 
 function Metric({ title, value }: { title: string; value: string }) {
   return (
-    <div className="rounded-lg border border-purple-100 bg-purple-50/80 p-3.5">
-      <p className="text-xl font-semibold text-[#7C3AED]">{value}</p>
-      <p className="text-sm text-purple-900/70">{title}</p>
+    <div className="rounded-lg border border-navy-100 bg-navy-50/80 p-3.5">
+      <p className="text-xl font-semibold text-navy-900">{value}</p>
+      <p className="text-sm text-navy-900/70">{title}</p>
     </div>
   );
 }

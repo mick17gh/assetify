@@ -46,7 +46,7 @@ export function EnumSelect({
           onValueChange?.(next);
         }}
       >
-        <SelectTrigger id={name} className="min-w-0 cursor-pointer border-purple-200">
+        <SelectTrigger id={name} className="min-w-0 cursor-pointer border-navy-200">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
@@ -76,7 +76,7 @@ export function EnumSelectFilter({
   return (
     <div className="space-y-1">
       <Select value={value} onValueChange={onValueChange}>
-        <SelectTrigger id={name} className="h-9 w-[160px] cursor-pointer border-purple-200">
+        <SelectTrigger id={name} className="h-9 w-[160px] cursor-pointer border-navy-200">
           <SelectValue placeholder="All" />
         </SelectTrigger>
         <SelectContent>

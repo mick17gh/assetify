@@ -1,9 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AssetMovementForm } from "@/components/scan/asset-movement-form";
 import { AssetScanHistories } from "@/components/scan/asset-scan-histories";
 import { AssetScanProfileCard } from "@/components/scan/asset-scan-profile";
+import { BrandWordmark } from "@/components/shared/brand-wordmark";
 import { Button } from "@/components/ui/button";
 import { APP_ROUTES, PERMISSION_KEYS } from "@/constants";
 import { hasPermission } from "@/lib/permissions";
@@ -52,19 +52,12 @@ export default async function ScanPage({ searchParams }: { searchParams: SearchP
   const showMovementForm = canRecordMovement && data.movementFormOptions;
 
   return (
-    <div className="min-h-screen bg-[#FAF5FF] p-4 py-8">
+    <div className="min-h-screen bg-navy-50 p-4 py-8">
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="flex flex-col items-center gap-4">
-          <Image
-            src="/assetifylogo.png"
-            alt="Assetify Asset Management System"
-            width={280}
-            height={84}
-            priority
-            className="h-auto w-[min(280px,85vw)] object-contain"
-          />
+          <BrandWordmark />
           {!session ? (
-            <Link href={signInHref} className="text-sm text-purple-700 underline underline-offset-2 hover:text-purple-900">
+            <Link href={signInHref} className="text-sm text-navy-700 underline underline-offset-2 hover:text-navy-900">
               Sign in to record a movement
             </Link>
           ) : null}
@@ -72,8 +65,8 @@ export default async function ScanPage({ searchParams }: { searchParams: SearchP
 
         <div className="space-y-5">
           <header>
-            <h1 className="text-2xl font-semibold tracking-tight text-[#6D28D9]">Asset scan</h1>
-            <p className="mt-1 text-sm text-purple-900/70">
+            <h1 className="text-2xl font-semibold tracking-tight text-navy-900">Asset scan</h1>
+            <p className="mt-1 text-sm text-navy-900/70">
               {showMovementForm
                 ? "Review this asset and record a movement update."
                 : "View-only asset profile from QR tag scan."}
@@ -86,7 +79,7 @@ export default async function ScanPage({ searchParams }: { searchParams: SearchP
             <>
               {session && hasPermission(session.role, PERMISSION_KEYS.ASSET_READ) ? (
                 <div className="flex justify-end">
-                  <Button variant="outline" asChild className="cursor-pointer border-purple-200">
+                  <Button variant="outline" asChild className="cursor-pointer border-navy-200">
                     <Link href={`${APP_ROUTES.ASSETS}/${data.profile.id}`}>View full asset details</Link>
                   </Button>
                 </div>
@@ -106,9 +99,9 @@ export default async function ScanPage({ searchParams }: { searchParams: SearchP
             <>
               <AssetScanHistories movements={data.movements} statusHistory={data.statusHistory} />
               {!session ? (
-                <div className="rounded-lg border border-purple-200 bg-white p-4 text-center text-sm text-purple-900/80">
+                <div className="rounded-lg border border-navy-200 bg-white p-4 text-center text-sm text-navy-900/80">
                   <p className="mb-3">Sign in with a staff account to record location movements for this asset.</p>
-                  <Button asChild className="cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]">
+                  <Button asChild className="cursor-pointer bg-navy-900 hover:bg-navy-950">
                     <Link href={signInHref}>Sign in</Link>
                   </Button>
                 </div>

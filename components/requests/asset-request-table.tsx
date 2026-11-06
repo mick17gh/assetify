@@ -107,7 +107,7 @@ function RequestRowActions({
               pendingLabel={decision === "APPROVED" ? "Approving..." : "Rejecting..."}
               className={
                 decision === "APPROVED"
-                  ? "w-full cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]"
+                  ? "w-full cursor-pointer bg-navy-900 hover:bg-navy-950"
                   : "w-full cursor-pointer bg-red-600 hover:bg-red-700"
               }
             />
@@ -134,7 +134,7 @@ function RequestRowActions({
             <SubmitButton
               idleLabel="Mark fulfilled"
               pendingLabel="Fulfilling..."
-              className="w-full cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]"
+              className="w-full cursor-pointer bg-navy-900 hover:bg-navy-950"
             />
           </PendingForm>
         </DialogContent>
@@ -142,7 +142,7 @@ function RequestRowActions({
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon" className="h-8 w-8 cursor-pointer border-purple-200">
+          <Button variant="outline" size="icon" className="h-8 w-8 cursor-pointer border-navy-200">
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -210,7 +210,7 @@ export function AssetRequestTable({
   pagination?: React.ReactNode;
 }) {
   return (
-    <Card className="border-purple-200 shadow-sm">
+    <Card className="border-navy-200 shadow-sm">
       <CardContent className="pt-6">
         {toolbar}
         <Table>
@@ -231,7 +231,7 @@ export function AssetRequestTable({
           <TableBody>
             {requests.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={showRequester ? 10 : 9} className="py-8 text-center text-purple-900/60">
+                <TableCell colSpan={showRequester ? 10 : 9} className="py-8 text-center text-navy-900/60">
                   No asset requests found.
                 </TableCell>
               </TableRow>
@@ -249,7 +249,7 @@ export function AssetRequestTable({
                       {row.reason}
                     </p>
                     {row.reviewComment ? (
-                      <p className="mt-1 truncate text-xs text-purple-900/60" title={row.reviewComment}>
+                      <p className="mt-1 truncate text-xs text-navy-900/60" title={row.reviewComment}>
                         Comment: {row.reviewComment}
                       </p>
                     ) : null}

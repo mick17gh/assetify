@@ -91,7 +91,7 @@ export function MaintenanceRowActions({
             </DialogDescription>
           </DialogHeader>
           {documents.length === 0 ? (
-            <p className="text-sm text-purple-900/65">Upload an invoice using the Invoice button.</p>
+            <p className="text-sm text-navy-900/65">Upload an invoice using the Invoice button.</p>
           ) : (
             <ul className="space-y-2">
               {documents.map((doc) => (
@@ -100,9 +100,9 @@ export function MaintenanceRowActions({
                     href={doc.fileUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-3 rounded-lg border border-purple-100 bg-purple-50/50 px-3 py-2.5 text-sm text-purple-950 transition-colors hover:bg-purple-50"
+                    className="flex items-center gap-3 rounded-lg border border-navy-100 bg-navy-50/50 px-3 py-2.5 text-sm text-navy-950 transition-colors hover:bg-navy-50"
                   >
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-white text-[#7C3AED] shadow-sm">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-white text-navy-900 shadow-sm">
                       <FileText className="h-4 w-4" />
                     </span>
                     <span className="min-w-0 flex-1 truncate font-medium" title={doc.displayName ?? doc.fileName}>
@@ -185,7 +185,7 @@ export function MaintenanceRowActions({
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon" className="h-8 w-8 cursor-pointer border-purple-200">
+          <Button variant="outline" size="icon" className="h-8 w-8 cursor-pointer border-navy-200">
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>

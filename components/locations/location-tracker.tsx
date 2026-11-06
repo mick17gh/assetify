@@ -60,7 +60,7 @@ export function LocationTracker({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]">
+        <Button className="cursor-pointer bg-navy-900 hover:bg-navy-950">
           <Plus className="mr-2 h-4 w-4" />
           Record Movement
         </Button>
@@ -110,7 +110,7 @@ export function LocationTracker({
           <SubmitButton
             idleLabel="Save movement"
             pendingLabel="Saving movement..."
-            className="w-full cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]"
+            className="w-full cursor-pointer bg-navy-900 hover:bg-navy-950"
           />
         </PendingForm>
       </DialogContent>

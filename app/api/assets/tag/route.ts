@@ -70,7 +70,7 @@ export async function GET(request: Request) {
       const x = marginX + col * (TAG_WIDTH + gapX);
       const y = pageHeight - marginY - TAG_HEIGHT - row * (TAG_HEIGHT + gapY);
 
-      page.drawRectangle({ x, y, width: TAG_WIDTH, height: TAG_HEIGHT, borderWidth: 1, borderColor: rgb(0.77, 0.74, 0.9) });
+      page.drawRectangle({ x, y, width: TAG_WIDTH, height: TAG_HEIGHT, borderWidth: 1, borderColor: rgb(0.77, 0.82, 0.87) });
 
       const qrValue = buildAssetQrUrl(asset.id, baseUrl);
       const qrDataUrl = await QRCode.toDataURL(qrValue, { margin: 0, width: 160 });
@@ -81,7 +81,7 @@ export async function GET(request: Request) {
       page.drawText(asset.ain, { x: x + 96, y: y + 70, size: 11, font: fontBold });
       page.drawText(truncate(asset.name, 30), { x: x + 96, y: y + 52, size: 9, font });
       page.drawText(`Branch: ${truncate(asset.branch.name, 20)}`, { x: x + 96, y: y + 34, size: 8, font });
-      page.drawText("Assetify QR Tag", { x: x + 96, y: y + 18, size: 8, font });
+      page.drawText("VortAsset QR Tag", { x: x + 96, y: y + 18, size: 8, font });
     }
 
     const buffer = await pdf.save();

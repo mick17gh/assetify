@@ -115,8 +115,8 @@ export function AssetDetailsTabs({
       icon: CheckCircle2,
     },
     "N/A": {
-      badge: "bg-purple-100 text-purple-700",
-      dot: "bg-purple-500",
+      badge: "bg-navy-100 text-navy-700",
+      dot: "bg-navy-500",
       icon: Clock3,
     },
   };
@@ -125,14 +125,14 @@ export function AssetDetailsTabs({
 
   return (
     <Tabs defaultValue="overview" className="w-full">
-      <TabsList className="mb-4 h-10 rounded-lg bg-purple-50">
+      <TabsList className="mb-4 h-10 rounded-lg bg-navy-50">
         <TabsTrigger value="overview">Overview</TabsTrigger>
         <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
         <TabsTrigger value="history">History</TabsTrigger>
         <TabsTrigger value="files">Files</TabsTrigger>
       </TabsList>
       <TabsContent value="overview">
-        <Card className="border-purple-200 shadow-sm">
+        <Card className="border-navy-200 shadow-sm">
           <CardContent className="space-y-5 pt-6">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <OverviewField label="Status" value={overview.status} />
@@ -147,43 +147,43 @@ export function AssetDetailsTabs({
             </div>
 
             <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-lg border border-purple-100 bg-purple-50/50 p-4">
-                <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-purple-950">
-                  <MapPin className="h-4 w-4 text-purple-700" />
+              <div className="rounded-lg border border-navy-100 bg-navy-50/50 p-4">
+                <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-navy-950">
+                  <MapPin className="h-4 w-4 text-navy-700" />
                   Location & ownership
                 </p>
-                <div className="space-y-2 text-sm text-purple-900/75">
+                <div className="space-y-2 text-sm text-navy-900/75">
                   <p>
-                    <span className="font-medium text-purple-950">Location:</span> {overview.room} / {overview.shelf}
+                    <span className="font-medium text-navy-950">Location:</span> {overview.room} / {overview.shelf}
                   </p>
                   <p className="flex items-center gap-2">
-                    <User className="h-3.5 w-3.5 text-purple-700" />
+                    <User className="h-3.5 w-3.5 text-navy-700" />
                     <span>
-                      <span className="font-medium text-purple-950">Custodian:</span> {overview.custodian}
+                      <span className="font-medium text-navy-950">Custodian:</span> {overview.custodian}
                     </span>
                   </p>
                 </div>
               </div>
-              <div className="rounded-lg border border-purple-100 bg-purple-50/50 p-4">
-                <p className="mb-2 text-sm font-semibold text-purple-950">Financial snapshot</p>
-                <div className="space-y-2 text-sm text-purple-900/75">
+              <div className="rounded-lg border border-navy-100 bg-navy-50/50 p-4">
+                <p className="mb-2 text-sm font-semibold text-navy-950">Financial snapshot</p>
+                <div className="space-y-2 text-sm text-navy-900/75">
                   <p>
-                    <span className="font-medium text-purple-950">Purchase date:</span> {overview.purchaseDate}
+                    <span className="font-medium text-navy-950">Purchase date:</span> {overview.purchaseDate}
                   </p>
                   <p>
-                    <span className="font-medium text-purple-950">Purchase cost:</span> {overview.purchaseCost}
+                    <span className="font-medium text-navy-950">Purchase cost:</span> {overview.purchaseCost}
                   </p>
                   <p>
-                    <span className="font-medium text-purple-950">Warranty expiry:</span> {overview.warrantyExpiry}
+                    <span className="font-medium text-navy-950">Warranty expiry:</span> {overview.warrantyExpiry}
                   </p>
                   <p>
-                    <span className="font-medium text-purple-950">Current value:</span> GHS {overview.currentValue}
+                    <span className="font-medium text-navy-950">Current value:</span> GHS {overview.currentValue}
                   </p>
                   <p>
-                    <span className="font-medium text-purple-950">Depreciation:</span> GHS {overview.accumulatedDepreciation}
+                    <span className="font-medium text-navy-950">Depreciation:</span> GHS {overview.accumulatedDepreciation}
                   </p>
                   <p>
-                    <span className="font-medium text-purple-950">Recommended sale:</span> GHS {overview.recommendedSalePrice}
+                    <span className="font-medium text-navy-950">Recommended sale:</span> GHS {overview.recommendedSalePrice}
                   </p>
                 </div>
               </div>
@@ -205,24 +205,24 @@ export function AssetDetailsTabs({
             </div>
 
             <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-lg border border-purple-100 bg-white p-3 text-sm">
-                <p className="mb-1 font-medium text-purple-950">Latest maintenance</p>
+              <div className="rounded-lg border border-navy-100 bg-white p-3 text-sm">
+                <p className="mb-1 font-medium text-navy-950">Latest maintenance</p>
                 {overview.latestMaintenance ? (
-                  <p className="text-purple-900/75">
+                  <p className="text-navy-900/75">
                     {overview.latestMaintenance.date} — {overview.latestMaintenance.description}
                   </p>
                 ) : (
-                  <p className="text-purple-900/60">No maintenance logged yet.</p>
+                  <p className="text-navy-900/60">No maintenance logged yet.</p>
                 )}
               </div>
-              <div className="rounded-lg border border-purple-100 bg-white p-3 text-sm">
-                <p className="mb-1 font-medium text-purple-950">Latest status change</p>
+              <div className="rounded-lg border border-navy-100 bg-white p-3 text-sm">
+                <p className="mb-1 font-medium text-navy-950">Latest status change</p>
                 {overview.latestHistory ? (
-                  <p className="text-purple-900/75">
+                  <p className="text-navy-900/75">
                     {overview.latestHistory.date}: {overview.latestHistory.from} → {overview.latestHistory.to}
                   </p>
                 ) : (
-                  <p className="text-purple-900/60">No lifecycle history yet.</p>
+                  <p className="text-navy-900/60">No lifecycle history yet.</p>
                 )}
               </div>
             </div>
@@ -230,7 +230,7 @@ export function AssetDetailsTabs({
         </Card>
       </TabsContent>
       <TabsContent value="maintenance">
-        <Card className="border-purple-200 shadow-sm">
+        <Card className="border-navy-200 shadow-sm">
           <CardContent className="pt-6">
             <MaintenanceTimeline
               items={maintenance}
@@ -243,13 +243,13 @@ export function AssetDetailsTabs({
         </Card>
       </TabsContent>
       <TabsContent value="history">
-        <Card className="border-purple-200 shadow-sm">
+        <Card className="border-navy-200 shadow-sm">
           <CardContent className="pt-6">
             {history.length === 0 ? (
-              <p className="text-sm text-purple-900/70">No status history yet.</p>
+              <p className="text-sm text-navy-900/70">No status history yet.</p>
             ) : (
               <div className="relative pl-8">
-                <span className="absolute top-1 bottom-1 left-3 w-px bg-purple-200" />
+                <span className="absolute top-1 bottom-1 left-3 w-px bg-navy-200" />
                 <div className="space-y-4">
                   {history.map((item, index) => {
                     const fromMeta = getStatusMeta(item.from);
@@ -264,25 +264,25 @@ export function AssetDetailsTabs({
                             toMeta.dot,
                           )}
                         />
-                        <div className="rounded-xl border border-purple-100 bg-white p-4 shadow-sm">
+                        <div className="rounded-xl border border-navy-100 bg-white p-4 shadow-sm">
                           <div className="mb-2 flex items-center justify-between gap-2">
-                            <p className="flex items-center gap-2 text-sm font-semibold text-purple-950">
-                              <ToIcon className="h-4 w-4 text-purple-700" />
+                            <p className="flex items-center gap-2 text-sm font-semibold text-navy-950">
+                              <ToIcon className="h-4 w-4 text-navy-700" />
                               <span>Lifecycle update</span>
                             </p>
-                            <span className="text-xs font-medium text-purple-900/65">{item.date}</span>
+                            <span className="text-xs font-medium text-navy-900/65">{item.date}</span>
                           </div>
                           <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
                             <span className={cn("rounded-md px-2 py-1 font-medium", fromMeta.badge)}>
                               {item.from}
                             </span>
-                            <span className="text-purple-900/60">to</span>
+                            <span className="text-navy-900/60">to</span>
                             <span className={cn("rounded-md px-2 py-1 font-medium", toMeta.badge)}>
                               {item.to}
                             </span>
-                            <span className="ml-auto text-purple-900/45">#{history.length - index}</span>
+                            <span className="ml-auto text-navy-900/45">#{history.length - index}</span>
                           </div>
-                          <p className="text-sm text-purple-900/70">{item.note || "No note provided."}</p>
+                          <p className="text-sm text-navy-900/70">{item.note || "No note provided."}</p>
                         </div>
                       </div>
                     );
@@ -294,22 +294,22 @@ export function AssetDetailsTabs({
         </Card>
       </TabsContent>
       <TabsContent value="files">
-        <Card className="border-purple-200 shadow-sm">
+        <Card className="border-navy-200 shadow-sm">
           <CardContent className="space-y-3 pt-6">
             {files.length === 0 ? (
-              <p className="text-sm text-purple-900/70">No files attached yet.</p>
+              <p className="text-sm text-navy-900/70">No files attached yet.</p>
             ) : (
               files.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-purple-100 bg-white p-3 text-sm"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-navy-100 bg-white p-3 text-sm"
                 >
                   <div>
-                    <p className="flex items-center gap-2 font-medium text-purple-950">
-                      <FileText className="h-4 w-4 text-purple-700" />
+                    <p className="flex items-center gap-2 font-medium text-navy-950">
+                      <FileText className="h-4 w-4 text-navy-700" />
                       <span>{item.fileName}</span>
                     </p>
-                    <p className="text-purple-900/70">
+                    <p className="text-navy-900/70">
                       {item.type} • {item.createdAt}
                     </p>
                   </div>
@@ -326,18 +326,18 @@ export function AssetDetailsTabs({
 
 function OverviewField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-purple-100 bg-white p-3 text-sm">
-      <p className="text-xs text-purple-900/60">{label}</p>
-      <p className="font-medium text-purple-950">{value}</p>
+    <div className="rounded-lg border border-navy-100 bg-white p-3 text-sm">
+      <p className="text-xs text-navy-900/60">{label}</p>
+      <p className="font-medium text-navy-950">{value}</p>
     </div>
   );
 }
 
 function OverviewStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-purple-100 bg-gradient-to-br from-purple-50 to-white p-3 text-center">
-      <p className="text-xl font-semibold text-[#7C3AED]">{value}</p>
-      <p className="text-xs text-purple-900/70">{label}</p>
+    <div className="rounded-lg border border-navy-100 bg-gradient-to-br from-navy-50 to-white p-3 text-center">
+      <p className="text-xl font-semibold text-navy-900">{value}</p>
+      <p className="text-xs text-navy-900/70">{label}</p>
     </div>
   );
 }

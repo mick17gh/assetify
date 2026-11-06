@@ -15,7 +15,7 @@ export function ForgotPasswordForm() {
   const [error, setError] = useState<string | null>(null);
 
   return (
-    <Card className="w-full max-w-md border-purple-200">
+    <Card className="w-full max-w-md border-navy-200">
       <CardHeader>
         <CardTitle>Forgot password</CardTitle>
       </CardHeader>

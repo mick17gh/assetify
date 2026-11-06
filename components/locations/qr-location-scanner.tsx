@@ -109,20 +109,20 @@ export function QrLocationScanner({
 
   return (
     <div className="space-y-4">
-      <Card className="border-purple-200 shadow-sm">
+      <Card className="border-navy-200 shadow-sm">
         <CardHeader>
           <CardTitle className="text-lg">Hybrid scan flow</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-3 md:grid-cols-2">
-            <Button type="button" variant="outline" className="cursor-pointer border-purple-200" onClick={() => setScannerMode("asset")}>
+            <Button type="button" variant="outline" className="cursor-pointer border-navy-200" onClick={() => setScannerMode("asset")}>
               <ScanLine className="mr-2 h-4 w-4" />
               Scan asset tag
             </Button>
             <Button
               type="button"
               variant="outline"
-              className="cursor-pointer border-purple-200"
+              className="cursor-pointer border-navy-200"
               onClick={() => setScannerMode("location")}
               disabled={!assetId}
             >
@@ -132,8 +132,8 @@ export function QrLocationScanner({
           </div>
 
           {scannerMode ? (
-            <div className="rounded-lg border border-purple-100 bg-purple-50/40 p-3">
-              <div className="mb-2 flex items-center justify-between text-sm text-purple-900">
+            <div className="rounded-lg border border-navy-100 bg-navy-50/40 p-3">
+              <div className="mb-2 flex items-center justify-between text-sm text-navy-900">
                 <span className="font-medium">
                   {scannerMode === "asset" ? "Scanning asset tag..." : "Scanning location tag..."}
                 </span>
@@ -145,7 +145,7 @@ export function QrLocationScanner({
               <video ref={videoRef} className="w-full rounded-md bg-black/80" />
             </div>
           ) : (
-            <div className="rounded-lg border border-dashed border-purple-200 p-3 text-sm text-purple-900/70">
+            <div className="rounded-lg border border-dashed border-navy-200 p-3 text-sm text-navy-900/70">
               <Camera className="mr-2 inline-block h-4 w-4" />
               Camera scanner is idle. You can still paste scanned value manually below.
             </div>
@@ -156,7 +156,7 @@ export function QrLocationScanner({
               value={scanInput}
               onChange={(event) => setScanInput(event.target.value)}
               placeholder="Paste scanned QR value"
-              className="h-10 flex-1 rounded-md border border-purple-200 px-3 text-sm"
+              className="h-10 flex-1 rounded-md border border-navy-200 px-3 text-sm"
             />
             <Button
               type="button"

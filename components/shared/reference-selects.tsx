@@ -43,7 +43,7 @@ export function InlineCombobox({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            "h-8 w-full min-w-[140px] cursor-pointer justify-between border-purple-200 bg-white px-2 font-normal",
+            "h-8 w-full min-w-[140px] cursor-pointer justify-between border-navy-200 bg-white px-2 font-normal",
             error && "border-red-400",
             (!value || value === "NONE") && "text-muted-foreground",
             className,
@@ -128,7 +128,7 @@ export function ReferenceSelect({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="h-9 w-full min-w-0 cursor-pointer justify-between border-purple-200 bg-white font-normal"
+            className="h-9 w-full min-w-0 cursor-pointer justify-between border-navy-200 bg-white font-normal"
           >
             <span className="truncate text-left">{selectedOption?.label ?? placeholder}</span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -196,7 +196,7 @@ export function OptionalReferenceSelect({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="h-9 w-full cursor-pointer justify-between border-purple-200 bg-white font-normal"
+            className="h-9 w-full cursor-pointer justify-between border-navy-200 bg-white font-normal"
           >
             <span className="truncate text-left">{selectedLabel}</span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

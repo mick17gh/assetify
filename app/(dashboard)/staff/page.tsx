@@ -52,13 +52,13 @@ export default async function StaffListPage({ searchParams }: { searchParams: Pr
         title="Staff Directory"
         description="View staff members and open profiles to see allocated assets and tracking history."
       />
-      <Card className="border-purple-200 shadow-sm">
+      <Card className="border-navy-200 shadow-sm">
         <CardContent className="pt-6">
           <TableToolbar searchPlaceholder="Search staff by name or email" />
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-purple-100 text-left text-purple-900/70">
+                <tr className="border-b border-navy-100 text-left text-navy-900/70">
                   <th className="pb-3 font-medium">Name</th>
                   <th className="pb-3 font-medium">Email</th>
                   <th className="pb-3 font-medium">Role</th>
@@ -68,9 +68,9 @@ export default async function StaffListPage({ searchParams }: { searchParams: Pr
               </thead>
               <tbody>
                 {staff.map((member) => (
-                  <tr key={member.id} className="border-b border-purple-50">
+                  <tr key={member.id} className="border-b border-navy-50">
                     <td className="py-3">
-                      <Link href={`/staff/${member.id}`} prefetch className="font-medium text-[#6D28D9] hover:underline">
+                      <Link href={`/staff/${member.id}`} prefetch className="font-medium text-navy-900 hover:underline">
                         {member.name}
                       </Link>
                     </td>

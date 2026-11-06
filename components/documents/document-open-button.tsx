@@ -15,7 +15,7 @@ export function DocumentOpenButton({
       variant="outline"
       size="sm"
       asChild
-      className={`cursor-pointer border-purple-200 hover:bg-purple-50 ${className ?? ""}`}
+      className={`cursor-pointer border-navy-200 hover:bg-navy-50 ${className ?? ""}`}
     >
       <a href={fileUrl} target="_blank" rel="noopener noreferrer" aria-label={`Open artifact ${fileName}`}>
         <ExternalLink className="mr-1.5 h-3.5 w-3.5" />

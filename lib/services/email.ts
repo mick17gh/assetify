@@ -8,7 +8,7 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_EMAIL = process.env.FROM_EMAIL || "Ordex <noreply@ordex.app>";
+const FROM_EMAIL = process.env.FROM_EMAIL || "VortAsset <noreply@vortasset.app>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 export interface SendEmailOptions {
@@ -75,7 +75,7 @@ export async function sendTeamInvitationEmail(
         <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
           <!-- Header -->
           <tr>
-            <td style="padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px 12px 0 0;">
+            <td style="padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, #012f6b 0%, #01468f 100%); border-radius: 12px 12px 0 0;">
               <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">
                 🎉 You're Invited!
               </h1>
@@ -89,17 +89,17 @@ export async function sendTeamInvitationEmail(
                 Hi there,
               </p>
               <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
-                <strong>${inviterName}</strong> has invited you to join <strong>${businessName}</strong> on Ordex as a <strong>${role}</strong>.
+                <strong>${inviterName}</strong> has invited you to join <strong>${businessName}</strong> on VortAsset as a <strong>${role}</strong>.
               </p>
               <p style="margin: 0 0 30px; color: #374151; font-size: 16px; line-height: 1.6;">
-                Ordex helps businesses manage their WhatsApp orders efficiently. Click the button below to accept your invitation and get started.
+                VortAsset helps organizations track physical assets across branches. Click the button below to accept your invitation and get started.
               </p>
               
               <!-- CTA Button -->
               <table role="presentation" style="width: 100%; border-collapse: collapse;">
                 <tr>
                   <td align="center">
-                    <a href="${inviteUrl}" style="display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 8px; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);">
+                    <a href="${inviteUrl}" style="display: inline-block; padding: 16px 32px; background: #012f6b; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 8px;">
                       Accept Invitation
                     </a>
                   </td>
@@ -109,7 +109,7 @@ export async function sendTeamInvitationEmail(
               <p style="margin: 30px 0 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
                 Or copy and paste this link into your browser:
               </p>
-              <p style="margin: 10px 0 0; color: #10b981; font-size: 14px; word-break: break-all;">
+              <p style="margin: 10px 0 0; color: #012f6b; font-size: 14px; word-break: break-all;">
                 ${inviteUrl}
               </p>
               
@@ -125,7 +125,7 @@ export async function sendTeamInvitationEmail(
           <tr>
             <td style="padding: 20px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
               <p style="margin: 0; color: #9ca3af; font-size: 12px;">
-                © ${new Date().getFullYear()} Ordex. All rights reserved.
+                © ${new Date().getFullYear()} VortAsset. All rights reserved.
               </p>
             </td>
           </tr>
@@ -140,7 +140,7 @@ export async function sendTeamInvitationEmail(
   const text = `
 You're Invited to Join ${businessName}!
 
-${inviterName} has invited you to join ${businessName} on Ordex as a ${role}.
+${inviterName} has invited you to join ${businessName} on VortAsset as a ${role}.
 
 Accept your invitation here: ${inviteUrl}
 
@@ -151,7 +151,7 @@ If you didn't expect this invitation, you can safely ignore this email.
 
   return sendEmail({
     to: email,
-    subject: `You're invited to join ${businessName} on Ordex`,
+    subject: `You're invited to join ${businessName} on VortAsset`,
     html,
     text,
   });
@@ -177,7 +177,7 @@ export async function sendPasswordResetEmail(
         <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
           <!-- Header -->
           <tr>
-            <td style="padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px 12px 0 0;">
+            <td style="padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, #012f6b 0%, #01468f 100%); border-radius: 12px 12px 0 0;">
               <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">
                 🔐 Reset Your Password
               </h1>
@@ -191,14 +191,14 @@ export async function sendPasswordResetEmail(
                 Hi ${name},
               </p>
               <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
-                We received a request to reset your password for your Assetify account. Click the button below to create a new password.
+                We received a request to reset your password for your VortAsset account. Click the button below to create a new password.
               </p>
               
               <!-- CTA Button -->
               <table role="presentation" style="width: 100%; border-collapse: collapse;">
                 <tr>
                   <td align="center">
-                    <a href="${resetUrl}" style="display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 8px; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);">
+                    <a href="${resetUrl}" style="display: inline-block; padding: 16px 32px; background: #012f6b; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 8px;">
                       Reset Password
                     </a>
                   </td>
@@ -208,7 +208,7 @@ export async function sendPasswordResetEmail(
               <p style="margin: 30px 0 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
                 Or copy and paste this link into your browser:
               </p>
-              <p style="margin: 10px 0 0; color: #10b981; font-size: 14px; word-break: break-all;">
+              <p style="margin: 10px 0 0; color: #012f6b; font-size: 14px; word-break: break-all;">
                 ${resetUrl}
               </p>
               
@@ -224,7 +224,7 @@ export async function sendPasswordResetEmail(
           <tr>
             <td style="padding: 20px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
               <p style="margin: 0; color: #9ca3af; font-size: 12px;">
-                © ${new Date().getFullYear()} Assetify. All rights reserved.
+                © ${new Date().getFullYear()} VortAsset. All rights reserved.
               </p>
             </td>
           </tr>
@@ -241,7 +241,7 @@ Reset Your Password
 
 Hi ${name},
 
-We received a request to reset your password for your Assetify account.
+We received a request to reset your password for your VortAsset account.
 
 Reset your password here: ${resetUrl}
 
@@ -252,7 +252,7 @@ If you didn't request a password reset, you can safely ignore this email.
 
   return sendEmail({
     to: email,
-    subject: "Reset your Assetify password",
+    subject: "Reset your VortAsset password",
     html,
     text,
   });
@@ -280,7 +280,7 @@ export async function sendWelcomeEmail(
         <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
           <!-- Header -->
           <tr>
-            <td style="padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px 12px 0 0;">
+            <td style="padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, #012f6b 0%, #01468f 100%); border-radius: 12px 12px 0 0;">
               <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">
                 🎉 Welcome Aboard!
               </h1>
@@ -294,14 +294,14 @@ export async function sendWelcomeEmail(
                 Hi ${name},
               </p>
               <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
-                You've successfully joined <strong>${businessName}</strong> on Ordex! You can now access the dashboard and start managing orders.
+                You've successfully joined <strong>${businessName}</strong> on VortAsset. You can now open the dashboard and start tracking assets.
               </p>
               
               <!-- CTA Button -->
               <table role="presentation" style="width: 100%; border-collapse: collapse;">
                 <tr>
                   <td align="center">
-                    <a href="${dashboardUrl}" style="display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 8px; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);">
+                    <a href="${dashboardUrl}" style="display: inline-block; padding: 16px 32px; background: #012f6b; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 8px;">
                       Go to Dashboard
                     </a>
                   </td>
@@ -314,7 +314,7 @@ export async function sendWelcomeEmail(
           <tr>
             <td style="padding: 20px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
               <p style="margin: 0; color: #9ca3af; font-size: 12px;">
-                © ${new Date().getFullYear()} Ordex. All rights reserved.
+                © ${new Date().getFullYear()} VortAsset. All rights reserved.
               </p>
             </td>
           </tr>

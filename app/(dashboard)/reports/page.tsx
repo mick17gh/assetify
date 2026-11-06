@@ -106,10 +106,10 @@ async function ReportValuationSection({
   });
 
   return (
-    <Card className="border-purple-200">
+    <Card className="border-navy-200">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base text-purple-950">End-of-Life FMV</CardTitle>
-        <p className="text-sm text-purple-900/65">
+        <CardTitle className="text-base text-navy-950">End-of-Life FMV</CardTitle>
+        <p className="text-sm text-navy-900/65">
           Approaching and overdue assets with current and recommended sale values. Export includes all matching rows.
         </p>
       </CardHeader>
@@ -181,7 +181,7 @@ async function ReportTableSection({
   ]);
 
   return (
-    <Card className="border-purple-200">
+    <Card className="border-navy-200">
       <CardContent className="pt-6">
         <TableToolbar
           searchPlaceholder="Search by asset name or AIN"
@@ -219,7 +219,7 @@ async function ReportTableSection({
 }
 
 function SectionSkeleton({ className }: { className?: string }) {
-  return <Skeleton className={`w-full rounded-xl bg-purple-50 ${className ?? "h-48"}`} />;
+  return <Skeleton className={`w-full rounded-xl bg-navy-50 ${className ?? "h-48"}`} />;
 }
 
 export default async function ReportsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {

@@ -108,7 +108,7 @@ export function AssetMovementForm({
   }
 
   return (
-    <Card className="border-purple-200 shadow-sm">
+    <Card className="border-navy-200 shadow-sm">
       <CardHeader>
         <CardTitle className="text-lg">{title}</CardTitle>
       </CardHeader>
@@ -148,7 +148,7 @@ export function AssetMovementForm({
             <input type="hidden" name="assetId" value={selectedAssetId} />
           )}
           {assetLabel && !showAssetSelect ? (
-            <p className="rounded-md bg-purple-50 px-3 py-2 text-sm text-purple-900">{assetLabel}</p>
+            <p className="rounded-md bg-navy-50 px-3 py-2 text-sm text-navy-900">{assetLabel}</p>
           ) : null}
           <EnumSelect
             name="movementType"
@@ -186,7 +186,7 @@ export function AssetMovementForm({
             idleLabel="Save movement"
             pendingLabel="Saving movement..."
             disabled={!selectedAssetId}
-            className="w-full cursor-pointer bg-[#7C3AED] hover:bg-[#6D28D9]"
+            className="w-full cursor-pointer bg-navy-900 hover:bg-navy-950"
           />
         </PendingForm>
       </CardContent>

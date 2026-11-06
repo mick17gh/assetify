@@ -15,7 +15,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
   const redirectTo = typeof redirectToValue === "string" ? redirectToValue : APP_ROUTES.DASHBOARD;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#FAF5FF] p-4">
+    <div className="flex min-h-screen items-center justify-center bg-navy-50 p-4">
       <SignInForm redirectTo={redirectTo} showUsageManual={SHOW_USAGE_MANUAL} />
     </div>
   );

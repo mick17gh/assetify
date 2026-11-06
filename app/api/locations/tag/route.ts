@@ -62,11 +62,11 @@ export async function GET(request: Request) {
     const qrDataUrl = await QRCode.toDataURL(buildLocationQrUrl(location.type, location.id, baseUrl), { margin: 0, width: 180 });
     const qrImage = await pdf.embedPng(Buffer.from(qrDataUrl.replace(/^data:image\/png;base64,/, ""), "base64"));
 
-    page.drawRectangle({ x: 10, y: 10, width: 240, height: 110, borderWidth: 1, borderColor: rgb(0.72, 0.67, 0.9) });
+    page.drawRectangle({ x: 10, y: 10, width: 240, height: 110, borderWidth: 1, borderColor: rgb(0.77, 0.82, 0.87) });
     page.drawImage(qrImage, { x: 18, y: 22, width: 90, height: 90 });
     page.drawText(location.type.toUpperCase(), { x: 118, y: 86, size: 10, font: fontBold });
     page.drawText(location.name.slice(0, 28), { x: 118, y: 66, size: 11, font: fontBold });
-    page.drawText("Assetify location QR", { x: 118, y: 46, size: 9, font });
+    page.drawText("VortAsset location QR", { x: 118, y: 46, size: 9, font });
     page.drawText("Scan in Locations > QR Location Scan", { x: 118, y: 28, size: 7.5, font });
 
     const buffer = await pdf.save();

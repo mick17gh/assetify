@@ -58,7 +58,7 @@ export function LocationsSetupTabs({
 
   return (
     <Tabs value={activeTab} onValueChange={setTab} className="w-full">
-      <TabsList className="mb-4 h-10 rounded-lg bg-purple-50">
+      <TabsList className="mb-4 h-10 rounded-lg bg-navy-50">
         <TabsTrigger value="departments">Departments</TabsTrigger>
         <TabsTrigger value="rooms">Rooms</TabsTrigger>
         <TabsTrigger value="shelves">Shelves</TabsTrigger>

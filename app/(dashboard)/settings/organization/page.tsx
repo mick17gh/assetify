@@ -15,7 +15,7 @@ async function OrganizationForm() {
     : null;
 
   return (
-    <Card className="border-purple-200 shadow-sm">
+    <Card className="border-navy-200 shadow-sm">
       <CardContent className="pt-6">
         <form action={updateOrganizationAction} className="max-w-md space-y-3">
           <SetupTextField name="name" label="Organization name" required defaultValue={organization?.name ?? ""} />
@@ -26,7 +26,7 @@ async function OrganizationForm() {
             required
             defaultValue={String(organization?.maintenanceCostThresholdPercent ?? 50)}
           />
-          <p className="text-xs text-purple-900/60">
+          <p className="text-xs text-navy-900/60">
             Assets are flagged for replacement review when total maintenance cost reaches this percentage of purchase cost.
           </p>
           <SubmitButton idleLabel="Save organization" pendingLabel="Saving..." className="cursor-pointer" />

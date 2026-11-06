@@ -86,7 +86,7 @@ async function AuditContent({ searchParams }: { searchParams: Promise<SearchPara
         <TableBody>
           {rows.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="py-8 text-center text-purple-900/60">
+              <TableCell colSpan={6} className="py-8 text-center text-navy-900/60">
                 No audit entries found.
               </TableCell>
             </TableRow>
@@ -101,12 +101,12 @@ async function AuditContent({ searchParams }: { searchParams: Promise<SearchPara
 
               return (
                 <TableRow key={row.id}>
-                  <TableCell className="font-medium text-purple-950">{labels.action}</TableCell>
+                  <TableCell className="font-medium text-navy-950">{labels.action}</TableCell>
                   <TableCell>{labels.page}</TableCell>
                   <TableCell>{formatAuditEntityType(row.entityType)}</TableCell>
                   <TableCell>
                     {asset ? (
-                      <Link href={`/assets/${asset.id}`} prefetch className="font-medium text-[#6D28D9] hover:underline">
+                      <Link href={`/assets/${asset.id}`} prefetch className="font-medium text-navy-900 hover:underline">
                         {assetLabel}
                       </Link>
                     ) : (
@@ -130,7 +130,7 @@ export default function AuditSettingsPage({ searchParams }: { searchParams: Prom
     <div>
       <PageHeader
         title="Activity History"
-        description="A readable log of who changed what across Assetify — useful for reviews and accountability."
+        description="A readable log of who changed what across VortAsset — useful for reviews and accountability."
       />
       <Suspense fallback={<PageLoading rows={5} />}>
         <AuditContent searchParams={searchParams} />

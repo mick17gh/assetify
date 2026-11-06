@@ -28,7 +28,7 @@ export function AssetTable({
   qrEnabled?: boolean;
 }) {
   return (
-    <Card className="border-purple-200 shadow-sm">
+    <Card className="border-navy-200 shadow-sm">
       <CardContent className="pt-6">
         {toolbar}
         <Table>
@@ -49,7 +49,7 @@ export function AssetTable({
             {assets.map((asset) => (
               <TableRow key={asset.id}>
                 <TableCell>
-                  <Link href={`/assets/${asset.id}`} prefetch className="font-medium text-[#6D28D9] hover:underline">
+                  <Link href={`/assets/${asset.id}`} prefetch className="font-medium text-navy-900 hover:underline">
                     {asset.ain}
                   </Link>
                 </TableCell>

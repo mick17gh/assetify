@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { APP_ROUTES } from "@/constants";
+import { BrandWordmark } from "@/components/shared/brand-wordmark";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,15 +21,8 @@ export function SignInForm({ redirectTo, showUsageManual = false }: { redirectTo
 
   return (
     <div className="flex w-full max-w-md flex-col items-center gap-6">
-      <Image
-        src="/assetifylogo.png"
-        alt="Assetify Asset Management System"
-        width={320}
-        height={96}
-        priority
-        className="h-auto w-[min(320px,90vw)] object-contain"
-      />
-      <Card className="w-full border-purple-200">
+      <BrandWordmark />
+      <Card className="w-full border-navy-200">
         <CardHeader className="text-center">
           <CardTitle>Sign in</CardTitle>
         </CardHeader>
@@ -79,11 +72,11 @@ export function SignInForm({ redirectTo, showUsageManual = false }: { redirectTo
             {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             {pending ? "Signing in..." : "Sign in"}
           </Button>
-          <Link className="block text-sm text-purple-700 underline" href={APP_ROUTES.FORGOT_PASSWORD}>
+          <Link className="block text-sm text-navy-700 underline" href={APP_ROUTES.FORGOT_PASSWORD}>
             Forgot password?
           </Link>
           {showUsageManual ? (
-            <Link className="block text-sm text-purple-700 underline" href={APP_ROUTES.USAGE_MANUAL}>
+            <Link className="block text-sm text-navy-700 underline" href={APP_ROUTES.USAGE_MANUAL}>
               Usage manual
             </Link>
           ) : null}
