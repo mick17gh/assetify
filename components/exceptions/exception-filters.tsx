@@ -48,7 +48,7 @@ export function ExceptionFilters({ assignees }: { assignees: ReferenceOption[] }
           });
         }}
       >
-        <SelectTrigger className="h-9 w-[160px] cursor-pointer border-navy-200">
+        <SelectTrigger className="h-9 w-full min-w-0 cursor-pointer border-navy-200 sm:w-[160px]">
           <SelectValue placeholder="Open" />
         </SelectTrigger>
         <SelectContent>
@@ -72,7 +72,7 @@ export function ExceptionFilters({ assignees }: { assignees: ReferenceOption[] }
             else next.set("assignee", value);
           });
         }}
-        className="h-9 w-[180px]"
+        className="h-9 w-full sm:w-[180px]"
       />
     </>
   );

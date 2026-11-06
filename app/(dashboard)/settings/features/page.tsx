@@ -36,7 +36,7 @@ async function FeaturesForm() {
               </label>
             </div>
           </div>
-          <SubmitButton idleLabel="Save feature settings" pendingLabel="Saving..." className="cursor-pointer" />
+          <SubmitButton idleLabel="Save feature settings" pendingLabel="Saving..." className="h-10 w-full cursor-pointer sm:h-9 sm:w-auto" />
         </form>
       </CardContent>
     </Card>

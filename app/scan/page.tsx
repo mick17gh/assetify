@@ -5,6 +5,7 @@ import { CampaignVerifyPanel } from "@/components/campaigns/campaign-verify-pane
 import { AssetScanHistories } from "@/components/scan/asset-scan-histories";
 import { AssetScanProfileCard } from "@/components/scan/asset-scan-profile";
 import { BrandWordmark } from "@/components/shared/brand-wordmark";
+import { pageActionGroupClass } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { APP_ROUTES, PERMISSION_KEYS } from "@/constants";
 import { hasPermission } from "@/lib/permissions";
@@ -94,7 +95,7 @@ export default async function ScanPage({ searchParams }: { searchParams: SearchP
           {showMovementForm && data.movementFormOptions ? (
             <>
               {session && hasPermission(session.role, PERMISSION_KEYS.ASSET_READ) ? (
-                <div className="flex justify-end">
+                <div className={pageActionGroupClass}>
                   <Button variant="outline" asChild className="cursor-pointer border-navy-200">
                     <Link href={`${APP_ROUTES.ASSETS}/${data.profile.id}`}>View full asset details</Link>
                   </Button>

@@ -85,7 +85,7 @@ export function ExceptionDetailSheet({
                 <input type="hidden" name="exceptionId" value={exception.id} />
                 <Label htmlFor="file">Upload file</Label>
                 <Input id="file" name="file" type="file" required />
-                <SubmitButton idleLabel="Upload" pendingLabel="Uploading..." className="cursor-pointer bg-navy-900 hover:bg-navy-950" />
+                <SubmitButton idleLabel="Upload" pendingLabel="Uploading..." className="h-10 w-full cursor-pointer bg-navy-900 hover:bg-navy-950 sm:h-9 sm:w-auto" />
               </PendingForm>
             ) : null}
           </section>
@@ -103,7 +103,7 @@ export function ExceptionDetailSheet({
                     defaultValue={exception.assigneeId ?? undefined}
                     required
                   />
-                  <SubmitButton idleLabel="Assign" pendingLabel="Saving..." className="cursor-pointer bg-navy-900 hover:bg-navy-950" />
+                  <SubmitButton idleLabel="Assign" pendingLabel="Saving..." className="h-10 w-full cursor-pointer bg-navy-900 hover:bg-navy-950 sm:h-9 sm:w-auto" />
                 </PendingForm>
               ) : null}
               {status === EXCEPTION_STATUS.IDENTIFIED || status === EXCEPTION_STATUS.ASSIGNED ? (
@@ -115,7 +115,7 @@ export function ExceptionDetailSheet({
                   <input type="hidden" name="toStatus" value={EXCEPTION_STATUS.RESOLVED} />
                   <Label htmlFor="note">Resolution note</Label>
                   <Textarea id="note" name="note" required />
-                  <SubmitButton idleLabel="Resolve" pendingLabel="Saving..." className="cursor-pointer bg-navy-900 hover:bg-navy-950" />
+                  <SubmitButton idleLabel="Resolve" pendingLabel="Saving..." className="h-10 w-full cursor-pointer bg-navy-900 hover:bg-navy-950 sm:h-9 sm:w-auto" />
                 </PendingForm>
               ) : null}
               {status === EXCEPTION_STATUS.RESOLVED ? (
@@ -137,7 +137,7 @@ function SimpleTransition({ exceptionId, toStatus, label }: { exceptionId: strin
     <PendingForm action={transitionExceptionAction} successMessage="Exception updated.">
       <input type="hidden" name="exceptionId" value={exceptionId} />
       <input type="hidden" name="toStatus" value={toStatus} />
-      <Button type="submit" variant="outline" className="cursor-pointer border-navy-200">
+      <Button type="submit" variant="outline" className="h-10 w-full cursor-pointer border-navy-200 sm:h-9 sm:w-auto">
         {label}
       </Button>
     </PendingForm>

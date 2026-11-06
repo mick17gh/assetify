@@ -3,13 +3,13 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  BriefcaseBusiness,
   ClipboardCheck,
   Layers3,
   MapPin,
   MessageCircle,
   Phone,
   ShieldCheck,
-  Sparkles,
   Wrench,
 } from "lucide-react";
 import { APP_ROUTES } from "@/constants";
@@ -84,8 +84,8 @@ export function LandingPage() {
         <section className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pb-20 pt-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:pt-24">
           <div className="landing-rise min-w-0">
             <p className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/50 px-3 py-1 text-xs font-medium text-navy-700 shadow-sm backdrop-blur-md">
-              <Sparkles className="h-3.5 w-3.5" />
-              Asset control for every branch
+              <BriefcaseBusiness className="h-3.5 w-3.5" />
+              Asset control for every Organization
             </p>
             <h1 className="mt-5 max-w-xl text-[2.05rem] font-semibold leading-[1.15] tracking-tight text-balance text-navy-950 sm:text-5xl sm:leading-[1.05] lg:text-6xl">
               Know what you own, where it is, and who has it.

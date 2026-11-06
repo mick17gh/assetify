@@ -5,7 +5,7 @@ import { AssignOfficerDialog } from "@/components/campaigns/assign-officer-dialo
 import { CampaignFormDialog } from "@/components/campaigns/campaign-form-dialog";
 import { CampaignExportButtons } from "@/components/campaigns/campaign-export-buttons";
 import { CampaignVerifyPanel } from "@/components/campaigns/campaign-verify-panel";
-import { PageHeader } from "@/components/shared/page-header";
+import { PageHeader, pageActionGroupClass } from "@/components/shared/page-header";
 import { PendingForm } from "@/components/shared/pending-form";
 import { SubmitButton } from "@/components/shared/submit-button";
 import { Badge } from "@/components/ui/badge";
@@ -141,18 +141,18 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
       {canWrite && isDraft ? (
         <PendingForm action={activateCampaignAction} successMessage="Campaign activated." className="mb-4">
           <input type="hidden" name="campaignId" value={campaign.id} />
-          <SubmitButton idleLabel="Activate and freeze expected assets" pendingLabel="Activating..." className="cursor-pointer bg-navy-900 hover:bg-navy-950" />
+          <SubmitButton idleLabel="Activate and freeze expected assets" pendingLabel="Activating..." className="w-full cursor-pointer bg-navy-900 hover:bg-navy-950 sm:w-auto" />
         </PendingForm>
       ) : null}
       {canWrite && isActive ? (
-        <div className="mb-4 flex flex-wrap gap-2">
+        <div className="mb-4 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:items-center max-sm:[&_button]:h-auto max-sm:[&_button]:min-h-10 max-sm:[&_button]:w-full max-sm:[&_button]:px-2 sm:[&_button]:w-auto">
           <StatusButton campaignId={campaign.id} status={CAMPAIGN_STATUS.PAUSED} label="Pause" />
           <StatusButton campaignId={campaign.id} status={CAMPAIGN_STATUS.COMPLETED} label="Complete" />
           <StatusButton campaignId={campaign.id} status={CAMPAIGN_STATUS.CANCELLED} label="Cancel" />
         </div>
       ) : null}
       {canWrite && campaign.status === CAMPAIGN_STATUS.PAUSED ? (
-        <div className="mb-4 flex flex-wrap gap-2">
+        <div className={`${pageActionGroupClass} mb-4 sm:ml-auto`}>
           <StatusButton campaignId={campaign.id} status={CAMPAIGN_STATUS.ACTIVE} label="Resume" />
           <StatusButton campaignId={campaign.id} status={CAMPAIGN_STATUS.CANCELLED} label="Cancel" />
         </div>
@@ -212,7 +212,7 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
           <Card className="border-navy-200 shadow-sm">
             <CardContent className="pt-6">
               {isDraft && canWrite ? (
-                <div className="mb-4 flex justify-end">
+                <div className={`${pageActionGroupClass} mb-4 sm:ml-auto`}>
                   <AssignOfficerDialog
                     campaignId={campaign.id}
                     officers={users.map((user) => ({ id: user.id, label: user.name }))}

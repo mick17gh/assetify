@@ -45,8 +45,8 @@ export function OverviewGrid({
   ] as const;
 
   return (
-    <div className="space-y-4">
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className="min-w-0 space-y-4">
+      <section className="grid min-w-0 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
         <KpiCard title="Total Assets" value={totalAssets.toLocaleString()} hint="Across all branches" href={APP_ROUTES.ASSETS} />
         <KpiCard
           title="Warranty Expiring"
@@ -81,7 +81,7 @@ export function OverviewGrid({
       </section>
       <section>
         <h2 className="mb-3 text-sm font-semibold text-navy-950">Assets requiring attention</h2>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {cards.map(([title, value, href]) => (
             <KpiCard key={title} title={title} value={value.toLocaleString()} hint="Open the matching list" href={href} />
           ))}

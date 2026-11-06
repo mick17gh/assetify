@@ -43,13 +43,13 @@ export function ReportExportButtons({
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
       <Button
         variant="secondary"
         size="sm"
         disabled={exporting !== null}
         onClick={() => handleExport("pdf")}
-        className="h-9 cursor-pointer"
+        className="h-10 w-full cursor-pointer sm:h-9 sm:w-auto"
       >
         {exporting === "pdf" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
         {exporting === "pdf" ? "Exporting..." : "PDF"}
@@ -58,7 +58,7 @@ export function ReportExportButtons({
         size="sm"
         disabled={exporting !== null}
         onClick={() => handleExport("excel")}
-        className="h-9 cursor-pointer bg-navy-900 hover:bg-navy-950"
+        className="h-10 w-full cursor-pointer bg-navy-900 hover:bg-navy-950 sm:h-9 sm:w-auto"
       >
         {exporting === "excel" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
         {exporting === "excel" ? "Exporting..." : "Excel"}

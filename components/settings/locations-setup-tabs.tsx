@@ -8,6 +8,7 @@ import { PrintLocationTagButton } from "@/components/settings/print-location-tag
 import { ReferenceSelect } from "@/components/shared/reference-selects";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { ReferenceOption } from "@/components/shared/reference-selects";
+import { pageActionGroupClass } from "@/components/shared/page-header";
 import { getQueryNavigationTarget } from "@/lib/filters/query";
 import { clearPaginationParams } from "@/lib/pagination/page";
 import {
@@ -58,14 +59,14 @@ export function LocationsSetupTabs({
 
   return (
     <Tabs value={activeTab} onValueChange={setTab} className="w-full">
-      <TabsList className="mb-4 h-10 rounded-lg bg-navy-50">
+      <TabsList className="mb-4 h-auto rounded-lg bg-navy-50">
         <TabsTrigger value="departments">Departments</TabsTrigger>
         <TabsTrigger value="rooms">Rooms</TabsTrigger>
         <TabsTrigger value="shelves">Shelves</TabsTrigger>
       </TabsList>
 
       <TabsContent value="departments">
-        <div className="mb-4 flex justify-end">
+        <div className={`${pageActionGroupClass} mb-4 sm:ml-auto`}>
           <SetupCreateModal title="Create department" triggerLabel="Add Department" action={createDepartmentAction}>
             <ReferenceSelect name="branchId" label="Branch" options={branches} required />
             <SetupTextField name="name" label="Name" required />
@@ -107,7 +108,7 @@ export function LocationsSetupTabs({
       </TabsContent>
 
       <TabsContent value="rooms">
-        <div className="mb-4 flex justify-end">
+        <div className={`${pageActionGroupClass} mb-4 sm:ml-auto`}>
           <SetupCreateModal title="Create room" triggerLabel="Add Room" action={createRoomAction}>
             <ReferenceSelect name="branchId" label="Branch" options={branches} required />
             <SetupTextField name="name" label="Name" required />
@@ -150,7 +151,7 @@ export function LocationsSetupTabs({
       </TabsContent>
 
       <TabsContent value="shelves">
-        <div className="mb-4 flex justify-end">
+        <div className={`${pageActionGroupClass} mb-4 sm:ml-auto`}>
           <SetupCreateModal title="Create shelf" triggerLabel="Add Shelf" action={createShelfAction}>
             <ReferenceSelect name="roomId" label="Room" options={roomsForSelect} required />
             <SetupTextField name="name" label="Name" required />

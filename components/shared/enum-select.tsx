@@ -5,6 +5,7 @@ import { FormValueInput } from "@/components/shared/form-value-input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ENUM_LABELS } from "@/constants";
+import { cn } from "@/lib/utils";
 
 type EnumSelectProps = {
   name: string;
@@ -69,14 +70,15 @@ export function EnumSelectFilter({
   value,
   onValueChange,
   allowAll = true,
-}: Omit<EnumSelectProps, "defaultValue" | "required"> & { allowAll?: boolean }) {
+  className,
+}: Omit<EnumSelectProps, "defaultValue" | "required"> & { allowAll?: boolean; className?: string }) {
   const labels = ENUM_LABELS[labelKey] ?? {};
   const entries = Object.values(values);
 
   return (
-    <div className="space-y-1">
+    <div className="min-w-0 space-y-1">
       <Select value={value} onValueChange={onValueChange}>
-        <SelectTrigger id={name} className="h-9 w-[160px] cursor-pointer border-navy-200">
+        <SelectTrigger id={name} className={cn("h-9 w-full min-w-0 cursor-pointer border-navy-200 sm:w-[160px]", className)}>
           <SelectValue placeholder="All" />
         </SelectTrigger>
         <SelectContent>

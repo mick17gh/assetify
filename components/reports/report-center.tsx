@@ -47,7 +47,7 @@ export function ReportCenter({
           </TabsList>
 
           <TabsContent value="replacement" className="space-y-4">
-            <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
               <div className="rounded-lg border border-navy-100 bg-navy-50/80 p-3.5">
                 <p className="text-xl font-semibold text-navy-900">{dueCount}</p>
                 <p className="text-navy-900/70">Assets due for replacement</p>
@@ -67,7 +67,7 @@ export function ReportCenter({
 
           {canViewFinance ? (
             <TabsContent value="department" className="space-y-4">
-              <div className="flex justify-end">
+              <div className="w-full sm:flex sm:justify-end">
                 <ReportExportButtons report="department-cost" />
               </div>
               <Table>
@@ -95,7 +95,7 @@ export function ReportCenter({
 
           {canViewFinance ? (
             <TabsContent value="disposal" className="space-y-4">
-              <div className="flex justify-end">
+              <div className="w-full sm:flex sm:justify-end">
                 <ReportExportButtons report="disposal-summary" />
               </div>
               <Table>

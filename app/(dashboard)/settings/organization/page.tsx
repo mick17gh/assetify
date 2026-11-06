@@ -57,7 +57,7 @@ async function OrganizationForm() {
           <p className="text-xs text-navy-900/60 md:col-span-2">
             Assets are flagged for replacement review when total maintenance cost reaches this percentage of purchase cost.
           </p>
-          <SubmitButton idleLabel="Save organization" pendingLabel="Saving..." className="cursor-pointer" />
+          <SubmitButton idleLabel="Save organization" pendingLabel="Saving..." className="h-10 w-full cursor-pointer md:col-span-2 md:h-9 md:w-auto" />
         </form>
       </CardContent>
     </Card>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { pageActionGroupClass } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 
 export function CampaignExportButtons({ campaignId }: { campaignId: string }) {
@@ -30,7 +31,7 @@ export function CampaignExportButtons({ campaignId }: { campaignId: string }) {
   }
 
   return (
-    <div className="flex gap-2">
+    <div className={pageActionGroupClass}>
       <Button
         type="button"
         variant="outline"

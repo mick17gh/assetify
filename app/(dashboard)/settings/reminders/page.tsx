@@ -28,7 +28,7 @@ async function RemindersForm() {
             required
           />
           <SetupTextField name="daysBefore" label="Days before event" type="number" required defaultValue={String(warrantyDays)} />
-          <SubmitButton idleLabel="Save reminder settings" pendingLabel="Saving..." className="cursor-pointer" />
+          <SubmitButton idleLabel="Save reminder settings" pendingLabel="Saving..." className="h-10 w-full cursor-pointer sm:h-9 sm:w-auto" />
         </form>
       </CardContent>
     </Card>

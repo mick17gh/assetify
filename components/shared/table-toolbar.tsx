@@ -17,7 +17,7 @@ export function TableToolbar({
   return (
     <div className="mb-4 flex flex-col gap-3 border-b border-navy-100 pb-4 md:flex-row md:items-center md:justify-between">
       {showSearch && searchPlaceholder ? <TableSearch placeholder={searchPlaceholder} /> : <div />}
-      <div className="flex flex-wrap items-center gap-2">{filters}</div>
+      <div className="grid w-full min-w-0 grid-cols-1 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">{filters}</div>
     </div>
   );
 }

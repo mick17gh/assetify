@@ -63,19 +63,21 @@ export function TablePagination({
     });
   }
 
+  const navButtonClass = "h-10 w-10 shrink-0 cursor-pointer sm:h-9 sm:w-auto";
+
   return (
-    <div className="mt-4 flex flex-col gap-3 border-t border-navy-100 pt-4 md:flex-row md:items-center md:justify-between">
-      <p className="text-xs font-medium text-navy-900/65">
-        {totalItems === 0
-          ? "Showing 0 results"
-          : `Showing ${from.toLocaleString()} to ${to.toLocaleString()} of ${totalItems.toLocaleString()}`}
-      </p>
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="mt-4 flex flex-col gap-3 border-t border-navy-100 pt-4">
+      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-xs font-medium text-navy-900/65">
+          {totalItems === 0
+            ? "Showing 0 results"
+            : `Showing ${from.toLocaleString()} to ${to.toLocaleString()} of ${totalItems.toLocaleString()}`}
+        </p>
         {showPageSize ? (
-          <>
-            <span className="text-xs font-medium text-navy-900/65">Rows</span>
+          <div className="flex items-center justify-between gap-3 sm:justify-end">
+            <span className="text-xs font-medium text-navy-900/65">Rows per page</span>
             <Select value={String(pageSize)} onValueChange={changePageSize} disabled={isPending}>
-              <SelectTrigger className="h-9 w-[110px] cursor-pointer rounded-lg border-navy-200 bg-white">
+              <SelectTrigger className="h-10 w-36 cursor-pointer rounded-lg border-navy-200 bg-white sm:h-9 sm:w-[7.5rem]">
                 <SelectValue placeholder="Rows" />
               </SelectTrigger>
               <SelectContent>
@@ -86,14 +88,15 @@ export function TablePagination({
                 ))}
               </SelectContent>
             </Select>
-          </>
+          </div>
         ) : null}
+      </div>
+      <div className="flex items-center gap-1.5 sm:justify-end sm:gap-2">
         <Button
           variant="outline"
-          size="icon"
           onClick={() => goToPage(1)}
           disabled={page <= 1 || isPending}
-          className="h-9 w-9 cursor-pointer border-navy-200"
+          className={`${navButtonClass} border-navy-200 px-0 sm:w-9`}
           aria-label="First page"
         >
           {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ChevronsLeft className="h-4 w-4" />}
@@ -102,28 +105,34 @@ export function TablePagination({
           variant="outline"
           onClick={() => goToPage(page - 1)}
           disabled={page <= 1 || isPending}
-          className="h-9 cursor-pointer border-navy-200"
+          className={`${navButtonClass} border-navy-200 px-0 sm:px-3`}
+          aria-label="Previous page"
         >
-          <ChevronLeft className="mr-1 h-4 w-4" />
-          Previous
+          <ChevronLeft className="h-4 w-4 sm:mr-1" />
+          <span className="hidden sm:inline">Previous</span>
         </Button>
-        <span className="min-w-[88px] text-center text-xs font-medium text-navy-900/80">
-          Page {page} of {totalPages}
+        <span className="min-w-16 flex-1 px-1 text-center text-sm font-medium whitespace-nowrap text-navy-900/80 tabular-nums sm:flex-none sm:text-xs">
+          <span className="sm:hidden">
+            {page} / {totalPages}
+          </span>
+          <span className="hidden sm:inline">
+            Page {page} of {totalPages}
+          </span>
         </span>
         <Button
           onClick={() => goToPage(page + 1)}
           disabled={page >= totalPages || isPending}
-          className="h-9 cursor-pointer bg-navy-900 hover:bg-navy-950"
+          className={`${navButtonClass} bg-navy-900 px-0 hover:bg-navy-950 sm:px-3`}
+          aria-label="Next page"
         >
-          Next
-          <ChevronRight className="ml-1 h-4 w-4" />
+          <span className="hidden sm:inline">Next</span>
+          <ChevronRight className="h-4 w-4 sm:ml-1" />
         </Button>
         <Button
           variant="outline"
-          size="icon"
           onClick={() => goToPage(totalPages)}
           disabled={page >= totalPages || isPending}
-          className="h-9 w-9 cursor-pointer border-navy-200"
+          className={`${navButtonClass} border-navy-200 px-0 sm:w-9`}
           aria-label="Last page"
         >
           <ChevronsRight className="h-4 w-4" />

@@ -127,8 +127,12 @@ export function AppShell({
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>
-      <SidebarInset className="text-navy-900">
-        <main className="mx-auto w-full max-w-7xl px-5 py-7">{children}</main>
+      <SidebarInset className="min-w-0 overflow-x-clip text-navy-900">
+        <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-navy-200/70 bg-white/85 px-3 backdrop-blur md:hidden">
+          <SidebarTrigger className="size-10 cursor-pointer" />
+          <span className="text-base font-semibold tracking-tight text-navy-900">VortAsset</span>
+        </header>
+        <main className="mx-auto w-full min-w-0 max-w-7xl px-4 py-5 sm:px-5 sm:py-7">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );

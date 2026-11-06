@@ -41,7 +41,7 @@ export function DocumentFilters({
           });
         }}
       >
-        <SelectTrigger className="h-9 w-[180px] cursor-pointer border-navy-200">
+        <SelectTrigger className="h-9 w-full min-w-0 cursor-pointer border-navy-200 sm:w-[180px]">
           <SelectValue placeholder="All types" />
         </SelectTrigger>
         <SelectContent>
@@ -62,7 +62,7 @@ export function DocumentFilters({
           });
         }}
       >
-        <SelectTrigger className="h-9 w-[200px] cursor-pointer border-navy-200">
+        <SelectTrigger className="h-9 w-full min-w-0 cursor-pointer border-navy-200 sm:w-[200px]">
           <SelectValue placeholder="All assets" />
         </SelectTrigger>
         <SelectContent>
@@ -83,7 +83,7 @@ export function DocumentFilters({
           });
         }}
       >
-        <SelectTrigger className="h-9 w-[180px] cursor-pointer border-navy-200">
+        <SelectTrigger className="h-9 w-full min-w-0 cursor-pointer border-navy-200 sm:w-[180px]">
           <SelectValue placeholder="All branches" />
         </SelectTrigger>
         <SelectContent>

@@ -120,7 +120,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   };
 
   return (
-    <div>
+    <div className="min-w-0">
       <PageHeader title={organization?.name ?? "Dashboard"} description="Role-scoped visibility of asset health, replacement risk, and budget impact." />
       <OverviewGrid
         totalAssets={totalAssets}
@@ -141,16 +141,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           custodians={refs.custodians}
           years={yearOptions}
         />
-        <div className="mb-4 grid gap-3 md:grid-cols-2">
+        <div className="mb-4 grid min-w-0 gap-3 md:grid-cols-2">
           <Card className="border-navy-200 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm">By region</CardTitle>
             </CardHeader>
             <CardContent className="space-y-1 text-sm text-navy-900">
               {[...regionCounts.entries()].map(([name, count]) => (
-                <p key={name} className="flex justify-between">
-                  <span>{name}</span>
-                  <span>{count}</span>
+                <p key={name} className="flex items-baseline justify-between gap-3">
+                  <span className="min-w-0 truncate">{name}</span>
+                  <span className="shrink-0 tabular-nums">{count}</span>
                 </p>
               ))}
             </CardContent>
@@ -161,9 +161,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             </CardHeader>
             <CardContent className="space-y-1 text-sm text-navy-900">
               {portfolioBreakdown.map(([label, count]) => (
-                <p key={label} className="flex justify-between">
-                  <span>{label}</span>
-                  <span>{count}</span>
+                <p key={label} className="flex items-baseline justify-between gap-3">
+                  <span className="min-w-0 truncate">{label}</span>
+                  <span className="shrink-0 tabular-nums">{count}</span>
                 </p>
               ))}
             </CardContent>

@@ -13,7 +13,7 @@ export function AssetScanHistories({
 }) {
   return (
     <Tabs defaultValue="movements" className="w-full">
-      <TabsList className="mb-4 h-10 rounded-lg bg-navy-50">
+      <TabsList className="mb-4 h-auto rounded-lg bg-navy-50">
         <TabsTrigger value="movements">Movement history</TabsTrigger>
         <TabsTrigger value="status">Status history</TabsTrigger>
       </TabsList>

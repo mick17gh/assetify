@@ -54,20 +54,20 @@ export function MaintenanceBoard({
           ) : (
             <div className="space-y-2">
               {latestFlags.map((flag) => (
-                <div key={flag.id} className="flex items-center justify-between gap-3 rounded-md border border-navy-100 p-2.5">
+                <div key={flag.id} className="flex flex-col gap-2 rounded-md border border-navy-100 p-2.5 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0 text-sm">
                     <p className="font-medium text-navy-950">{flag.title}</p>
                     <p className="text-navy-900/70">{flag.assetName}</p>
                     {flag.notes ? <p className="mt-1 text-navy-900/60">{flag.notes}</p> : null}
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="flex items-center justify-between gap-2 sm:justify-end">
                     <Badge variant="secondary">{CONDITION_SEVERITY_LABELS[flag.severity]}</Badge>
-                    <PendingForm action={resolveConditionFlagAction} successMessage="Condition flag resolved.">
+                    <PendingForm action={resolveConditionFlagAction} successMessage="Condition flag resolved." className="sm:w-auto">
                       <input type="hidden" name="id" value={flag.id} />
                       <SubmitButton
                         idleLabel="Resolve"
                         pendingLabel="Resolving..."
-                        className="h-7 cursor-pointer border-navy-200 bg-white px-2.5 text-xs text-navy-800 shadow-none hover:bg-navy-50"
+                        className="h-10 cursor-pointer border-navy-200 bg-white px-3 text-navy-800 shadow-none hover:bg-navy-50 sm:h-7 sm:px-2.5 sm:text-xs"
                       />
                     </PendingForm>
                   </div>

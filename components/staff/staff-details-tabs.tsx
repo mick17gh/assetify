@@ -57,7 +57,7 @@ export function StaffDetailsTabs({
 }) {
   return (
     <Tabs defaultValue="assets" className="w-full">
-      <TabsList className="mb-4 h-10 rounded-lg bg-navy-50">
+      <TabsList className="mb-4 h-auto rounded-lg bg-navy-50">
         <TabsTrigger value="assets">Allocated Assets</TabsTrigger>
         <TabsTrigger value="movements">Movement History</TabsTrigger>
         <TabsTrigger value="history">Status History</TabsTrigger>

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { PageHeader } from "@/components/shared/page-header";
+import { PageHeader, pageActionGroupClass } from "@/components/shared/page-header";
 import { SetupTableShell } from "@/components/shared/setup-table-shell";
 import { SetupCreateModal, SetupTextField } from "@/components/settings/setup-create-modal";
 import { SetupRowActions } from "@/components/settings/setup-row-actions";
@@ -45,7 +45,7 @@ async function PoliciesContent({ searchParams }: { searchParams: Promise<SearchP
 
   return (
     <>
-      <div className="mb-4 flex justify-end">
+      <div className={`${pageActionGroupClass} mb-4 sm:ml-auto`}>
         <SetupCreateModal title="Create policy" triggerLabel="Add Policy" action={createReplacementPolicyAction}>
           <ReferenceSelect name="categoryId" label="Category" options={categoryOptions} required />
           <SetupTextField name="replacementYears" label="Replacement years" type="number" required defaultValue="3" />

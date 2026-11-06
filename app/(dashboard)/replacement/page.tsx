@@ -82,7 +82,7 @@ export default async function ReplacementPage({ searchParams }: { searchParams: 
       <Card className="mt-4 border-navy-200 shadow-sm">
         <CardContent className="pt-6">
           <TableToolbar searchPlaceholder="Search by asset name or AIN" />
-          <div className="mb-4 flex justify-end">
+          <div className="mb-4 w-full sm:flex sm:justify-end">
             <RecommendationStateFilter />
           </div>
           <Table>

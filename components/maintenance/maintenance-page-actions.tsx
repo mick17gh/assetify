@@ -20,7 +20,7 @@ const CONDITION_SEVERITY = {
 
 export function MaintenancePageActions({ assets }: { assets: ReferenceOption[] }) {
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <>
       <SetupCreateModal title="Log maintenance service" triggerLabel="Log Service" action={createMaintenanceAction}>
         <ReferenceSelect name="assetId" label="Asset" options={assets} required />
         <SetupTextField name="description" label="Description" required minLength={3} maxLength={2000} />
@@ -61,6 +61,6 @@ export function MaintenancePageActions({ assets }: { assets: ReferenceOption[] }
           required
         />
       </SetupCreateModal>
-    </div>
+    </>
   );
 }

@@ -131,7 +131,7 @@ export function AssetDetailsTabs({
 
   return (
     <Tabs defaultValue="overview" className="w-full">
-      <TabsList className="mb-4 h-10 rounded-lg bg-navy-50">
+      <TabsList className="mb-4 h-auto rounded-lg bg-navy-50">
         <TabsTrigger value="overview">Overview</TabsTrigger>
         <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
         <TabsTrigger value="history">History</TabsTrigger>

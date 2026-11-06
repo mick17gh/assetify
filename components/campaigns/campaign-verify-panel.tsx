@@ -8,6 +8,7 @@ import { ReferenceSelect, type ReferenceOption } from "@/components/shared/refer
 import { SetupTextField } from "@/components/settings/setup-create-modal";
 import { PendingForm } from "@/components/shared/pending-form";
 import { SubmitButton } from "@/components/shared/submit-button";
+import { pageActionGroupClass } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -41,7 +42,7 @@ export function CampaignVerifyPanel({
             : `${campaignName} is active. Record an asset that is not in the register.`}
         </p>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className={pageActionGroupClass}>
         {assetId ? (
           <>
             <PendingForm action={verifyAssetAction} successMessage="Verification recorded.">
