@@ -18,7 +18,7 @@ import { AssetQrPreview } from "@/components/assets/asset-qr-preview";
 import { isQrLocationScanningEnabled } from "@/lib/organization-settings";
 import { calculateAssetValuation } from "@/lib/depreciation-service";
 import { hasPermission } from "@/lib/permissions";
-import { APP_ROUTES, PERMISSION_KEYS, USER_ROLES } from "@/constants";
+import { APP_ROUTES, ENUM_LABELS, PERMISSION_KEYS, USER_ROLES } from "@/constants";
 import { getReferenceDataForSession } from "@/lib/reference-data";
 
 export default async function AssetDetailsPage({ params }: { params: Promise<{ assetId: string }> }) {
@@ -43,6 +43,8 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
         category: true,
         organization: { select: { maintenanceCostThresholdPercent: true } },
         photos: { orderBy: { createdAt: "desc" }, take: 1 },
+        acknowledgements: { orderBy: { acceptedAt: "desc" }, take: 1, include: { user: { select: { name: true } } } },
+        disposalRecommendations: { orderBy: { recommendedAt: "desc" }, take: 1 },
       },
     }),
     session.organizationId ? isQrLocationScanningEnabled(session.organizationId) : Promise.resolve(false),
@@ -80,6 +82,14 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
     status: asset.status,
     condition: asset.condition,
     serialNumber: asset.serialNumber,
+    manufacturer: asset.manufacturer || "N/A",
+    modelName: asset.modelName || "N/A",
+    existingAssetNumber: asset.existingAssetNumber || "N/A",
+    assignmentType: asset.assignmentType ? ENUM_LABELS.assignmentType[asset.assignmentType] : "N/A",
+    expectedReturn: asset.expectedReturnDate ? asset.expectedReturnDate.toLocaleDateString() : "N/A",
+    acknowledgement: asset.acknowledgements[0]
+      ? `${ENUM_LABELS.acknowledgementMethod[asset.acknowledgements[0].method]} by ${asset.acknowledgements[0].user.name} on ${asset.acknowledgements[0].acceptedAt.toLocaleString()}`
+      : "None",
     category: asset.category.name,
     branch: asset.branch.name,
     department: asset.department?.name ?? "N/A",
@@ -115,12 +125,17 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
               assetId={asset.id}
               initialName={asset.name}
               initialDescription={asset.description ?? ""}
+              initialManufacturer={asset.manufacturer ?? ""}
+              initialModelName={asset.modelName ?? ""}
+              initialExistingAssetNumber={asset.existingAssetNumber ?? ""}
               initialStatus={asset.status}
               initialCondition={asset.condition}
               initialCategoryId={asset.categoryId}
               initialPurchaseCost={Number(asset.purchaseCost).toFixed(2)}
               categories={refs.categories}
               canEditCategoryAndCost={canEditCategoryAndCost}
+              canApproveDisposal={hasPermission(session.role, PERMISSION_KEYS.ASSET_APPROVE)}
+              disposalApproval={asset.disposalRecommendations[0]?.approvalStatus ?? null}
               recommendedSalePrice={valuation.recommendedSalePrice}
               depreciationUsefulLifeYears={asset.depreciationUsefulLifeYears ? String(asset.depreciationUsefulLifeYears) : ""}
               depreciationSalvageValue={asset.depreciationSalvageValue ? String(asset.depreciationSalvageValue) : ""}

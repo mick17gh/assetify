@@ -9,7 +9,7 @@ import { EnumSelect } from "@/components/shared/enum-select";
 import { ReferenceOption, ReferenceSelect } from "@/components/shared/reference-selects";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { MAINTENANCE_STATUS } from "@/constants";
+import { MAINTENANCE_STATUS, REPAIR_OUTCOME } from "@/constants";
 
 const CONDITION_SEVERITY = {
   LOW: "LOW",
@@ -25,9 +25,17 @@ export function MaintenancePageActions({ assets }: { assets: ReferenceOption[] }
         <ReferenceSelect name="assetId" label="Asset" options={assets} required />
         <SetupTextField name="description" label="Description" required minLength={3} maxLength={2000} />
         <SetupTextField name="serviceDate" label="Service date" type="date" required />
+        <SetupTextField name="reportedDate" label="Date reported" type="date" />
+        <SetupTextField name="sentDate" label="Date sent" type="date" />
+        <SetupTextField name="actualReturnDate" label="Actual return" type="date" />
         <SetupTextField name="cost" label="Cost" placeholder="0.00" />
         <SetupTextField name="vendorName" label="Vendor name" maxLength={120} />
         <SetupTextField name="nextServiceDate" label="Next service date" type="date" />
+        <label className="flex items-center gap-2 text-sm text-navy-900">
+          <input type="checkbox" name="warrantyClaim" value="true" className="h-4 w-4" />
+          Warranty claim
+        </label>
+        <EnumSelect name="repairOutcome" label="Repair outcome" labelKey="repairOutcome" values={REPAIR_OUTCOME} />
         <EnumSelect
           name="status"
           label="Status"

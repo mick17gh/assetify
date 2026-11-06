@@ -3,11 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { db } from "@/lib/db";
-import { APP_ROUTES, ERROR_MESSAGES, PERMISSION_KEYS } from "@/constants";
+import { APP_ROUTES, ERROR_MESSAGES, ORGANIZATION_INDUSTRY, ORGANIZATION_TYPE, PERMISSION_KEYS } from "@/constants";
 import { assertPermission } from "@/lib/permissions";
 import { getRequiredSession } from "@/lib/session";
 import { writeAuditLog } from "@/lib/audit";
 import { createBranchSchema, deleteBranchSchema, updateBranchSchema } from "@/lib/validation/branch";
+import { createRegionSchema, deleteRegionSchema, updateRegionSchema } from "@/lib/validation/region";
 import { createCategorySchema, deleteCategorySchema, updateCategorySchema } from "@/lib/validation/category";
 import { createVendorSchema, deleteVendorSchema, updateVendorSchema } from "@/lib/validation/vendor";
 import {
@@ -44,11 +45,27 @@ export async function updateOrganizationAction(formData: FormData) {
   const parsed = updateOrganizationSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
 
+  const type = parsed.data.organizationType;
+  const industry = parsed.data.industry;
+  if (type && !Object.values(ORGANIZATION_TYPE).includes(type as (typeof ORGANIZATION_TYPE)[keyof typeof ORGANIZATION_TYPE])) {
+    throw new Error(ERROR_MESSAGES.INVALID_INPUT);
+  }
+  if (industry && !Object.values(ORGANIZATION_INDUSTRY).includes(industry as (typeof ORGANIZATION_INDUSTRY)[keyof typeof ORGANIZATION_INDUSTRY])) {
+    throw new Error(ERROR_MESSAGES.INVALID_INPUT);
+  }
+
   await db.organization.update({
     where: { id: orgId(session) },
     data: {
       name: parsed.data.name,
       maintenanceCostThresholdPercent: parsed.data.maintenanceCostThresholdPercent,
+      organizationType: type ? (type as never) : null,
+      industry: industry || null,
+      primaryContactName: parsed.data.primaryContactName || null,
+      contactEmail: parsed.data.contactEmail || null,
+      contactPhone: parsed.data.contactPhone || null,
+      address: parsed.data.address || null,
+      isActive: parsed.data.isActive !== "false",
     },
   });
   revalidatePath(APP_ROUTES.SETTINGS_ORGANIZATION);
@@ -108,8 +125,12 @@ export async function createBranchAction(formData: FormData) {
   const parsed = createBranchSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
 
+  const organizationId = orgId(session);
+  const region = await db.region.findFirst({ where: { id: parsed.data.regionId, organizationId } });
+  if (!region) throw new Error("Region not found.");
+
   await db.branch.create({
-    data: { ...parsed.data, organizationId: orgId(session) },
+    data: { ...parsed.data, address: parsed.data.address || null, organizationId },
   });
   await writeAuditLog({
     actorUserId: session.userId,
@@ -127,9 +148,18 @@ export async function updateBranchAction(formData: FormData) {
   const parsed = updateBranchSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
 
+  const organizationId = orgId(session);
+  const region = await db.region.findFirst({ where: { id: parsed.data.regionId, organizationId } });
+  if (!region) throw new Error("Region not found.");
+
   await db.branch.updateMany({
-    where: { id: parsed.data.id, organizationId: orgId(session) },
-    data: { name: parsed.data.name, code: parsed.data.code, address: parsed.data.address || null },
+    where: { id: parsed.data.id, organizationId },
+    data: {
+      name: parsed.data.name,
+      code: parsed.data.code,
+      address: parsed.data.address || null,
+      regionId: parsed.data.regionId,
+    },
   });
   revalidatePath(APP_ROUTES.SETTINGS_BRANCHES);
 }
@@ -151,6 +181,43 @@ export async function deleteBranchAction(formData: FormData) {
 
   await db.branch.delete({ where: { id: parsed.data.id } });
   revalidatePath(APP_ROUTES.SETTINGS_BRANCHES);
+}
+
+export async function createRegionAction(formData: FormData) {
+  const session = await getRequiredSession();
+  assertPermission(session.role, PERMISSION_KEYS.POLICY_MANAGE);
+  const parsed = createRegionSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
+  await db.region.create({ data: { name: parsed.data.name, organizationId: orgId(session) } });
+  revalidatePath(APP_ROUTES.SETTINGS_REGIONS);
+  revalidatePath(APP_ROUTES.SETTINGS_BRANCHES);
+}
+
+export async function updateRegionAction(formData: FormData) {
+  const session = await getRequiredSession();
+  assertPermission(session.role, PERMISSION_KEYS.POLICY_MANAGE);
+  const parsed = updateRegionSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
+  await db.region.updateMany({
+    where: { id: parsed.data.id, organizationId: orgId(session) },
+    data: { name: parsed.data.name },
+  });
+  revalidatePath(APP_ROUTES.SETTINGS_REGIONS);
+}
+
+export async function deleteRegionAction(formData: FormData) {
+  const session = await getRequiredSession();
+  assertPermission(session.role, PERMISSION_KEYS.POLICY_MANAGE);
+  const parsed = deleteRegionSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
+  const region = await db.region.findFirst({
+    where: { id: parsed.data.id, organizationId: orgId(session) },
+    include: { _count: { select: { branches: true } } },
+  });
+  if (!region) throw new Error("Region not found.");
+  if (region._count.branches) throw new Error("Cannot delete a region that still has branches.");
+  await db.region.delete({ where: { id: region.id } });
+  revalidatePath(APP_ROUTES.SETTINGS_REGIONS);
 }
 
 // --- Categories ---

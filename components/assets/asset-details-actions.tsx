@@ -2,17 +2,20 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MoreHorizontal, PencilLine, PlusCircle, RefreshCw, Upload, Calculator } from "lucide-react";
+import { MoreHorizontal, PencilLine, PlusCircle, RefreshCw, Upload, Calculator, AlertTriangle } from "lucide-react";
 import {
   createWorkOrderAction,
   updateAssetDepreciationAction,
   updateAssetDetailsAction,
   updateAssetStatusAction,
+  recommendDisposalAction,
+  decideDisposalRecommendationAction,
   uploadAssetDocumentAction,
   uploadAssetPhotoAction,
 } from "@/app/(dashboard)/assets/[assetId]/actions";
+import { reportExceptionAction } from "@/app/(dashboard)/exceptions/actions";
 import { DisposalModal } from "@/components/assets/disposal-modal";
-import { ASSET_CONDITION, ASSET_STATUS, DEPRECIATION_METHOD, DOCUMENT_TYPE } from "@/constants";
+import { ASSET_CONDITION, ASSET_STATUS, DEPRECIATION_METHOD, DOCUMENT_TYPE, EXCEPTION_TYPE } from "@/constants";
 import { EnumSelect } from "@/components/shared/enum-select";
 import { ReferenceSelect, type ReferenceOption } from "@/components/shared/reference-selects";
 import { SetupTextField } from "@/components/settings/setup-create-modal";
@@ -30,12 +33,17 @@ export function AssetDetailsActions({
   assetId,
   initialName,
   initialDescription,
+  initialManufacturer,
+  initialModelName,
+  initialExistingAssetNumber,
   initialStatus,
   initialCondition,
   initialCategoryId,
   initialPurchaseCost,
   categories,
   canEditCategoryAndCost,
+  canApproveDisposal,
+  disposalApproval,
   recommendedSalePrice,
   depreciationUsefulLifeYears,
   depreciationSalvageValue,
@@ -44,12 +52,17 @@ export function AssetDetailsActions({
   assetId: string;
   initialName: string;
   initialDescription: string;
+  initialManufacturer: string;
+  initialModelName: string;
+  initialExistingAssetNumber: string;
   initialStatus: string;
   initialCondition: string;
   initialCategoryId: string;
   initialPurchaseCost: string;
   categories: ReferenceOption[];
   canEditCategoryAndCost: boolean;
+  canApproveDisposal: boolean;
+  disposalApproval: string | null;
   recommendedSalePrice: number;
   depreciationUsefulLifeYears: string;
   depreciationSalvageValue: string;
@@ -63,6 +76,8 @@ export function AssetDetailsActions({
   const [statusOpen, setStatusOpen] = useState(false);
   const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
   const [documentDialogOpen, setDocumentDialogOpen] = useState(false);
+  const [recommendOpen, setRecommendOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -142,6 +157,9 @@ export function AssetDetailsActions({
               >
                 <input type="hidden" name="assetId" value={assetId} />
                 <SetupTextField name="name" label="Name" required defaultValue={initialName} />
+                <SetupTextField name="manufacturer" label="Manufacturer" defaultValue={initialManufacturer} />
+                <SetupTextField name="modelName" label="Model" defaultValue={initialModelName} />
+                <SetupTextField name="existingAssetNumber" label="Existing asset number" defaultValue={initialExistingAssetNumber} />
                 <div className="space-y-1">
                   <Label htmlFor="description">Description</Label>
                   <Textarea id="description" name="description" defaultValue={initialDescription} />
@@ -318,7 +336,73 @@ export function AssetDetailsActions({
             </DialogContent>
           </Dialog>
 
-          <DisposalModal assetId={assetId} recommendedSalePrice={recommendedSalePrice} />
+          <Dialog open={recommendOpen} onOpenChange={setRecommendOpen}>
+            <DialogTrigger asChild>
+              <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
+                Recommend disposal
+              </DropdownMenuItem>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Recommend disposal</DialogTitle>
+                <DialogDescription>This marks the asset Pending Disposal. Nothing is disposed until the recommendation is approved and recorded.</DialogDescription>
+              </DialogHeader>
+              <PendingForm action={recommendDisposalAction} successMessage="Recommendation saved." onSuccess={() => { setRecommendOpen(false); router.refresh(); }} className="space-y-3">
+                <input type="hidden" name="assetId" value={assetId} />
+                <EnumSelect name="condition" label="Condition" labelKey="assetCondition" values={ASSET_CONDITION} defaultValue={initialCondition} required />
+                <SetupTextField name="recommendedAction" label="Recommended action" required minLength={2} />
+                <SetupTextField name="reason" label="Reason" required minLength={3} />
+                <SubmitButton idleLabel="Save recommendation" pendingLabel="Saving..." className="w-full cursor-pointer" />
+              </PendingForm>
+            </DialogContent>
+          </Dialog>
+          {canApproveDisposal && disposalApproval === "PENDING" ? (
+            <>
+              <PendingForm action={decideDisposalRecommendationAction} successMessage="Recommendation approved.">
+                <input type="hidden" name="assetId" value={assetId} />
+                <input type="hidden" name="decision" value="APPROVED" />
+                <SubmitButton idleLabel="Approve disposal" pendingLabel="Saving..." variant="ghost" className="w-full justify-start cursor-pointer" />
+              </PendingForm>
+              <PendingForm action={decideDisposalRecommendationAction} successMessage="Recommendation rejected.">
+                <input type="hidden" name="assetId" value={assetId} />
+                <input type="hidden" name="decision" value="REJECTED" />
+                <SubmitButton idleLabel="Reject disposal" pendingLabel="Saving..." variant="ghost" className="w-full justify-start cursor-pointer" />
+              </PendingForm>
+            </>
+          ) : null}
+          <DisposalModal assetId={assetId} recommendedSalePrice={recommendedSalePrice} canRecord={disposalApproval === "APPROVED"} />
+          <Dialog open={reportOpen} onOpenChange={setReportOpen}>
+            <DialogTrigger asChild>
+              <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
+                <AlertTriangle className="mr-2 h-4 w-4" />
+                Report exception
+              </DropdownMenuItem>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Report exception</DialogTitle>
+                <DialogDescription>Open an exception for this asset.</DialogDescription>
+              </DialogHeader>
+              <PendingForm
+                action={reportExceptionAction}
+                successMessage="Exception reported."
+                onSuccess={() => {
+                  setReportOpen(false);
+                  router.refresh();
+                }}
+                className="space-y-3"
+              >
+                <input type="hidden" name="assetId" value={assetId} />
+                <EnumSelect name="type" label="Type" labelKey="exceptionType" values={EXCEPTION_TYPE} required />
+                <div className="space-y-1">
+                  <Label htmlFor="exception-description">Description</Label>
+                  <Textarea id="exception-description" name="description" required />
+                </div>
+                <SetupTextField name="dueDate" label="Due date" type="date" />
+                <SubmitButton idleLabel="Report exception" pendingLabel="Saving..." className="w-full cursor-pointer" />
+              </PendingForm>
+            </DialogContent>
+          </Dialog>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

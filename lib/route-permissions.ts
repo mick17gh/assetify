@@ -9,6 +9,8 @@ type RouteRule = {
 const ROUTE_RULES: RouteRule[] = [
   { prefix: APP_ROUTES.DASHBOARD, permission: PERMISSION_KEYS.ASSET_READ },
   { prefix: APP_ROUTES.ASSETS, permission: PERMISSION_KEYS.ASSET_READ },
+  { prefix: APP_ROUTES.CAMPAIGNS, permission: PERMISSION_KEYS.ASSET_READ },
+  { prefix: APP_ROUTES.EXCEPTIONS, permission: PERMISSION_KEYS.ASSET_READ },
   { prefix: APP_ROUTES.ASSET_REQUESTS, permission: PERMISSION_KEYS.ASSET_READ },
   { prefix: APP_ROUTES.DOCUMENTS, permission: PERMISSION_KEYS.DOCUMENT_READ },
   { prefix: APP_ROUTES.LOCATIONS, permission: PERMISSION_KEYS.LOCATION_UPDATE },
@@ -29,6 +31,8 @@ export function getPermissionForPath(pathname: string): PermissionKey | null {
 export const NAV_LINKS = [
   { href: APP_ROUTES.DASHBOARD, label: "Dashboard", permission: PERMISSION_KEYS.ASSET_READ },
   { href: APP_ROUTES.ASSETS, label: "Assets", permission: PERMISSION_KEYS.ASSET_READ },
+  { href: APP_ROUTES.CAMPAIGNS, label: "Campaigns", permission: PERMISSION_KEYS.ASSET_READ },
+  { href: APP_ROUTES.EXCEPTIONS, label: "Exceptions", permission: PERMISSION_KEYS.ASSET_READ },
   { href: APP_ROUTES.ASSET_REQUESTS, label: "Requests", permission: PERMISSION_KEYS.ASSET_READ },
   { href: APP_ROUTES.DOCUMENTS, label: "Documents", permission: PERMISSION_KEYS.DOCUMENT_READ },
   { href: APP_ROUTES.LOCATIONS, label: "Locations", permission: PERMISSION_KEYS.LOCATION_UPDATE },

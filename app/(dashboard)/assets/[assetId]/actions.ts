@@ -8,6 +8,7 @@ import { writeAuditLog } from "@/lib/audit";
 import {
   PERMISSION_KEYS,
   ASSET_STATUS,
+  ASSET_CONDITION,
   ERROR_MESSAGES,
   DISPOSAL_METHOD,
   MAINTENANCE_STATUS,
@@ -114,15 +115,21 @@ export async function updateAssetDetailsAction(formData: FormData) {
   if (!assetId || !name.trim()) throw new Error("Asset name is required.");
 
   const isAdmin = session.role === USER_ROLES.ADMIN;
-  const fields = ["name", "description"];
+  const fields = ["name", "description", "manufacturer", "modelName", "existingAssetNumber"];
   const data: {
     name: string;
     description: string | null;
+    manufacturer: string | null;
+    modelName: string | null;
+    existingAssetNumber: string | null;
     categoryId?: string;
     purchaseCost?: string;
   } = {
     name: name.trim(),
     description: description.trim() || null,
+    manufacturer: String(formData.get("manufacturer") ?? "").trim() || null,
+    modelName: String(formData.get("modelName") ?? "").trim() || null,
+    existingAssetNumber: String(formData.get("existingAssetNumber") ?? "").trim() || null,
   };
 
   if (isAdmin) {
@@ -324,6 +331,14 @@ export async function recordAssetDisposalAction(formData: FormData) {
   });
   if (!asset) throw new Error("Asset not found.");
 
+  const recommendation = await db.disposalRecommendation.findFirst({
+    where: { assetId: asset.id, approvalStatus: "APPROVED" },
+    orderBy: { recommendedAt: "desc" },
+  });
+  if (!recommendation) {
+    throw new Error("Record Disposal is refused until a disposal recommendation is approved.");
+  }
+
   const policy = await db.depreciationPolicy.findFirst({
     where: {
       organizationId: session.organizationId ?? undefined,
@@ -385,6 +400,22 @@ export async function recordAssetDisposalAction(formData: FormData) {
     },
   });
 
+  const evidence = formData.get("evidence");
+  if (evidence instanceof File && evidence.size > 0) {
+    const uploaded = await uploadAssetFileToSpaces(asset.id, evidence, "documents");
+    await db.assetDocument.create({
+      data: {
+        assetId: asset.id,
+        documentType: "OTHER",
+        displayName: evidence.name || "Disposal evidence",
+        fileName: uploaded.fileName,
+        fileUrl: uploaded.publicUrl,
+        mimeType: evidence.type || "application/octet-stream",
+        uploadedByUserId: session.userId,
+      },
+    });
+  }
+
   await writeAuditLog({
     actorUserId: session.userId,
     organizationId: session.organizationId,
@@ -398,6 +429,67 @@ export async function recordAssetDisposalAction(formData: FormData) {
   revalidatePath(`/assets/${parsed.data.assetId}`);
   revalidatePath("/assets");
   revalidatePath("/reports");
+}
+
+export async function recommendDisposalAction(formData: FormData) {
+  const session = await getRequiredSession();
+  assertPermission(session.role, PERMISSION_KEYS.ASSET_WRITE);
+  const assetId = String(formData.get("assetId") ?? "");
+  const reason = String(formData.get("reason") ?? "").trim();
+  const recommendedAction = String(formData.get("recommendedAction") ?? "").trim();
+  const condition = String(formData.get("condition") ?? "");
+  if (!assetId || reason.length < 3 || recommendedAction.length < 2) throw new Error("Reason and recommended action are required.");
+  if (!Object.values(ASSET_CONDITION).includes(condition as never)) throw new Error("Condition is required.");
+
+  const asset = await db.asset.findFirst({
+    where: { id: assetId, organizationId: session.organizationId ?? undefined },
+    select: { id: true, status: true },
+  });
+  if (!asset) throw new Error("Asset not found.");
+
+  await db.disposalRecommendation.create({
+    data: {
+      assetId,
+      state: "APPROACHING",
+      recommendedAt: new Date(),
+      reason,
+      condition: condition as never,
+      recommendedAction,
+      approvalStatus: "PENDING",
+    },
+  });
+  await db.asset.update({ where: { id: assetId }, data: { status: ASSET_STATUS.PENDING_DISPOSAL } });
+  await db.assetStatusHistory.create({
+    data: { assetId, fromStatus: asset.status, toStatus: ASSET_STATUS.PENDING_DISPOSAL, note: reason },
+  });
+  revalidatePath(`/assets/${assetId}`);
+  revalidatePath("/assets");
+}
+
+export async function decideDisposalRecommendationAction(formData: FormData) {
+  const session = await getRequiredSession();
+  assertPermission(session.role, PERMISSION_KEYS.ASSET_APPROVE);
+  const assetId = String(formData.get("assetId") ?? "");
+  const decision = String(formData.get("decision") ?? "");
+  if (decision !== "APPROVED" && decision !== "REJECTED") throw new Error("Choose approve or reject.");
+  const recommendation = await db.disposalRecommendation.findFirst({
+    where: { assetId, asset: { organizationId: session.organizationId ?? undefined }, approvalStatus: "PENDING" },
+    orderBy: { recommendedAt: "desc" },
+  });
+  if (!recommendation) throw new Error("There is no pending disposal recommendation.");
+  await db.disposalRecommendation.update({
+    where: { id: recommendation.id },
+    data: {
+      approvalStatus: decision,
+      approvedById: session.userId,
+      approvedAt: new Date(),
+    },
+  });
+  if (decision === "REJECTED") {
+    await db.asset.update({ where: { id: assetId }, data: { status: ASSET_STATUS.ACTIVE } });
+  }
+  revalidatePath(`/assets/${assetId}`);
+  revalidatePath("/assets");
 }
 
 export async function deleteAssetPhotoAction(formData: FormData) {

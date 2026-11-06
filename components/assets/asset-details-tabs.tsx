@@ -37,6 +37,12 @@ type OverviewData = {
   status: string;
   condition: string;
   serialNumber: string;
+  manufacturer: string;
+  modelName: string;
+  existingAssetNumber: string;
+  assignmentType: string;
+  expectedReturn: string;
+  acknowledgement: string;
   category: string;
   branch: string;
   department: string;
@@ -138,6 +144,9 @@ export function AssetDetailsTabs({
               <OverviewField label="Status" value={overview.status} />
               <OverviewField label="Condition" value={overview.condition} />
               <OverviewField label="Serial" value={overview.serialNumber} />
+              <OverviewField label="Manufacturer" value={overview.manufacturer} />
+              <OverviewField label="Model" value={overview.modelName} />
+              <OverviewField label="Existing number" value={overview.existingAssetNumber} />
               <OverviewField label="Category" value={overview.category} />
               <OverviewField label="Branch" value={overview.branch} />
               <OverviewField label="Department" value={overview.department} />
@@ -161,6 +170,13 @@ export function AssetDetailsTabs({
                     <span>
                       <span className="font-medium text-navy-950">Custodian:</span> {overview.custodian}
                     </span>
+                  </p>
+                  <p>
+                    <span className="font-medium text-navy-950">Assignment:</span> {overview.assignmentType}
+                    {overview.expectedReturn !== "N/A" ? ` · return ${overview.expectedReturn}` : ""}
+                  </p>
+                  <p>
+                    <span className="font-medium text-navy-950">Acknowledgement:</span> {overview.acknowledgement}
                   </p>
                 </div>
               </div>

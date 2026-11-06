@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 
 const links = [
   { href: APP_ROUTES.SETTINGS_ORGANIZATION, label: "Organization" },
+  { href: APP_ROUTES.SETTINGS_REGIONS, label: "Regions" },
   { href: APP_ROUTES.SETTINGS_BRANCHES, label: "Branches" },
   { href: APP_ROUTES.SETTINGS_CATEGORIES, label: "Categories" },
   { href: APP_ROUTES.SETTINGS_VENDORS, label: "Vendors" },

@@ -6,11 +6,11 @@ export const getReferenceDataForSession = cache(async (session: AppSession) => {
   const orgId = session.organizationId ?? undefined;
   const branchFilter = session.branchId ? { branchId: session.branchId } : {};
 
-  const [branches, categories, vendors, users, departments, rooms, shelves] = await Promise.all([
+  const [branches, categories, vendors, users, departments, rooms, shelves, regions] = await Promise.all([
     db.branch.findMany({
       where: { organizationId: orgId },
       orderBy: { name: "asc" },
-      select: { id: true, name: true, code: true },
+      select: { id: true, name: true, code: true, regionId: true },
     }),
     db.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
     db.vendor.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
@@ -34,13 +34,20 @@ export const getReferenceDataForSession = cache(async (session: AppSession) => {
       orderBy: { name: "asc" },
       select: { id: true, name: true, roomId: true },
     }),
+    db.region.findMany({
+      where: { organizationId: orgId },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
   ]);
 
   return {
+    regions: regions.map((region) => ({ id: region.id, label: region.name })),
     branches: branches.map((b) => ({
       id: b.id,
       label: `${b.name} (${b.code})`,
       code: b.code,
+      regionId: b.regionId,
     })),
     categories: categories.map((c) => ({ id: c.id, label: c.name })),
     vendors: vendors.map((v) => ({ id: v.id, label: v.name })),

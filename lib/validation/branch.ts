@@ -4,6 +4,7 @@ export const createBranchSchema = z.object({
   name: z.string().min(2).max(120),
   code: z.string().min(2).max(32).regex(/^[A-Z0-9-]+$/),
   address: z.string().max(255).optional(),
+  regionId: z.string().cuid(),
 });
 
 export const updateBranchSchema = createBranchSchema.extend({

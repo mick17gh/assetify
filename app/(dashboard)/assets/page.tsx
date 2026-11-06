@@ -13,7 +13,8 @@ import { Prisma } from "@/lib/generated/prisma/client";
 import { ImportAssetsModal } from "@/components/assets/import-assets-modal";
 import { AssetFilters } from "@/components/assets/asset-filters";
 import { isQrLocationScanningEnabled } from "@/lib/organization-settings";
-import { ASSET_STATUS, PERMISSION_KEYS } from "@/constants";
+import { ASSET_CONDITION, ASSET_STATUS, PERMISSION_KEYS } from "@/constants";
+import { attentionAssetWhere } from "@/lib/attention";
 import { hasPermission } from "@/lib/permissions";
 
 function formatAssetAge(purchaseDate: Date) {
@@ -32,16 +33,22 @@ export default async function AssetsPage({ searchParams }: { searchParams: Promi
   const q = getOptionalQuery(params, "q");
   const branchFilter = getOptionalQuery(params, "branch");
   const statusFilter = getOptionalQuery(params, "status");
-  const isWarrantyDueFilter = q?.toUpperCase() === "WARRANTY_DUE";
+  const attention = getOptionalQuery(params, "attention");
+  const conditionFilter = getOptionalQuery(params, "condition");
+  const isWarrantyDueFilter = q?.toUpperCase() === "WARRANTY_DUE" || attention === "warranty-soon";
   const { page, pageSize, skip, take } = resolvePagePaginationFromParams(params);
-  const warrantyDueThreshold = new Date();
-  warrantyDueThreshold.setDate(warrantyDueThreshold.getDate() + 90);
+  const scope = getAssetScopeWhere(session);
+  const attentionWhere =
+    attention && session.organizationId ? await attentionAssetWhere(attention, session.organizationId, scope) : null;
 
-  const where: Prisma.AssetWhereInput = {
-    ...getAssetScopeWhere(session),
+  const where: Prisma.AssetWhereInput = attentionWhere ?? {
+    ...scope,
     ...(branchFilter ? { branchId: branchFilter } : {}),
     ...(statusFilter && Object.values(ASSET_STATUS).includes(statusFilter as (typeof ASSET_STATUS)[keyof typeof ASSET_STATUS])
       ? { status: statusFilter as Prisma.AssetWhereInput["status"] }
+      : {}),
+    ...(conditionFilter && Object.values(ASSET_CONDITION).includes(conditionFilter as (typeof ASSET_CONDITION)[keyof typeof ASSET_CONDITION])
+      ? { condition: conditionFilter as Prisma.AssetWhereInput["condition"] }
       : {}),
     ...(!statusFilter || ![ASSET_STATUS.DISPOSED, ASSET_STATUS.DONATED, ASSET_STATUS.SOLD].includes(statusFilter as typeof ASSET_STATUS.DISPOSED)
       ? { isActive: true }
@@ -50,7 +57,7 @@ export default async function AssetsPage({ searchParams }: { searchParams: Promi
       ? {
           warrantyExpiryDate: {
             gte: new Date(),
-            lte: warrantyDueThreshold,
+            lte: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
           },
         }
       : q
@@ -98,6 +105,7 @@ export default async function AssetsPage({ searchParams }: { searchParams: Promi
               />
               <CreateAssetModal
                 branches={refs.branches}
+                regions={refs.regions}
                 categories={refs.categories}
                 vendors={refs.vendors}
                 custodians={refs.custodians}

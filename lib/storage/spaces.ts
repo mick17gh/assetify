@@ -99,6 +99,33 @@ export async function uploadAssetFileToSpaces(
   };
 }
 
+export async function uploadExceptionEvidenceToSpaces(
+  exceptionId: string,
+  file: File,
+): Promise<{ fileName: string; publicUrl: string }> {
+  const config = getSpacesConfig();
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
+  const ext = path.extname(file.name) || ".bin";
+  const storedName = `${Date.now()}-${randomUUID()}${ext}`;
+  const objectKey = `${config.folder}/exceptions/${exceptionId}/${storedName}`;
+
+  await getSpacesClient().send(
+    new PutObjectCommand({
+      Bucket: config.bucket,
+      Key: objectKey,
+      Body: buffer,
+      ContentType: file.type || "application/octet-stream",
+      ACL: "public-read",
+    }),
+  );
+
+  return {
+    fileName: file.name || storedName,
+    publicUrl: buildSpacesPublicUrl(objectKey),
+  };
+}
+
 export async function deleteStoredFile(fileUrl: string): Promise<void> {
   if (fileUrl.startsWith("/")) {
     try {

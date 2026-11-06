@@ -6,6 +6,8 @@ import {
   LayoutDashboard,
   Boxes,
   ClipboardList,
+  ClipboardCheck,
+  AlertTriangle,
   FileText,
   MapPin,
   Wrench,
@@ -14,9 +16,11 @@ import {
   Users,
   Contact,
   Settings,
+  BookOpen,
 } from "lucide-react";
 import { OfflineSyncIndicator } from "@/components/shared/offline-sync-indicator";
 import { LogoutButton } from "@/components/shared/logout-button";
+import { APP_ROUTES } from "@/constants";
 import { NAV_LINKS } from "@/lib/route-permissions";
 import { hasPermission, type Role } from "@/lib/permissions";
 import {
@@ -38,6 +42,8 @@ import {
 const iconMap = {
   Dashboard: LayoutDashboard,
   Assets: Boxes,
+  Campaigns: ClipboardCheck,
+  Exceptions: AlertTriangle,
   Requests: ClipboardList,
   Documents: FileText,
   Locations: MapPin,
@@ -49,7 +55,15 @@ const iconMap = {
   Settings: Settings,
 } as const;
 
-export function AppShell({ children, role }: { children: React.ReactNode; role: Role }) {
+export function AppShell({
+  children,
+  role,
+  showUsageManual = false,
+}: {
+  children: React.ReactNode;
+  role: Role;
+  showUsageManual?: boolean;
+}) {
   const pathname = usePathname();
   const links = NAV_LINKS.filter((link) => hasPermission(role, link.permission));
 
@@ -91,6 +105,23 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter className="gap-2 overflow-hidden border-t border-navy-200/70 bg-white/70 p-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-1.5 group-data-[collapsible=icon]:py-2">
+          {showUsageManual ? (
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname.startsWith(APP_ROUTES.USAGE_MANUAL)}
+                  tooltip="Usage manual"
+                  className="cursor-pointer rounded-lg data-[active=true]:bg-navy-100 data-[active=true]:text-navy-900"
+                >
+                  <Link href={APP_ROUTES.USAGE_MANUAL}>
+                    <BookOpen className="h-4 w-4" />
+                    <span>Usage manual</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          ) : null}
           <OfflineSyncIndicator />
           <LogoutButton />
         </SidebarFooter>

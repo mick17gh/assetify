@@ -43,6 +43,11 @@ export async function createMaintenanceAction(formData: FormData) {
       cost: parsed.data.cost ? parsed.data.cost : null,
       vendorName: parsed.data.vendorName?.trim() || null,
       nextServiceDate: parsed.data.nextServiceDate ? new Date(parsed.data.nextServiceDate) : null,
+      reportedDate: parsed.data.reportedDate ? new Date(parsed.data.reportedDate) : null,
+      sentDate: parsed.data.sentDate ? new Date(parsed.data.sentDate) : null,
+      actualReturnDate: parsed.data.actualReturnDate ? new Date(parsed.data.actualReturnDate) : null,
+      warrantyClaim: parsed.data.warrantyClaim === "true",
+      repairOutcome: parsed.data.repairOutcome || null,
       status: parsed.data.status,
     },
   });

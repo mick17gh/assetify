@@ -50,6 +50,7 @@ export async function replayOfflineOperations(operations: OfflineOperation[], co
               fromCustodianId: asset.custodianId,
               toCustodianId: parseOptionalCuid(parsed.data.toCustodianId),
               movementType: parsed.data.movementType,
+              transferReason: parsed.data.transferReason,
               note: parsed.data.note,
               movedByUserId: context.userId,
             },
@@ -61,8 +62,24 @@ export async function replayOfflineOperations(operations: OfflineOperation[], co
               roomId: parseOptionalCuid(parsed.data.toRoomId),
               shelfId: parseOptionalCuid(parsed.data.toShelfId),
               custodianId: parseOptionalCuid(parsed.data.toCustodianId),
+              ...(parsed.data.movementType === "STAFF_ASSIGNMENT"
+                ? {
+                    assignmentType: parsed.data.assignmentType || null,
+                    expectedReturnDate: parsed.data.expectedReturnDate ? new Date(parsed.data.expectedReturnDate) : null,
+                  }
+                : {}),
             },
           });
+          if (parsed.data.movementType === "STAFF_ASSIGNMENT" && parsed.data.toCustodianId && parsed.data.acknowledgementMethod) {
+            await db.assignmentAcknowledgement.create({
+              data: {
+                assetId: asset.id,
+                userId: parsed.data.toCustodianId,
+                method: parsed.data.acknowledgementMethod,
+                note: parsed.data.acknowledgementNote?.trim() || "Accepted",
+              },
+            });
+          }
           results.push({ type: op.type, ok: true });
           break;
         }
@@ -84,6 +101,12 @@ export async function replayOfflineOperations(operations: OfflineOperation[], co
               cost: parsed.data.cost ? parsed.data.cost : null,
               vendorName: parsed.data.vendorName?.trim() || null,
               nextServiceDate: parsed.data.nextServiceDate ? new Date(parsed.data.nextServiceDate) : null,
+              reportedDate: parsed.data.reportedDate ? new Date(parsed.data.reportedDate) : null,
+              sentDate: parsed.data.sentDate ? new Date(parsed.data.sentDate) : null,
+              actualReturnDate: parsed.data.actualReturnDate ? new Date(parsed.data.actualReturnDate) : null,
+              warrantyClaim: parsed.data.warrantyClaim === "true",
+              repairOutcome: parsed.data.repairOutcome || null,
+              status: parsed.data.status,
             },
           });
           results.push({ type: op.type, ok: true });

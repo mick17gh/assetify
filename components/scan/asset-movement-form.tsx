@@ -13,6 +13,7 @@ import { APP_ROUTES, FEATURE_FLAGS, MOVEMENT_TYPE } from "@/constants";
 import type { BranchRoom, BranchUser, MovementFormOptions, RoomShelf } from "@/lib/qr/asset-scan-profile";
 import { movementFromLocationType, type QrLocationType, QR_LOCATION_TYPES } from "@/lib/qr/scan-helpers";
 import { enqueueOfflineOperation } from "@/hooks/use-offline-queue";
+import { MovementExtraFields } from "@/components/locations/movement-extra-fields";
 
 export function AssetMovementForm({
   assetId,
@@ -181,6 +182,7 @@ export function AssetMovementForm({
           <OptionalReferenceSelect name="toRoomId" label="Target room" options={roomOptions} value={roomId} onValueChange={setRoomId} />
           <OptionalReferenceSelect name="toShelfId" label="Target shelf" options={shelfOptions} value={shelfId} onValueChange={setShelfId} />
           <OptionalReferenceSelect name="toCustodianId" label="Target custodian" options={userOptions} value={custodianId} onValueChange={setCustodianId} />
+          <MovementExtraFields movementType={movementType} />
           <SetupTextField name="note" label="Movement note" placeholder="Reason or context (optional)" />
           <SubmitButton
             idleLabel="Save movement"

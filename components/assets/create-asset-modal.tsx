@@ -20,12 +20,14 @@ type LocationRefs = {
 
 export function CreateAssetModal({
   branches,
+  regions,
   categories,
   vendors,
   custodians,
   locations,
 }: {
   branches: ReferenceOption[];
+  regions: ReferenceOption[];
   categories: ReferenceOption[];
   vendors: ReferenceOption[];
   custodians: ReferenceOption[];
@@ -33,7 +35,12 @@ export function CreateAssetModal({
 }) {
   const [open, setOpen] = useState(false);
   const [branchId, setBranchId] = useState(branches[0]?.id ?? "");
+  const [regionId, setRegionId] = useState("");
   const [roomId, setRoomId] = useState("");
+  const visibleBranches = useMemo(
+    () => (regionId ? branches.filter((branch) => branch.regionId === regionId) : branches),
+    [branches, regionId],
+  );
 
   const departments = useMemo(
     () => locations.departments.filter((d) => d.branchId === branchId).map((d) => ({ id: d.id, label: d.name })),
@@ -69,14 +76,29 @@ export function CreateAssetModal({
           <SetupTextField name="ain" label="AIN" placeholder="HQ-VEH-000123" required pattern="[A-Za-z0-9-]{4,32}" />
           <SetupTextField name="serialNumber" label="Serial Number" required minLength={1} pattern="[A-Za-z0-9-]{4,50}" />
           <SetupTextField name="name" label="Asset Name" required minLength={1} />
+          <SetupTextField name="manufacturer" label="Manufacturer" />
+          <SetupTextField name="modelName" label="Model" />
+          <SetupTextField name="existingAssetNumber" label="Existing asset number" />
           <SetupTextField name="purchaseDate" label="Purchase Date" type="date" required />
           <SetupTextField name="purchaseCost" label="Purchase Cost" required pattern="^\d+(\.\d{1,2})?$" />
           <SetupTextField name="warrantyExpiryDate" label="Warranty Expiry" type="date" />
           <ReferenceSelect name="categoryId" label="Category" options={categories} required />
+          <OptionalReferenceSelect
+            name="regionFilter"
+            label="Region"
+            options={regions}
+            value={regionId || "NONE"}
+            onValueChange={(value) => {
+              const next = value === "NONE" ? "" : value;
+              setRegionId(next);
+              const allowed = next ? branches.filter((branch) => branch.regionId === next) : branches;
+              if (!allowed.some((branch) => branch.id === branchId)) setBranchId(allowed[0]?.id ?? "");
+            }}
+          />
           <ReferenceSelect
             name="branchId"
             label="Branch"
-            options={branches}
+            options={visibleBranches}
             value={branchId}
             onValueChange={setBranchId}
             required

@@ -23,6 +23,12 @@ export async function AssetDetailsTabsPanel({
     status: string;
     condition: string;
     serialNumber: string;
+    manufacturer: string;
+    modelName: string;
+    existingAssetNumber: string;
+    assignmentType: string;
+    expectedReturn: string;
+    acknowledgement: string;
     category: string;
     branch: string;
     department: string;

@@ -41,6 +41,9 @@ export async function createAssetAction(formData: FormData) {
         : null,
       status: parsed.data.status ?? ASSET_STATUS.ACTIVE,
       condition: parsed.data.condition ?? ASSET_CONDITION.GOOD,
+      manufacturer: parsed.data.manufacturer || null,
+      modelName: parsed.data.modelName || null,
+      existingAssetNumber: parsed.data.existingAssetNumber || null,
       organizationId: session.organizationId ?? "",
     },
   });

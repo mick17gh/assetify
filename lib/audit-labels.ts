@@ -38,6 +38,17 @@ const ACTION_LABELS: Record<string, AuditLabel> = {
   "user.password_reset_requested": { action: "Requested password reset", page: "Users", entity: "User" },
   "offline.sync": { action: "Synced offline changes", page: "System", entity: "Sync" },
   "workorder.create": { action: "Created work order", page: "Maintenance", entity: "Work order" },
+  "campaign.create": { action: "Created campaign", page: "Campaigns", entity: "Campaign" },
+  "campaign.update": { action: "Updated campaign", page: "Campaigns", entity: "Campaign" },
+  "campaign.activate": { action: "Activated campaign", page: "Campaigns", entity: "Campaign" },
+  "campaign.assign": { action: "Assigned campaign officer", page: "Campaigns", entity: "Campaign" },
+  "campaign.unassign": { action: "Removed campaign officer", page: "Campaigns", entity: "Campaign" },
+  "campaign.verify": { action: "Recorded verification", page: "Campaigns", entity: "Verification" },
+  "campaign.status": { action: "Changed campaign status", page: "Campaigns", entity: "Campaign" },
+  "campaign.export": { action: "Exported campaign", page: "Campaigns", entity: "Campaign" },
+  "exception.open": { action: "Opened exception", page: "Exceptions", entity: "Exception" },
+  "exception.transition": { action: "Updated exception", page: "Exceptions", entity: "Exception" },
+  "exception.evidence": { action: "Uploaded exception evidence", page: "Exceptions", entity: "Exception" },
 };
 
 const ENTITY_TYPE_LABELS: Record<string, string> = {

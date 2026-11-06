@@ -20,7 +20,7 @@ export async function createAssetMovementAction(formData: FormData) {
   assertPermission(session.role, PERMISSION_KEYS.LOCATION_UPDATE);
 
   const parsed = createMovementSchema.safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
+  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? ERROR_MESSAGES.INVALID_INPUT);
 
   const asset = await db.asset.findFirst({
     where: { id: parsed.data.assetId, organizationId: session.organizationId ?? undefined },
@@ -153,9 +153,18 @@ export async function createAssetMovementAction(formData: FormData) {
       fromDepartmentId: asset.departmentId,
       toDepartmentId: resolvedDepartmentId,
       note: parsed.data.note?.trim() || null,
+      transferReason: parsed.data.transferReason,
       movedByUserId: session.userId,
     },
   });
+
+  const assignmentUpdate =
+    parsed.data.movementType === MOVEMENT_TYPE.STAFF_ASSIGNMENT
+      ? {
+          assignmentType: parsed.data.assignmentType || null,
+          expectedReturnDate: parsed.data.expectedReturnDate ? new Date(parsed.data.expectedReturnDate) : null,
+        }
+      : {};
 
   await db.asset.update({
     where: { id: asset.id },
@@ -165,8 +174,25 @@ export async function createAssetMovementAction(formData: FormData) {
       shelfId: resolvedShelfId,
       custodianId: resolvedCustodianId,
       departmentId: resolvedDepartmentId,
+      ...assignmentUpdate,
     },
   });
+
+  if (parsed.data.movementType === MOVEMENT_TYPE.STAFF_ASSIGNMENT && resolvedCustodianId && parsed.data.acknowledgementMethod) {
+    await db.assignmentAcknowledgement.create({
+      data: {
+        assetId: asset.id,
+        userId: resolvedCustodianId,
+        method: parsed.data.acknowledgementMethod,
+        note:
+          parsed.data.acknowledgementMethod === "SIGNATURE"
+            ? parsed.data.acknowledgementNote?.trim() || null
+            : parsed.data.acknowledgementMethod === "CHECKBOX"
+              ? "Accepted by checkbox"
+              : "Accepted by PIN",
+      },
+    });
+  }
 
   await writeAuditLog({
     actorUserId: session.userId,

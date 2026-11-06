@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AssetMovementForm } from "@/components/scan/asset-movement-form";
+import { CampaignVerifyPanel } from "@/components/campaigns/campaign-verify-panel";
 import { AssetScanHistories } from "@/components/scan/asset-scan-histories";
 import { AssetScanProfileCard } from "@/components/scan/asset-scan-profile";
 import { BrandWordmark } from "@/components/shared/brand-wordmark";
 import { Button } from "@/components/ui/button";
 import { APP_ROUTES, PERMISSION_KEYS } from "@/constants";
 import { hasPermission } from "@/lib/permissions";
+import { listScanPrompts } from "@/lib/campaign-service";
 import { loadAssetScanPageData } from "@/lib/qr/asset-scan-profile";
 import { parseQrScanValue, type QrLocationType } from "@/lib/qr/payload";
 import { getOptionalSession } from "@/lib/session";
@@ -47,6 +49,11 @@ export default async function ScanPage({ searchParams }: { searchParams: SearchP
   });
   if (!data) notFound();
 
+  const prompts =
+    session && hasPermission(session.role, PERMISSION_KEYS.ASSET_WRITE)
+      ? await listScanPrompts(session, data.profile.id)
+      : [];
+
   const redirectTo = `${APP_ROUTES.SCAN}?asset=${encodeURIComponent(parsedAsset.assetId)}`;
   const signInHref = `${APP_ROUTES.SIGN_IN}?redirectTo=${encodeURIComponent(redirectTo)}`;
   const showMovementForm = canRecordMovement && data.movementFormOptions;
@@ -74,6 +81,15 @@ export default async function ScanPage({ searchParams }: { searchParams: SearchP
           </header>
 
           <AssetScanProfileCard profile={data.profile} variant={showMovementForm ? "compact" : "full"} />
+
+          {prompts.map((campaign) => (
+            <CampaignVerifyPanel
+              key={campaign.id}
+              campaignId={campaign.id}
+              campaignName={campaign.name}
+              assetId={data.profile.id}
+            />
+          ))}
 
           {showMovementForm && data.movementFormOptions ? (
             <>

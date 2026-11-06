@@ -32,6 +32,9 @@ export const createAssetSchema = z.object({
   warrantyExpiryDate: z.string().optional(),
   status: enumFromConst(ASSET_STATUS).optional(),
   condition: enumFromConst(ASSET_CONDITION).optional(),
+  manufacturer: z.string().max(120).optional(),
+  modelName: z.string().max(120).optional(),
+  existingAssetNumber: z.string().max(80).optional(),
 });
 
 export const updateAssetSchema = z.object({
@@ -47,6 +50,9 @@ export const updateAssetSchema = z.object({
   custodianId: optionalCuid,
   purchaseCost: z.string().regex(REGEX.CURRENCY),
   warrantyExpiryDate: z.string().optional(),
+  manufacturer: z.string().max(120).optional(),
+  modelName: z.string().max(120).optional(),
+  existingAssetNumber: z.string().max(80).optional(),
   depreciationUsefulLifeYears: z.coerce.number().int().min(1).max(50).optional().or(z.literal("")),
   depreciationSalvageValue: z.string().regex(REGEX.CURRENCY).optional().or(z.literal("")),
   depreciationMethodOverride: enumFromConst(DEPRECIATION_METHOD).optional().or(z.literal("")),

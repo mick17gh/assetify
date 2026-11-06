@@ -13,6 +13,7 @@ import { resolvePagePaginationFromParams } from "@/lib/pagination/page";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { isQrLocationScanningEnabled } from "@/lib/organization-settings";
 import { PrintLocationTagButton } from "@/components/settings/print-location-tag-button";
+import { ReferenceSelect, type ReferenceOption } from "@/components/shared/reference-selects";
 import { createBranchAction, deleteBranchAction, updateBranchAction } from "../actions";
 
 async function BranchesContent({ searchParams }: { searchParams: Promise<SearchParams> }) {
@@ -28,17 +29,23 @@ async function BranchesContent({ searchParams }: { searchParams: Promise<SearchP
     ...(q ? { name: { contains: q, mode: "insensitive" } } : {}),
   };
 
-  const [qrEnabled, rows, totalCount] = await Promise.all([
+  const [qrEnabled, rows, totalCount, regions] = await Promise.all([
     session.organizationId ? isQrLocationScanningEnabled(session.organizationId) : Promise.resolve(false),
     db.branch.findMany({
       where,
-      include: { _count: { select: { assets: true, users: true } } },
+      include: { region: true, _count: { select: { assets: true, users: true } } },
       orderBy: { name: "asc" },
       skip,
       take,
     }),
     db.branch.count({ where }),
+    db.region.findMany({
+      where: { organizationId: session.organizationId ?? undefined },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
   ]);
+  const regionOptions: ReferenceOption[] = regions.map((region) => ({ id: region.id, label: region.name }));
 
   return (
     <SetupTableShell
@@ -51,6 +58,7 @@ async function BranchesContent({ searchParams }: { searchParams: Promise<SearchP
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
+            <TableHead>Region</TableHead>
             <TableHead>Code</TableHead>
             <TableHead>Assets</TableHead>
             <TableHead>Users</TableHead>
@@ -61,6 +69,7 @@ async function BranchesContent({ searchParams }: { searchParams: Promise<SearchP
           {rows.map((branch) => (
             <TableRow key={branch.id}>
               <TableCell>{branch.name}</TableCell>
+              <TableCell>{branch.region.name}</TableCell>
               <TableCell>{branch.code}</TableCell>
               <TableCell>{branch._count.assets}</TableCell>
               <TableCell>{branch._count.users}</TableCell>
@@ -75,6 +84,7 @@ async function BranchesContent({ searchParams }: { searchParams: Promise<SearchP
                     editFields={
                       <>
                         <SetupTextField name="name" label="Name" required defaultValue={branch.name} />
+                        <ReferenceSelect name="regionId" label="Region" options={regionOptions} defaultValue={branch.regionId} required />
                         <SetupTextField name="code" label="Code" required defaultValue={branch.code} />
                         <SetupTextField name="address" label="Address" defaultValue={branch.address ?? ""} />
                       </>
@@ -90,7 +100,15 @@ async function BranchesContent({ searchParams }: { searchParams: Promise<SearchP
   );
 }
 
-export default function BranchesSettingsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+export default async function BranchesSettingsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  const session = await getRequiredSession();
+  const regions = await db.region.findMany({
+    where: { organizationId: session.organizationId ?? undefined },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true },
+  });
+  const regionOptions = regions.map((region) => ({ id: region.id, label: region.name }));
+
   return (
     <div>
       <PageHeader
@@ -99,6 +117,7 @@ export default function BranchesSettingsPage({ searchParams }: { searchParams: P
         action={
           <SetupCreateModal title="Create branch" triggerLabel="Add Branch" action={createBranchAction}>
             <SetupTextField name="name" label="Name" required />
+            <ReferenceSelect name="regionId" label="Region" options={regionOptions} required />
             <SetupTextField name="code" label="Code" required placeholder="HQ-ACCRA" />
             <SetupTextField name="address" label="Address" />
           </SetupCreateModal>

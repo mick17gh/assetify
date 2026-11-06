@@ -23,6 +23,13 @@ export const reminderSettingsSchema = z.object({
 
 export const updateOrganizationSchema = z.object({
   name: z.string().min(2).max(120),
+  organizationType: z.string().optional(),
+  industry: z.string().max(80).optional(),
+  primaryContactName: z.string().max(120).optional(),
+  contactEmail: z.string().email().optional().or(z.literal("")),
+  contactPhone: z.string().max(40).optional(),
+  address: z.string().max(255).optional(),
+  isActive: z.enum(["true", "false"]).optional(),
   maintenanceCostThresholdPercent: z.coerce.number().int().min(1).max(500),
 });
 

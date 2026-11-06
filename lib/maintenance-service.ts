@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { HIGH_MAINTENANCE_FLAG_TITLE } from "@/lib/attention";
 
 export async function getTotalMaintenanceCost(assetId: string): Promise<number> {
   const result = await db.maintenanceRecord.aggregate({
@@ -16,8 +17,6 @@ export function isHighMaintenanceAsset(
   if (purchaseCost <= 0) return false;
   return totalMaintenanceCost >= purchaseCost * (thresholdPercent / 100);
 }
-
-const HIGH_MAINTENANCE_FLAG_TITLE = "High maintenance cost — review for replacement";
 
 export async function ensureHighMaintenanceFlag(
   assetId: string,

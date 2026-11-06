@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MAINTENANCE_STATUS, REGEX } from "@/constants";
+import { MAINTENANCE_STATUS, REGEX, REPAIR_OUTCOME } from "@/constants";
 import { enumFromConst } from "./helpers";
 
 export const createMaintenanceSchema = z.object({
@@ -10,6 +10,11 @@ export const createMaintenanceSchema = z.object({
   vendorName: z.string().max(120).optional(),
   nextServiceDate: z.string().optional(),
   status: enumFromConst(MAINTENANCE_STATUS).default(MAINTENANCE_STATUS.COMPLETED),
+  reportedDate: z.string().optional(),
+  sentDate: z.string().optional(),
+  actualReturnDate: z.string().optional(),
+  warrantyClaim: z.string().optional(),
+  repairOutcome: enumFromConst(REPAIR_OUTCOME).optional().or(z.literal("")),
 });
 
 export const updateMaintenanceSchema = createMaintenanceSchema.extend({

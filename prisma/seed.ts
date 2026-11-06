@@ -21,11 +21,18 @@ async function main() {
     create: { name: "NY VortAsset Demo Org", maintenanceCostThresholdPercent: 50 },
   });
 
+  const region = await db.region.upsert({
+    where: { organizationId_name: { organizationId: organization.id, name: "Default" } },
+    update: {},
+    create: { organizationId: organization.id, name: "Default" },
+  });
+
   const branch = await db.branch.upsert({
     where: { organizationId_code: { organizationId: organization.id, code: "HQ-ACCRA" } },
-    update: {},
+    update: { regionId: region.id },
     create: {
       organizationId: organization.id,
+      regionId: region.id,
       name: "Accra HQ",
       code: "HQ-ACCRA",
       address: "Airport Residential Area",

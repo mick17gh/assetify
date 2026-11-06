@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function SignInForm({ redirectTo, showUsageManual = false }: { redirectTo: string; showUsageManual?: boolean }) {
+export function SignInForm({ redirectTo }: { redirectTo: string }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -75,11 +75,6 @@ export function SignInForm({ redirectTo, showUsageManual = false }: { redirectTo
           <Link className="block text-sm text-navy-700 underline" href={APP_ROUTES.FORGOT_PASSWORD}>
             Forgot password?
           </Link>
-          {showUsageManual ? (
-            <Link className="block text-sm text-navy-700 underline" href={APP_ROUTES.USAGE_MANUAL}>
-              Usage manual
-            </Link>
-          ) : null}
         </form>
       </CardContent>
     </Card>

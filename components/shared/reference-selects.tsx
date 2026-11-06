@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 
-export type ReferenceOption = { id: string; label: string; code?: string };
+export type ReferenceOption = { id: string; label: string; code?: string; regionId?: string };
 
 /** Compact searchable combobox for table cells (no label). */
 export function InlineCombobox({
@@ -159,6 +159,79 @@ export function ReferenceSelect({
           </Command>
         </PopoverContent>
       </Popover>
+    </div>
+  );
+}
+
+/** Searchable multi-select. Empty selection means every option. */
+export function MultiReferenceSelect({
+  name,
+  label,
+  options,
+  defaultValue = [],
+  emptyLabel = "All",
+}: {
+  name: string;
+  label: string;
+  options: ReferenceOption[];
+  defaultValue?: string[];
+  emptyLabel?: string;
+}) {
+  const [selected, setSelected] = useState(defaultValue);
+  const [open, setOpen] = useState(false);
+  const summary =
+    selected.length === 0
+      ? emptyLabel
+      : options
+          .filter((option) => selected.includes(option.id))
+          .map((option) => option.label)
+          .join(", ");
+
+  function toggle(id: string) {
+    setSelected((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
+  }
+
+  return (
+    <div className="relative min-w-0 space-y-1">
+      <Label>{label}</Label>
+      {selected.map((id) => (
+        <input key={id} type="hidden" name={name} value={id} />
+      ))}
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="h-9 w-full min-w-0 cursor-pointer justify-between border-navy-200 bg-white font-normal"
+          >
+            <span className="truncate text-left">{summary}</span>
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+          <Command>
+            <CommandInput placeholder={`Search ${label.toLowerCase()}...`} />
+            <CommandList>
+              <CommandEmpty>No options found.</CommandEmpty>
+              <CommandGroup>
+                {options.map((option) => (
+                  <CommandItem
+                    key={option.id}
+                    value={`${option.id} ${option.label}`}
+                    onSelect={() => toggle(option.id)}
+                  >
+                    <Check className={cn("mr-2 h-4 w-4", selected.includes(option.id) ? "opacity-100" : "opacity-0")} />
+                    <span className="truncate">{option.label}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+      <p className="text-xs text-navy-900/60">Leave empty to include all.</p>
     </div>
   );
 }

@@ -52,10 +52,8 @@ export async function acknowledgeDisposalAction(formData: FormData) {
 
   await db.asset.update({
     where: { id: asset.id },
-    data: { status: ASSET_STATUS.DISPOSED, isActive: false },
+    data: { status: ASSET_STATUS.PENDING_DISPOSAL },
   });
-
-  await db.replacementEvaluation.deleteMany({ where: { assetId: asset.id } });
 
   await db.disposalRecommendation.create({
     data: {
@@ -63,6 +61,8 @@ export async function acknowledgeDisposalAction(formData: FormData) {
       state: "OVERDUE",
       recommendedAt: new Date(),
       reason: parsed.data.reason || "Disposal acknowledgement captured from replacement workflow.",
+      approvalStatus: "PENDING",
+      recommendedAction: "Dispose",
     },
   });
 

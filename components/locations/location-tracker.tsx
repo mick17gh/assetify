@@ -11,6 +11,7 @@ import { SubmitButton } from "@/components/shared/submit-button";
 import { PendingForm } from "@/components/shared/pending-form";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { MovementExtraFields } from "@/components/locations/movement-extra-fields";
 
 type BranchRoom = { id: string; name: string; branchId: string };
 type RoomShelf = { id: string; name: string; roomId: string };
@@ -106,6 +107,7 @@ export function LocationTracker({
           <OptionalReferenceSelect name="toRoomId" label="Target room" options={roomOptions} value={roomId} onValueChange={setRoomId} />
           <OptionalReferenceSelect name="toShelfId" label="Target shelf" options={shelfOptions} />
           <OptionalReferenceSelect name="toCustodianId" label="Target custodian" options={userOptions} />
+          <MovementExtraFields movementType={movementType} />
           <SetupTextField name="note" label="Movement note" placeholder="Reason or context (optional)" />
           <SubmitButton
             idleLabel="Save movement"

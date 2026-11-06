@@ -21,6 +21,21 @@ export async function buildExcelReport(
   return Buffer.from(buffer);
 }
 
+function pdfColor(hex: string) {
+  const value = hex.replace("#", "");
+  return rgb(
+    parseInt(value.slice(0, 2), 16) / 255,
+    parseInt(value.slice(2, 4), 16) / 255,
+    parseInt(value.slice(4, 6), 16) / 255,
+  );
+}
+
+const NAVY = pdfColor("#012f6b");
+const NAVY_DARK = pdfColor("#011e48");
+const NAVY_MUTED = pdfColor("#3f6eab");
+const NAVY_LINE = pdfColor("#c5d7ee");
+const NAVY_ROW = pdfColor("#f3f7fc");
+
 const PAGE_WIDTH = 842;
 const PAGE_HEIGHT = 595;
 const MARGIN_X = 36;
@@ -64,13 +79,13 @@ function drawTablePage({
   const tableWidth = columnWidths.reduce((sum, width) => sum + width, 0);
   const tableLeft = MARGIN_X;
 
-  page.drawText(title, { x: tableLeft, y: PAGE_HEIGHT - MARGIN_TOP, size: TITLE_SIZE, font: bold, color: rgb(0.004, 0.184, 0.42) });
+  page.drawText(title, { x: tableLeft, y: PAGE_HEIGHT - MARGIN_TOP, size: TITLE_SIZE, font: bold, color: NAVY });
   page.drawText(pageLabel, {
     x: tableLeft,
     y: PAGE_HEIGHT - MARGIN_TOP - 18,
     size: META_SIZE,
     font,
-    color: rgb(0.35, 0.3, 0.4),
+    color: NAVY_MUTED,
   });
 
   let y = PAGE_HEIGHT - MARGIN_TOP - 40;
@@ -81,7 +96,7 @@ function drawTablePage({
     y: y - HEADER_HEIGHT,
     width: tableWidth,
     height: HEADER_HEIGHT,
-    color: rgb(0.49, 0.23, 0.93),
+    color: NAVY,
   });
 
   let x = tableLeft;
@@ -104,7 +119,7 @@ function drawTablePage({
     y: y - HEADER_HEIGHT,
     width: tableWidth,
     height: HEADER_HEIGHT,
-    borderColor: rgb(0.42, 0.18, 0.82),
+    borderColor: NAVY_DARK,
     borderWidth: 0.8,
   });
 
@@ -118,7 +133,7 @@ function drawTablePage({
         y: y - ROW_HEIGHT,
         width: tableWidth,
         height: ROW_HEIGHT,
-        color: rgb(0.97, 0.95, 1),
+        color: NAVY_ROW,
       });
     }
 
@@ -132,7 +147,7 @@ function drawTablePage({
         y: y - 14,
         size: CELL_SIZE,
         font,
-        color: rgb(0.2, 0.15, 0.3),
+        color: NAVY,
       });
       cellX += width;
     });
@@ -142,7 +157,7 @@ function drawTablePage({
       y: y - ROW_HEIGHT,
       width: tableWidth,
       height: ROW_HEIGHT,
-      borderColor: rgb(0.85, 0.8, 0.92),
+      borderColor: NAVY_LINE,
       borderWidth: 0.5,
     });
 
@@ -158,7 +173,7 @@ function drawTablePage({
         start: { x: lineX, y: y + rows.length * ROW_HEIGHT + HEADER_HEIGHT },
         end: { x: lineX, y: y },
         thickness: 0.5,
-        color: rgb(0.85, 0.8, 0.92),
+        color: NAVY_LINE,
       });
     }
     lineX += width;
@@ -216,7 +231,7 @@ export async function buildPdfReport(
         y: PAGE_HEIGHT - MARGIN_TOP - 70,
         size: 11,
         font,
-        color: rgb(0.4, 0.35, 0.45),
+        color: NAVY_MUTED,
       });
     }
   });
