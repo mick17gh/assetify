@@ -10,6 +10,7 @@ import { getRequiredSession } from "@/lib/session";
 import { getAssetScopeWhere } from "@/lib/scoping";
 import { getOptionalQuery, SearchParams } from "@/lib/filters/query";
 import { resolvePagePaginationFromParams } from "@/lib/pagination/page";
+import { getAssetPickerOptionById, getRecentAssetsForPicker } from "@/lib/assets/picker-search";
 import { getReferenceDataForSession } from "@/lib/reference-data";
 import { TableToolbar } from "@/components/shared/table-toolbar";
 import { TablePagination } from "@/components/shared/table-pagination";
@@ -62,7 +63,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
       : {}),
   };
 
-  const [docs, totalCount, assets, refs, totalDocuments] = await Promise.all([
+  const [docs, totalCount, assetSeed, selectedAsset, refs, totalDocuments] = await Promise.all([
     db.assetDocument.findMany({
       where,
       include: { asset: { include: { branch: true } } },
@@ -71,16 +72,17 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
       take,
     }),
     db.assetDocument.count({ where }),
-    db.asset.findMany({
-      where: assetScope,
-      orderBy: { name: "asc" },
-      select: { id: true, name: true, ain: true },
-      take: 300,
-    }),
+    session.organizationId
+      ? getRecentAssetsForPicker({ organizationId: session.organizationId })
+      : Promise.resolve([]),
+    assetFilter ? getAssetPickerOptionById(assetFilter) : Promise.resolve(null),
     getReferenceDataForSession(session),
     db.assetDocument.count({ where: { asset: assetScope } }),
   ]);
-  const assetOptions = assets.map((asset) => ({ id: asset.id, label: `${asset.name} (${asset.ain})` }));
+  const assetSeedWithSelected =
+    selectedAsset && !assetSeed.some((item) => item.id === selectedAsset.id)
+      ? [selectedAsset, ...assetSeed]
+      : assetSeed;
 
   return (
     <div>
@@ -88,14 +90,14 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
         title="Document Repository"
         description="Manage warranties and all asset-linked files with role-based access."
         action={
-          <DocumentRepository assets={assetOptions} totalDocuments={totalDocuments} />
+          <DocumentRepository assetSeed={assetSeed} totalDocuments={totalDocuments} />
         }
       />
       <Card className="border-navy-200 shadow-sm">
         <CardContent className="pt-6">
           <TableToolbar
             searchPlaceholder="Search name, type, or asset"
-            filters={<DocumentFilters branches={refs.branches} assets={assetOptions} />}
+            filters={<DocumentFilters branches={refs.branches} assetSeed={assetSeedWithSelected} />}
           />
           <Table>
             <TableHeader>

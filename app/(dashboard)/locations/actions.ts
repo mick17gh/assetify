@@ -178,20 +178,36 @@ export async function createAssetMovementAction(formData: FormData) {
     },
   });
 
-  if (parsed.data.movementType === MOVEMENT_TYPE.STAFF_ASSIGNMENT && resolvedCustodianId && parsed.data.acknowledgementMethod) {
-    await db.assignmentAcknowledgement.create({
-      data: {
-        assetId: asset.id,
-        userId: resolvedCustodianId,
-        method: parsed.data.acknowledgementMethod,
-        note:
-          parsed.data.acknowledgementMethod === "SIGNATURE"
-            ? parsed.data.acknowledgementNote?.trim() || null
-            : parsed.data.acknowledgementMethod === "CHECKBOX"
-              ? "Accepted by checkbox"
-              : "Accepted by PIN",
-      },
-    });
+  if (parsed.data.movementType === MOVEMENT_TYPE.STAFF_ASSIGNMENT && resolvedCustodianId) {
+    const deferred = parsed.data.acknowledgementDeferred === "true";
+    if (deferred || !parsed.data.acknowledgementMethod) {
+      await db.assignmentAcknowledgement.create({
+        data: {
+          assetId: asset.id,
+          userId: resolvedCustodianId,
+          status: "PENDING",
+          method: null,
+          acceptedAt: null,
+          note: "Awaiting assignee acceptance",
+        },
+      });
+    } else {
+      await db.assignmentAcknowledgement.create({
+        data: {
+          assetId: asset.id,
+          userId: resolvedCustodianId,
+          status: "ACCEPTED",
+          method: parsed.data.acknowledgementMethod,
+          acceptedAt: new Date(),
+          note:
+            parsed.data.acknowledgementMethod === "SIGNATURE"
+              ? parsed.data.acknowledgementNote?.trim() || null
+              : parsed.data.acknowledgementMethod === "CHECKBOX"
+                ? "Accepted by checkbox"
+                : "Accepted by PIN",
+        },
+      });
+    }
   }
 
   await writeAuditLog({
@@ -201,7 +217,16 @@ export async function createAssetMovementAction(formData: FormData) {
     action: "asset.movement.create",
     entityType: "AssetMovement",
     entityId: asset.id,
-    metadata: { movementType: parsed.data.movementType },
+    metadata: {
+      movementType: parsed.data.movementType,
+      changes: [
+        { field: "branchId", from: asset.branchId, to: resolvedBranchId },
+        { field: "roomId", from: asset.roomId, to: resolvedRoomId },
+        { field: "shelfId", from: asset.shelfId, to: resolvedShelfId },
+        { field: "departmentId", from: asset.departmentId, to: resolvedDepartmentId },
+        { field: "custodianId", from: asset.custodianId, to: resolvedCustodianId },
+      ].filter((change) => String(change.from ?? "") !== String(change.to ?? "")),
+    },
   });
 
   revalidatePath(APP_ROUTES.LOCATIONS);

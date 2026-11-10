@@ -4,18 +4,19 @@ import { useState } from "react";
 import { uploadDocumentFromRepositoryAction, updateDocumentTypeAction, deleteDocumentFromRepositoryAction } from "@/app/(dashboard)/documents/actions";
 import { SetupRowActions } from "@/components/settings/setup-row-actions";
 import { EnumSelect } from "@/components/shared/enum-select";
-import { ReferenceOption, ReferenceSelect } from "@/components/shared/reference-selects";
+import { AssetLookupSelect } from "@/components/shared/entity-lookups";
 import { SetupCreateModal, SetupTextField } from "@/components/settings/setup-create-modal";
 import { DOCUMENT_TYPE } from "@/constants";
+import type { PickerOption } from "@/lib/lookups/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export function DocumentRepository({
-  assets,
+  assetSeed,
   totalDocuments,
 }: {
-  assets: ReferenceOption[];
+  assetSeed: PickerOption[];
   totalDocuments: number;
 }) {
   return (
@@ -24,7 +25,7 @@ export function DocumentRepository({
       triggerLabel="Upload Document"
       action={uploadDocumentFromRepositoryAction}
     >
-      <ReferenceSelect name="assetId" label="Asset" options={assets} required />
+      <AssetLookupSelect name="assetId" seed={assetSeed} required />
       <SetupTextField name="displayName" label="Document name" required placeholder="e.g. Warranty card 2026" minLength={1} maxLength={200} />
       <EnumSelect
         name="documentType"

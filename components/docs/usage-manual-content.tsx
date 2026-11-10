@@ -5,6 +5,7 @@ const sections = [
   { id: "sign-in-roles", label: "Sign in & roles" },
   { id: "dashboard", label: "Dashboard" },
   { id: "assets", label: "Assets" },
+  { id: "acknowledgements", label: "Custody acknowledgements" },
   { id: "campaigns", label: "Verification campaigns" },
   { id: "exceptions", label: "Exceptions" },
   { id: "disposal", label: "Disposal, donation & sale" },
@@ -107,16 +108,18 @@ export function UsageManualContent() {
           <li>
             <strong>Manager</strong> — create and edit assets, documents, locations, and maintenance for their
             branch; create campaigns, verify when assigned, and manage exceptions; approve/reject/fulfill asset
-            requests; view Replacement and the standard Replacement report (not finance-only tabs)
+            requests; complete asset onboarding; generate operational reports from the Reports center (except System
+            Security Audit)
           </li>
           <li>
             <strong>Staff</strong> — view assets, campaigns, exceptions, documents, and maintenance; record location
-            movements; submit asset requests and track their own request status
+            movements; accept deferred custody acknowledgements; submit asset requests and track their own request
+            status
           </li>
           <li>
-            <strong>Finance</strong> — view assets, campaigns, exceptions, and documents; open Reports including
-            finance tabs (Department Cost, Disposal, End-of-Life FMV) and export Excel/PDF; no create/edit of assets,
-            campaigns, or exceptions
+            <strong>Finance</strong> — view assets, campaigns, exceptions, and documents; open finance-oriented
+            reports (executive, portfolio, condition, lifecycle/disposal, exceptions, period depreciation/GL) and
+            export CSV/Excel; no create/edit of assets, campaigns, or exceptions
           </li>
         </ul>
         <p>
@@ -141,37 +144,68 @@ export function UsageManualContent() {
             Portfolio filters for region, branch, department, category, custodian, condition, status, and acquisition
             year, with totals by region and by in use, storage, under repair, and pending disposal
           </li>
+          <li>
+            Callouts when <strong>you</strong> have pending custody acknowledgements, or when assets are still{" "}
+            <strong>Pending Onboarding</strong> and need registration completion
+          </li>
         </ul>
       </Section>
 
       <Section id="assets" title="Assets">
         <p>
           The Assets page is the digital asset register. By default it shows <strong>active</strong> inventory
-          only. You can still filter by disposed, donated, or sold status when you need history.
+          only. You can still filter by pending onboarding, disposed, donated, or sold status when you need those
+          lists.
         </p>
         <p>From Assets you can:</p>
         <ul className="list-disc space-y-1 pl-5">
-          <li>Create assets one at a time, including manufacturer, model, and an existing asset number (Admin/Manager)</li>
+          <li>
+            Create assets one at a time, including manufacturer, model, existing asset number, procurement fields (PO,
+            invoice, capitalized date), and ownership (owned, rented, leased, or donated in)
+          </li>
           <li>Bulk import from CSV using the template download</li>
           <li>Filter by branch and status; search by name, AIN, or serial number</li>
           <li>Print QR asset tags when QR scanning is enabled</li>
-          <li>Open an asset for full profile, maintenance timeline, status history, and files</li>
+          <li>
+            Open an asset for full profile, maintenance, unified lifecycle timeline, and files
+          </li>
         </ul>
         <p>Each asset records:</p>
         <ul className="list-disc space-y-1 pl-5">
           <li>AIN (internal asset ID) and serial number</li>
-          <li>Purchase date, purchase cost, and warranty expiry</li>
+          <li>Purchase date, purchase cost, warranty expiry, PO/invoice references, and capitalized date</li>
+          <li>Ownership type; for rented/leased assets, lessor name, lease window, and monthly cost</li>
           <li>Category, vendor, branch, department, room, and shelf</li>
-          <li>Custodian (assigned staff member)</li>
+          <li>Custodian (assigned staff member) and latest acknowledgement status</li>
           <li>
-            Status: Active, Under Repair, Faulty, In Storage, Missing, Disposed, Donated, Sold
+            Status: Pending Onboarding, Active, Under Repair, Faulty, In Storage, Missing, Surplus, Pending Disposal,
+            Disposed, Donated, Sold
           </li>
-          <li>Condition: Excellent, Good, Fair, Poor, Critical</li>
+          <li>Condition: New, Excellent, Good, Fair, Damaged, Poor, Critical, Beyond Economical Repair, Unknown</li>
         </ul>
         <p>
-          On the asset detail page you can edit profile fields, change status, create a work order, upload photos
-          and documents, set depreciation overrides, report an exception, and record disposal. The financial snapshot
-          shows purchase cost, age, depreciation applied, current value, and recommended sale price.
+          New assets default to <strong>Pending Onboarding</strong>. Use <strong>More → Complete onboarding</strong>{" "}
+          to replace any placeholder AIN/serial, capture cost and procurement details, and activate the asset.
+        </p>
+        <p>
+          On the asset detail page you can edit profile and procurement/lease fields, change status, create a work
+          order, upload photos and documents, set depreciation overrides, report an exception, recommend or record
+          disposal, and complete onboarding when needed. Overview shows location &amp; custody, procurement &amp;
+          valuation, and any open disposal/replacement pipeline. The <strong>Timeline</strong> tab merges status
+          changes, movements, acknowledgements, maintenance, verifications, exceptions, documents, and disposal into
+          one chronological feed.
+        </p>
+      </Section>
+
+      <Section id="acknowledgements" title="Custody acknowledgements">
+        <p>
+          Open <strong>Acknowledgements</strong> to accept deferred staff assignments. When a mover assigns an asset
+          to you and chooses to defer acknowledgement, the assignment is saved with a pending custody record. You
+          must accept it here (checkbox, PIN, or signature name) before the acknowledgement is complete.
+        </p>
+        <p>
+          The dashboard shows a callout when you have pending acceptances. Asset detail overview also shows whether
+          the latest acknowledgement is pending or accepted.
         </p>
       </Section>
 
@@ -289,6 +323,10 @@ export function UsageManualContent() {
           An approver uses <strong>Approve disposal</strong>. <strong>Record Disposal</strong> stays unavailable
           until that recommendation is Approved. Nothing is disposed automatically.
         </p>
+        <p>
+          Asset overview shows the disposal / replacement pipeline (recommendation state, approval, and latest
+          replacement evaluation) until a final disposal record exists.
+        </p>
         <p>Recording disposal still requires one of:</p>
         <ul className="list-disc space-y-1 pl-5">
           <li>
@@ -303,15 +341,18 @@ export function UsageManualContent() {
           </li>
         </ul>
         <p>
-          The asset is marked inactive and removed from active inventory. An audit disposal record is stored
-          (including book value at disposal). View counts and value removed under <strong>Reports → Disposal</strong>.
+          Optional evidence files are stored as <strong>Disposal Evidence</strong> documents. The asset is marked
+          inactive and removed from active inventory. An audit disposal record is stored (including book value at
+          disposal). Use <strong>Reports → Lifecycle, Replacement &amp; Disposal</strong> for disposal register
+          views.
         </p>
       </Section>
 
       <Section id="depreciation" title="Depreciation & valuation">
         <p>
-          VortAsset calculates fair market / book value using straight-line depreciation. Rules are resolved in
-          this order:
+          VortAsset calculates fair market / book value using the method on each category policy (or asset
+          override). Supported methods: Straight-Line, Declining Balance (with declining rate %), Double Declining
+          Balance, and Sum of Years Digits. Rules are resolved in this order:
         </p>
         <ol className="list-decimal space-y-1 pl-5">
           <li>Asset-level overrides (useful life, salvage value, method)</li>
@@ -319,13 +360,17 @@ export function UsageManualContent() {
           <li>Built-in industry defaults by category name (e.g. laptops often 3 years)</li>
         </ol>
         <p>
-          Admins configure policies under <strong>Settings → Depreciation</strong> (useful life in years and
-          salvage percent per category). Managers/Admins can override a single asset via{" "}
-          <strong>More → Depreciation Overrides</strong>.
+          Admins configure policies under <strong>Settings → Depreciation</strong> (method, useful life, salvage
+          percent, and declining rate when needed). The same page has <strong>Period depreciation close</strong>:
+          choose period start/end and post a run to store schedule lines for the period. Managers/Admins can override
+          a single asset via <strong>More → Depreciation Overrides</strong>.
         </p>
         <p>
-          Values appear on the asset detail financial snapshot and in{" "}
-          <strong>Reports → End-of-Life FMV</strong> for assets approaching or overdue for replacement.
+          Live values appear on the asset detail financial snapshot and inside{" "}
+          <strong>Reports → Lifecycle, Replacement &amp; Disposal</strong>. For financial close, open{" "}
+          <strong>Reports → Period Depreciation &amp; GL Export</strong> for the same date range to preview/export
+          the depreciation schedule and debit/credit GL journal lines (Depreciation Expense / Accumulated
+          Depreciation).
         </p>
       </Section>
 
@@ -350,7 +395,10 @@ export function UsageManualContent() {
             <strong>Shelf transfer</strong> — moves to a different shelf
           </li>
           <li>
-            <strong>Staff assignment</strong> — changes the custodian only after the assignee accepts by checkbox, PIN, or signature. Store the assignment type and an optional return date
+            <strong>Staff assignment</strong> — changes the custodian. Capture assignment type and optional return
+            date. Either accept custody immediately (checkbox, PIN, or signature), or check{" "}
+            <strong>Defer acknowledgement to assignee inbox</strong> so the assignee must accept later under
+            Acknowledgements
           </li>
           <li>
             <strong>Storage transfer</strong> — places the asset in storage (optional branch change)
@@ -387,14 +435,15 @@ export function UsageManualContent() {
 
       <Section id="documents" title="Documents">
         <p>
-          The Documents page is a central library of files attached to assets — receipts, warranty cards, manuals,
-          service reports, maintenance invoices, and other files.
+          The Documents page is a central library of files attached to assets — receipts, invoices, purchase orders,
+          warranty cards, manuals, service reports, maintenance invoices, disposal evidence, and other files.
         </p>
         <p>
           Upload from the Documents page or from an asset&apos;s detail page (More → Upload Document). Maintenance
           invoices can also be attached from the Maintenance board via <strong>⋯ → Attachments</strong> (then
-          Invoice), or from the asset maintenance timeline. Files are stored in cloud storage; open or delete based
-          on your permissions.
+          Invoice), or from the asset maintenance timeline. You can also store an invoice/receipt URL on the asset
+          procurement fields without uploading a file. Files are stored in cloud storage; open or delete based on
+          your permissions.
         </p>
       </Section>
 
@@ -403,7 +452,7 @@ export function UsageManualContent() {
           Use <strong>Maintenance</strong> to log service work and monitor condition flags. Use{" "}
           <strong>Log Service</strong> and <strong>Flag Condition</strong> in the page header (top right) to create
           records. Each maintenance record includes date reported, date sent, actual return, warranty claim,
-          repair outcome, description, vendor, cost, next service date, and status:
+          repair outcome, description, notes, vendor, cost, next service date, and status:
         </p>
         <ul className="list-disc space-y-1 pl-5">
           <li>
@@ -415,9 +464,12 @@ export function UsageManualContent() {
           <li>
             <strong>Completed</strong> — finished
           </li>
+          <li>
+            <strong>Cannot be repaired</strong> — repair is not feasible; also available as a repair outcome
+          </li>
         </ul>
         <p>
-          Filter the table by status and edit records (including status) from the row menu. Open{" "}
+          Filter the table by status and edit records (notes, status, and repair outcome) from the row menu. Open{" "}
           <strong>⋯ → Attachments</strong> to view invoices with file icons or upload a new invoice. On the asset
           detail page, the Maintenance tab shows a timeline, total maintenance cost vs purchase cost, and a warning
           when spend is high.
@@ -443,9 +495,13 @@ export function UsageManualContent() {
           Approve or Reject with an optional comment. Requesters are notified by email (also logged in the system).
         </p>
         <p>
-          <strong>On approve:</strong> VortAsset creates a pending asset in storage (placeholder AIN/serial) linked
-          to the request. Open that asset to enter real purchase details, then use <strong>Mark fulfilled</strong>{" "}
-          when assignment is complete (Managers/Admins with write access).
+          <strong>On approve:</strong> VortAsset creates a <strong>Pending Onboarding</strong> asset with placeholder
+          AIN/serial linked to the request. Use <strong>View pending asset</strong> to inspect it, or choose{" "}
+          <strong>Register &amp; fulfill</strong> to enter final AIN, serial, purchase cost/date, and optional PO /
+          invoice numbers. Fulfilling activates the asset and marks the request Fulfilled.
+        </p>
+        <p>
+          You can also finish registration from the asset page with <strong>More → Complete onboarding</strong>.
         </p>
         <p>Statuses: Pending → Approved or Rejected → Fulfilled.</p>
       </Section>
@@ -475,34 +531,26 @@ export function UsageManualContent() {
 
       <Section id="reports" title="Reports & exports">
         <p>
-          Open <strong>Reports</strong> for planning and audits. Tabs depend on your role:
+          Open <strong>Reports</strong> for the report catalog. Set a shared date range, branch, department,
+          category, and search, then use <strong>Preview</strong>, <strong>CSV</strong>, or <strong>Excel</strong>.
+          Preview and export use the same generated data. Access depends on your role.
         </p>
         <ul className="list-disc space-y-1 pl-5">
+          <li>Executive Asset Overview</li>
+          <li>Asset Register &amp; Portfolio</li>
+          <li>Asset Accountability &amp; Movement</li>
+          <li>Physical Verification &amp; Assurance</li>
+          <li>Condition, Maintenance &amp; Warranty</li>
+          <li>Lifecycle, Replacement &amp; Disposal</li>
+          <li>Asset Exceptions &amp; Risk</li>
+          <li>Management Health Check &amp; Maturity (fed by Settings → Health Check)</li>
+          <li>Asset Audit Trail &amp; Change History</li>
+          <li>System Activity &amp; Security Audit (Admin)</li>
           <li>
-            <strong>Replacement</strong> — assets due for replacement and estimated cost (Admin, Manager, Finance)
-          </li>
-          <li>
-            <strong>Department Cost</strong> — active asset count and total purchase cost by department (Admin,
-            Finance)
-          </li>
-          <li>
-            <strong>Disposal</strong> — counts and value removed by method; sale proceeds for sold assets (Admin,
-            Finance)
-          </li>
-          <li>
-            <strong>End-of-Life FMV</strong> — current and recommended sale values for approaching/overdue assets
-            (Admin, Finance)
+            Period Depreciation &amp; GL Export — period schedule plus debit/credit journal lines for financial close
+            (Finance and Admin)
           </li>
         </ul>
-        <p>
-          The page includes a replacement cost trend chart (aggregated across all matching assets) and a
-          searchable, paginated evaluation table with a state filter (Healthy / Approaching / Overdue). For the
-          Replacement report, use <strong>PDF</strong> and <strong>Excel</strong> beside the Rows control — exports
-          include all matching rows (up to 10,000) and respect the current state and search filters. Finance users
-          also see an <strong>End-of-Life FMV</strong> section with its own pagination and export. For Department
-          Cost and Disposal, export from the buttons on each tab. Department costs update when assets are transferred
-          between departments.
-        </p>
       </Section>
 
       <Section id="staff" title="Staff">
@@ -511,8 +559,9 @@ export function UsageManualContent() {
           member to see assigned assets, movement history, and status changes.
         </p>
         <p>
-          This is custody tracking, not account administration. For login accounts and roles, use{" "}
-          <strong>Users</strong> (Admin only).
+          For accepting deferred custody of assets assigned to <em>you</em>, use{" "}
+          <strong>Acknowledgements</strong>. This Staff page is custody tracking, not account administration. For
+          login accounts and roles, use <strong>Users</strong> (Admin only).
         </p>
       </Section>
 
@@ -554,7 +603,11 @@ export function UsageManualContent() {
             <strong>Policies</strong> — organization-level replacement rules by category
           </li>
           <li>
-            <strong>Depreciation</strong> — straight-line useful life and salvage percent by category
+            <strong>Depreciation</strong> — depreciation method, useful life, salvage percent, and declining rate by
+            category, plus period depreciation close runs
+          </li>
+          <li>
+            <strong>Health Check</strong> — maturity assessments that feed the Maturity report
           </li>
           <li>
             <strong>Reminders</strong> — lead times for warranty expiry, replacement due, and maintenance due
@@ -588,22 +641,32 @@ export function UsageManualContent() {
             The dashboard Open Exceptions count matches the Exceptions queue while the status filter is Open.
           </li>
           <li>
-            Finance users can open Reports finance tabs but cannot create or edit assets, campaigns, or exceptions.
-            Managers can edit assets but do not see finance-only report tabs (Admin and Finance do).
+            Finance users can open finance-oriented reports and export CSV/Excel but cannot create or edit assets,
+            campaigns, or exceptions. Managers can edit assets and generate most reports; only Admins get System
+            Security Audit.
           </li>
           <li>
-            Only Staff and Admins submit requests; Managers approve/reject and fulfill. After approving, open the
-            pending asset to set a real AIN, serial, and purchase cost before fulfilling.
+            Only Staff and Admins submit requests; Managers approve/reject and fulfill. On fulfill, enter final AIN,
+            serial, and purchase cost (and optional PO/invoice). Placeholder <code>PEND-</code> values are rejected.
+          </li>
+          <li>
+            Staff assignments can defer acknowledgement — the assignee must accept under Acknowledgements. Immediate
+            accept still requires checkbox, PIN, or signature at move time.
+          </li>
+          <li>
+            Leased or rented assets require a lessor / rental company name on create or edit.
           </li>
           <li>
             Sold disposal requires buyer name and sale price; use the recommended sale price as a starting point.
           </li>
           <li>
-            Department cost reports only include active assets; disposed/donated/sold items appear under Disposal.
+            Lifecycle / disposal report sheets cover active portfolio cost and disposed/donated/sold items together.
+            Use Period Depreciation &amp; GL Export for month-end journal lines after posting a period run if you need
+            a stored close.
           </li>
           <li>
-            On Reports, filter Replacement by state (or search) before downloading — PDF and Excel beside Rows use
-            those same filters.
+            On Reports, set shared filters (dates, branch, category, status, condition, asset, search) before Preview,
+            CSV, or Excel — all three use the same generated payload.
           </li>
           <li>
             For CSV import, download the template first, fill rows carefully, then upload from Assets → Import CSV.

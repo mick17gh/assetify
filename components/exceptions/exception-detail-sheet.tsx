@@ -2,14 +2,23 @@
 
 import { useRouter } from "next/navigation";
 import { transitionExceptionAction, uploadExceptionEvidenceAction } from "@/app/(dashboard)/exceptions/actions";
-import { ReferenceSelect, type ReferenceOption } from "@/components/shared/reference-selects";
+import { UserLookupSelect } from "@/components/shared/entity-lookups";
 import { PendingForm } from "@/components/shared/pending-form";
 import { SubmitButton } from "@/components/shared/submit-button";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import type { PickerOption } from "@/lib/lookups/types";
 import { EXCEPTION_STATUS } from "@/constants";
 
 export type ExceptionDetailData = {
@@ -27,12 +36,12 @@ export type ExceptionDetailData = {
 
 export function ExceptionDetailSheet({
   exception,
-  users,
+  userSeed,
   canWrite,
   closeHref,
 }: {
   exception: ExceptionDetailData;
-  users: ReferenceOption[];
+  userSeed: PickerOption[];
   canWrite: boolean;
   closeHref: string;
 }) {
@@ -41,7 +50,7 @@ export function ExceptionDetailSheet({
 
   return (
     <Dialog open onOpenChange={(open) => { if (!open) router.push(closeHref); }}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{exception.typeLabel}</DialogTitle>
           <DialogDescription>
@@ -49,7 +58,7 @@ export function ExceptionDetailSheet({
             {exception.assetLabel ? ` · ${exception.assetLabel}` : ""}
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-5">
+        <DialogBody className="space-y-5 pb-2">
           <p className="text-sm text-navy-900">{exception.description}</p>
           {exception.resolution ? <p className="text-sm text-navy-900/80">Resolution: {exception.resolution}</p> : null}
 
@@ -96,11 +105,11 @@ export function ExceptionDetailSheet({
                 <PendingForm action={transitionExceptionAction} successMessage="Exception assigned." className="space-y-2">
                   <input type="hidden" name="exceptionId" value={exception.id} />
                   <input type="hidden" name="toStatus" value={EXCEPTION_STATUS.ASSIGNED} />
-                  <ReferenceSelect
+                  <UserLookupSelect
                     name="assignedToId"
                     label="Assignee"
-                    options={users}
-                    defaultValue={exception.assigneeId ?? undefined}
+                    seed={userSeed}
+                    defaultValue={exception.assigneeId ?? ""}
                     required
                   />
                   <SubmitButton idleLabel="Assign" pendingLabel="Saving..." className="h-10 w-full cursor-pointer bg-navy-900 hover:bg-navy-950 sm:h-9 sm:w-auto" />
@@ -126,7 +135,17 @@ export function ExceptionDetailSheet({
               ) : null}
             </section>
           ) : null}
-        </div>
+        </DialogBody>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            className="cursor-pointer border-navy-200"
+            onClick={() => router.push(closeHref)}
+          >
+            Close
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

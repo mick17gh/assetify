@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { getRequiredSession } from "@/lib/session";
 import { assertPermission } from "@/lib/permissions";
 import { writeAuditLog } from "@/lib/audit";
+import { diffFields } from "@/lib/audit-changes";
 import {
   PERMISSION_KEYS,
   ASSET_STATUS,
@@ -16,13 +17,14 @@ import {
   USER_ROLES,
 } from "@/constants";
 import {
+  completeAssetOnboardingSchema,
   updateAssetDepreciationSchema,
   updateAssetSchema,
   updateAssetStatusSchema,
 } from "@/lib/validation/asset";
 import { recordDisposalSchema } from "@/lib/validation/disposal";
 import { calculateAssetValuation } from "@/lib/depreciation-service";
-import { parseOptionalCuid } from "@/lib/validation/helpers";
+import { formatZodError, parseOptionalCuid } from "@/lib/validation/helpers";
 import { syncReplacementForAsset } from "@/lib/replacement-service";
 import { syncRemindersForAsset } from "@/lib/reminder-service";
 import { deleteStoredFile, uploadAssetFileToSpaces } from "@/lib/storage/spaces";
@@ -114,14 +116,66 @@ export async function updateAssetDetailsAction(formData: FormData) {
   const description = String(formData.get("description") ?? "");
   if (!assetId || !name.trim()) throw new Error("Asset name is required.");
 
+  const before = await db.asset.findFirst({
+    where: { id: assetId, organizationId: session.organizationId ?? undefined },
+    select: {
+      name: true,
+      description: true,
+      manufacturer: true,
+      modelName: true,
+      existingAssetNumber: true,
+      categoryId: true,
+      purchaseCost: true,
+      poNumber: true,
+      invoiceNumber: true,
+      invoiceUrl: true,
+      capitalizedDate: true,
+      ownershipType: true,
+      lessorName: true,
+      leaseStartDate: true,
+      leaseEndDate: true,
+      leaseMonthlyCost: true,
+    },
+  });
+  if (!before) throw new Error("Asset not found.");
+
   const isAdmin = session.role === USER_ROLES.ADMIN;
-  const fields = ["name", "description", "manufacturer", "modelName", "existingAssetNumber"];
+  const fields = [
+    "name",
+    "description",
+    "manufacturer",
+    "modelName",
+    "existingAssetNumber",
+    "poNumber",
+    "invoiceNumber",
+    "invoiceUrl",
+    "capitalizedDate",
+    "ownershipType",
+    "lessorName",
+    "leaseStartDate",
+    "leaseEndDate",
+    "leaseMonthlyCost",
+  ];
+  const capitalizedRaw = String(formData.get("capitalizedDate") ?? "").trim();
+  const leaseStartRaw = String(formData.get("leaseStartDate") ?? "").trim();
+  const leaseEndRaw = String(formData.get("leaseEndDate") ?? "").trim();
+  const leaseCostRaw = String(formData.get("leaseMonthlyCost") ?? "").trim();
+  const ownershipType = String(formData.get("ownershipType") || before.ownershipType || "OWNED");
   const data: {
     name: string;
     description: string | null;
     manufacturer: string | null;
     modelName: string | null;
     existingAssetNumber: string | null;
+    poNumber: string | null;
+    invoiceNumber: string | null;
+    invoiceUrl: string | null;
+    capitalizedDate: Date | null;
+    ownershipType: "OWNED" | "RENTED" | "LEASED" | "DONATED_IN";
+    lessorName: string | null;
+    leaseStartDate: Date | null;
+    leaseEndDate: Date | null;
+    leaseMonthlyCost: string | null;
     categoryId?: string;
     purchaseCost?: string;
   } = {
@@ -130,6 +184,15 @@ export async function updateAssetDetailsAction(formData: FormData) {
     manufacturer: String(formData.get("manufacturer") ?? "").trim() || null,
     modelName: String(formData.get("modelName") ?? "").trim() || null,
     existingAssetNumber: String(formData.get("existingAssetNumber") ?? "").trim() || null,
+    poNumber: String(formData.get("poNumber") ?? "").trim() || null,
+    invoiceNumber: String(formData.get("invoiceNumber") ?? "").trim() || null,
+    invoiceUrl: String(formData.get("invoiceUrl") ?? "").trim() || null,
+    capitalizedDate: capitalizedRaw ? new Date(capitalizedRaw) : null,
+    ownershipType: ownershipType as "OWNED" | "RENTED" | "LEASED" | "DONATED_IN",
+    lessorName: String(formData.get("lessorName") ?? "").trim() || null,
+    leaseStartDate: leaseStartRaw ? new Date(leaseStartRaw) : null,
+    leaseEndDate: leaseEndRaw ? new Date(leaseEndRaw) : null,
+    leaseMonthlyCost: leaseCostRaw || null,
   };
 
   if (isAdmin) {
@@ -166,7 +229,30 @@ export async function updateAssetDetailsAction(formData: FormData) {
     action: "asset.edit",
     entityType: "Asset",
     entityId: assetId,
-    metadata: { fields },
+    metadata: {
+      fields,
+      changes: diffFields(
+        {
+          name: before.name,
+          description: before.description,
+          manufacturer: before.manufacturer,
+          modelName: before.modelName,
+          existingAssetNumber: before.existingAssetNumber,
+          categoryId: before.categoryId,
+          purchaseCost: String(before.purchaseCost),
+        },
+        {
+          name: data.name,
+          description: data.description,
+          manufacturer: data.manufacturer,
+          modelName: data.modelName,
+          existingAssetNumber: data.existingAssetNumber,
+          categoryId: data.categoryId ?? before.categoryId,
+          purchaseCost: data.purchaseCost ?? String(before.purchaseCost),
+        },
+        fields,
+      ),
+    },
   });
 
   revalidatePath(`/assets/${assetId}`);
@@ -210,19 +296,28 @@ export async function updateAssetProfileAction(formData: FormData) {
   const parsed = updateAssetSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
 
+  const before = await db.asset.findFirst({
+    where: { id: parsed.data.assetId, organizationId: session.organizationId ?? undefined },
+  });
+  if (!before) throw new Error("Asset not found.");
+
+  const after = {
+    name: parsed.data.name,
+    description: parsed.data.description?.trim() || null,
+    categoryId: parsed.data.categoryId,
+    branchId: parsed.data.branchId,
+    departmentId: parseOptionalCuid(parsed.data.departmentId),
+    roomId: parseOptionalCuid(parsed.data.roomId),
+    shelfId: parseOptionalCuid(parsed.data.shelfId),
+    vendorId: parseOptionalCuid(parsed.data.vendorId),
+    custodianId: parseOptionalCuid(parsed.data.custodianId),
+    purchaseCost: parsed.data.purchaseCost,
+  };
+
   await db.asset.updateMany({
     where: { id: parsed.data.assetId, organizationId: session.organizationId ?? undefined },
     data: {
-      name: parsed.data.name,
-      description: parsed.data.description?.trim() || null,
-      categoryId: parsed.data.categoryId,
-      branchId: parsed.data.branchId,
-      departmentId: parseOptionalCuid(parsed.data.departmentId),
-      roomId: parseOptionalCuid(parsed.data.roomId),
-      shelfId: parseOptionalCuid(parsed.data.shelfId),
-      vendorId: parseOptionalCuid(parsed.data.vendorId),
-      custodianId: parseOptionalCuid(parsed.data.custodianId),
-      purchaseCost: parsed.data.purchaseCost,
+      ...after,
       warrantyExpiryDate: parsed.data.warrantyExpiryDate ? new Date(parsed.data.warrantyExpiryDate) : null,
       depreciationUsefulLifeYears: parsed.data.depreciationUsefulLifeYears
         ? Number(parsed.data.depreciationUsefulLifeYears)
@@ -246,6 +341,38 @@ export async function updateAssetProfileAction(formData: FormData) {
     action: "asset.profile.update",
     entityType: "Asset",
     entityId: parsed.data.assetId,
+    metadata: {
+      changes: diffFields(
+        {
+          name: before.name,
+          description: before.description,
+          categoryId: before.categoryId,
+          branchId: before.branchId,
+          departmentId: before.departmentId,
+          roomId: before.roomId,
+          shelfId: before.shelfId,
+          vendorId: before.vendorId,
+          custodianId: before.custodianId,
+          purchaseCost: String(before.purchaseCost),
+        },
+        {
+          ...after,
+          purchaseCost: String(after.purchaseCost),
+        },
+        [
+          "name",
+          "description",
+          "categoryId",
+          "branchId",
+          "departmentId",
+          "roomId",
+          "shelfId",
+          "vendorId",
+          "custodianId",
+          "purchaseCost",
+        ],
+      ),
+    },
   });
 
   revalidatePath(`/assets/${parsed.data.assetId}`);
@@ -258,19 +385,29 @@ export async function updateAssetDepreciationAction(formData: FormData) {
   const parsed = updateAssetDepreciationSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
 
+  const before = await db.asset.findFirst({
+    where: { id: parsed.data.assetId, organizationId: session.organizationId ?? undefined },
+    select: {
+      depreciationUsefulLifeYears: true,
+      depreciationSalvageValue: true,
+      depreciationMethodOverride: true,
+    },
+  });
+  if (!before) throw new Error("Asset not found.");
+
+  const after = {
+    depreciationUsefulLifeYears: parsed.data.depreciationUsefulLifeYears
+      ? Number(parsed.data.depreciationUsefulLifeYears)
+      : null,
+    depreciationSalvageValue: parsed.data.depreciationSalvageValue ? parsed.data.depreciationSalvageValue : null,
+    depreciationMethodOverride: parsed.data.depreciationMethodOverride
+      ? parsed.data.depreciationMethodOverride
+      : null,
+  };
+
   await db.asset.updateMany({
     where: { id: parsed.data.assetId, organizationId: session.organizationId ?? undefined },
-    data: {
-      depreciationUsefulLifeYears: parsed.data.depreciationUsefulLifeYears
-        ? Number(parsed.data.depreciationUsefulLifeYears)
-        : null,
-      depreciationSalvageValue: parsed.data.depreciationSalvageValue
-        ? parsed.data.depreciationSalvageValue
-        : null,
-      depreciationMethodOverride: parsed.data.depreciationMethodOverride
-        ? parsed.data.depreciationMethodOverride
-        : null,
-    },
+    data: after,
   });
 
   await writeAuditLog({
@@ -280,6 +417,23 @@ export async function updateAssetDepreciationAction(formData: FormData) {
     action: "asset.depreciation.update",
     entityType: "Asset",
     entityId: parsed.data.assetId,
+    metadata: {
+      changes: diffFields(
+        {
+          depreciationUsefulLifeYears: before.depreciationUsefulLifeYears,
+          depreciationSalvageValue:
+            before.depreciationSalvageValue != null ? String(before.depreciationSalvageValue) : null,
+          depreciationMethodOverride: before.depreciationMethodOverride,
+        },
+        {
+          depreciationUsefulLifeYears: after.depreciationUsefulLifeYears,
+          depreciationSalvageValue:
+            after.depreciationSalvageValue != null ? String(after.depreciationSalvageValue) : null,
+          depreciationMethodOverride: after.depreciationMethodOverride,
+        },
+        ["depreciationUsefulLifeYears", "depreciationSalvageValue", "depreciationMethodOverride"],
+      ),
+    },
   });
 
   revalidatePath(`/assets/${parsed.data.assetId}`);
@@ -308,6 +462,23 @@ export async function updateAssetStatusAction(formData: FormData) {
       fromStatus: asset.status,
       toStatus: parsed.data.status,
       note: parsed.data.note,
+    },
+  });
+
+  await writeAuditLog({
+    actorUserId: session.userId,
+    organizationId: session.organizationId,
+    branchId: session.branchId ?? asset.branchId,
+    action: "asset.status.update",
+    entityType: "Asset",
+    entityId: parsed.data.assetId,
+    metadata: {
+      changes: diffFields(
+        { status: asset.status, condition: asset.condition },
+        { status: parsed.data.status, condition: parsed.data.condition },
+        ["status", "condition"],
+      ),
+      note: parsed.data.note || null,
     },
   });
 
@@ -360,6 +531,7 @@ export async function recordAssetDisposalAction(formData: FormData) {
           method: policy.method,
           usefulLifeYears: policy.usefulLifeYears,
           salvagePercent: Number(policy.salvagePercent),
+          decliningRatePercent: policy.decliningRatePercent != null ? Number(policy.decliningRatePercent) : null,
         }
       : null,
   );
@@ -406,7 +578,7 @@ export async function recordAssetDisposalAction(formData: FormData) {
     await db.assetDocument.create({
       data: {
         assetId: asset.id,
-        documentType: "OTHER",
+        documentType: "DISPOSAL_EVIDENCE",
         displayName: evidence.name || "Disposal evidence",
         fileName: uploaded.fileName,
         fileUrl: uploaded.publicUrl,
@@ -419,11 +591,22 @@ export async function recordAssetDisposalAction(formData: FormData) {
   await writeAuditLog({
     actorUserId: session.userId,
     organizationId: session.organizationId,
-    branchId: session.branchId,
+    branchId: session.branchId ?? asset.branchId,
     action: "asset.dispose",
     entityType: "Asset",
     entityId: asset.id,
-    metadata: { method: parsed.data.method },
+    metadata: {
+      method: parsed.data.method,
+      changes: [
+        { field: "status", from: asset.status, to: statusMap[parsed.data.method] },
+        { field: "isActive", from: true, to: false },
+        { field: "disposalMethod", from: null, to: parsed.data.method },
+        { field: "disposalReason", from: null, to: parsed.data.reason },
+        ...(parsed.data.salePrice
+          ? [{ field: "salePrice", from: null, to: String(parsed.data.salePrice) }]
+          : []),
+      ],
+    },
   });
 
   revalidatePath(`/assets/${parsed.data.assetId}`);
@@ -539,4 +722,70 @@ export async function deleteMaintenanceRecordAction(formData: FormData) {
 
   await db.maintenanceRecord.delete({ where: { id: recordId } });
   revalidatePath(`/assets/${record.assetId}`);
+}
+
+export async function completeAssetOnboardingAction(formData: FormData) {
+  const session = await getRequiredSession();
+  assertPermission(session.role, PERMISSION_KEYS.ASSET_WRITE);
+  const parsed = completeAssetOnboardingSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) throw new Error(formatZodError(parsed.error));
+
+  const asset = await db.asset.findFirst({
+    where: { id: parsed.data.assetId, organizationId: session.organizationId ?? undefined },
+  });
+  if (!asset) throw new Error("Asset not found.");
+  if (asset.status !== ASSET_STATUS.PENDING_ONBOARDING && !asset.ain.startsWith("PEND-")) {
+    throw new Error("Asset is not pending onboarding.");
+  }
+
+  const nextAin = parsed.data.ain?.trim() || asset.ain;
+  const nextSerial = parsed.data.serialNumber?.trim() || asset.serialNumber;
+  const nextCost = parsed.data.purchaseCost?.trim() || String(asset.purchaseCost);
+  if (nextAin.startsWith("PEND-") || nextSerial.startsWith("PEND-")) {
+    throw new Error("Replace placeholder AIN and serial before completing onboarding.");
+  }
+  if (Number(nextCost) <= 0) {
+    throw new Error("Enter a purchase cost greater than zero.");
+  }
+
+  await db.asset.update({
+    where: { id: asset.id },
+    data: {
+      ain: nextAin,
+      serialNumber: nextSerial,
+      purchaseCost: nextCost,
+      purchaseDate: parsed.data.purchaseDate ? new Date(parsed.data.purchaseDate) : asset.purchaseDate,
+      poNumber: parsed.data.poNumber?.trim() || asset.poNumber,
+      invoiceNumber: parsed.data.invoiceNumber?.trim() || asset.invoiceNumber,
+      invoiceUrl: parsed.data.invoiceUrl?.trim() || asset.invoiceUrl,
+      capitalizedDate: parsed.data.capitalizedDate ? new Date(parsed.data.capitalizedDate) : asset.capitalizedDate,
+      status: ASSET_STATUS.ACTIVE,
+      onboardingCompletedAt: new Date(),
+    },
+  });
+
+  await db.assetStatusHistory.create({
+    data: {
+      assetId: asset.id,
+      fromStatus: asset.status,
+      toStatus: ASSET_STATUS.ACTIVE,
+      note: parsed.data.note?.trim() || "Onboarding completed",
+    },
+  });
+
+  await syncReplacementForAsset(asset.id);
+  await syncRemindersForAsset(asset.id);
+
+  await writeAuditLog({
+    actorUserId: session.userId,
+    organizationId: session.organizationId,
+    branchId: session.branchId ?? asset.branchId,
+    action: "asset.onboarding.complete",
+    entityType: "Asset",
+    entityId: asset.id,
+  });
+
+  revalidatePath(`/assets/${asset.id}`);
+  revalidatePath("/assets");
+  revalidatePath("/requests");
 }

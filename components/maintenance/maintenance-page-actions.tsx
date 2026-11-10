@@ -6,9 +6,10 @@ import {
 } from "@/app/(dashboard)/maintenance/actions";
 import { SetupCreateModal, SetupTextField } from "@/components/settings/setup-create-modal";
 import { EnumSelect } from "@/components/shared/enum-select";
-import { ReferenceOption, ReferenceSelect } from "@/components/shared/reference-selects";
+import { AssetLookupSelect } from "@/components/shared/entity-lookups";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import type { PickerOption } from "@/lib/lookups/types";
 import { MAINTENANCE_STATUS, REPAIR_OUTCOME } from "@/constants";
 
 const CONDITION_SEVERITY = {
@@ -18,12 +19,16 @@ const CONDITION_SEVERITY = {
   CRITICAL: "CRITICAL",
 } as const;
 
-export function MaintenancePageActions({ assets }: { assets: ReferenceOption[] }) {
+export function MaintenancePageActions({ assetSeed }: { assetSeed: PickerOption[] }) {
   return (
     <>
       <SetupCreateModal title="Log maintenance service" triggerLabel="Log Service" action={createMaintenanceAction}>
-        <ReferenceSelect name="assetId" label="Asset" options={assets} required />
+        <AssetLookupSelect name="assetId" seed={assetSeed} required />
         <SetupTextField name="description" label="Description" required minLength={3} maxLength={2000} />
+        <div className="min-w-0 space-y-1">
+          <Label htmlFor="maintenance-notes">Notes</Label>
+          <Textarea id="maintenance-notes" name="notes" maxLength={4000} placeholder="Additional notes (optional)" className="min-w-0" />
+        </div>
         <SetupTextField name="serviceDate" label="Service date" type="date" required />
         <SetupTextField name="reportedDate" label="Date reported" type="date" />
         <SetupTextField name="sentDate" label="Date sent" type="date" />
@@ -46,7 +51,7 @@ export function MaintenancePageActions({ assets }: { assets: ReferenceOption[] }
         />
       </SetupCreateModal>
       <SetupCreateModal title="Create condition flag" triggerLabel="Flag Condition" action={createConditionFlagAction}>
-        <ReferenceSelect name="assetId" label="Asset" options={assets} required />
+        <AssetLookupSelect name="assetId" seed={assetSeed} required />
         <SetupTextField name="title" label="Issue title" required minLength={2} maxLength={120} />
         <div className="min-w-0 space-y-1">
           <Label htmlFor="notes">Notes</Label>

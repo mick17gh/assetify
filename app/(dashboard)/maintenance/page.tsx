@@ -2,6 +2,7 @@ import { MaintenanceBoard, MaintenanceRowActions, MaintenanceStatusBadge } from 
 import { MaintenancePageActions } from "@/components/maintenance/maintenance-page-actions";
 import { MaintenanceStatusFilter } from "@/components/maintenance/maintenance-status-filter";
 import { PageHeader } from "@/components/shared/page-header";
+import { getRecentAssetsForPicker } from "@/lib/assets/picker-search";
 import { db } from "@/lib/db";
 import { getRequiredSession } from "@/lib/session";
 import { getAssetScopeWhere } from "@/lib/scoping";
@@ -43,7 +44,7 @@ export default async function MaintenancePage({ searchParams }: { searchParams: 
         }
       : {}),
   };
-  const [records, totalCount, assets, totalRecords, openFlags, criticalFlags, latestFlags] = await Promise.all([
+  const [records, totalCount, assetSeed, totalRecords, openFlags, criticalFlags, latestFlags] = await Promise.all([
     db.maintenanceRecord.findMany({
       where,
       include: {
@@ -55,12 +56,9 @@ export default async function MaintenancePage({ searchParams }: { searchParams: 
       take,
     }),
     db.maintenanceRecord.count({ where }),
-    db.asset.findMany({
-      where: assetScope,
-      orderBy: { name: "asc" },
-      select: { id: true, name: true, ain: true },
-      take: 300,
-    }),
+    session.organizationId
+      ? getRecentAssetsForPicker({ organizationId: session.organizationId })
+      : Promise.resolve([]),
     db.maintenanceRecord.count({ where: { asset: assetScope } }),
     db.conditionFlag.count({ where: { asset: assetScope, resolvedAt: null } }),
     db.conditionFlag.count({
@@ -73,14 +71,13 @@ export default async function MaintenancePage({ searchParams }: { searchParams: 
       take: 5,
     }),
   ]);
-  const assetOptions = assets.map((asset) => ({ id: asset.id, label: `${asset.name} (${asset.ain})` }));
 
   return (
     <div>
       <PageHeader
         title="Status and Maintenance"
         description="Lifecycle flow from purchased through disposal with service history."
-        action={canWrite ? <MaintenancePageActions assets={assetOptions} /> : null}
+        action={canWrite ? <MaintenancePageActions assetSeed={assetSeed} /> : null}
       />
       <MaintenanceBoard
         totalRecords={totalRecords}
@@ -106,7 +103,7 @@ export default async function MaintenancePage({ searchParams }: { searchParams: 
                 <TableHead>Asset</TableHead>
                 <TableHead>Service Date</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Description</TableHead>
+                <TableHead>Description / Notes</TableHead>
                 <TableHead>Cost</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -119,19 +116,35 @@ export default async function MaintenancePage({ searchParams }: { searchParams: 
                   <TableCell>
                     <MaintenanceStatusBadge status={record.status} />
                   </TableCell>
-                  <TableCell>{record.description}</TableCell>
+                  <TableCell>
+                    <div className="max-w-md">
+                      <p className="text-sm text-navy-950">{record.description}</p>
+                      {record.notes ? (
+                        <p className="mt-1 text-xs text-navy-900/65">{record.notes}</p>
+                      ) : null}
+                    </div>
+                  </TableCell>
                   <TableCell>{record.cost ? Number(record.cost).toLocaleString() : "-"}</TableCell>
                   <TableCell className="text-right">
                     <MaintenanceRowActions
                       recordId={record.id}
                       assetId={record.assetId}
                       description={record.description}
+                      notes={record.notes ?? ""}
                       serviceDate={record.serviceDate.toISOString().slice(0, 10)}
                       cost={record.cost ? String(record.cost) : ""}
                       vendorName={record.vendorName ?? ""}
                       nextServiceDate={record.nextServiceDate ? record.nextServiceDate.toISOString().slice(0, 10) : ""}
+                      reportedDate={record.reportedDate ? record.reportedDate.toISOString().slice(0, 10) : ""}
+                      sentDate={record.sentDate ? record.sentDate.toISOString().slice(0, 10) : ""}
+                      actualReturnDate={
+                        record.actualReturnDate ? record.actualReturnDate.toISOString().slice(0, 10) : ""
+                      }
+                      warrantyClaim={record.warrantyClaim}
                       status={record.status}
-                      assets={assetOptions}
+                      repairOutcome={record.repairOutcome ?? ""}
+                      assetSeed={assetSeed}
+                      assetLabel={`${record.asset.name} (${record.asset.ain})`}
                       documents={record.documents}
                       canUpload={canUpload}
                     />

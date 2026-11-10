@@ -70,15 +70,31 @@ export async function replayOfflineOperations(operations: OfflineOperation[], co
                 : {}),
             },
           });
-          if (parsed.data.movementType === "STAFF_ASSIGNMENT" && parsed.data.toCustodianId && parsed.data.acknowledgementMethod) {
-            await db.assignmentAcknowledgement.create({
-              data: {
-                assetId: asset.id,
-                userId: parsed.data.toCustodianId,
-                method: parsed.data.acknowledgementMethod,
-                note: parsed.data.acknowledgementNote?.trim() || "Accepted",
-              },
-            });
+          if (parsed.data.movementType === "STAFF_ASSIGNMENT" && parsed.data.toCustodianId) {
+            const deferred = parsed.data.acknowledgementDeferred === "true";
+            if (deferred || !parsed.data.acknowledgementMethod) {
+              await db.assignmentAcknowledgement.create({
+                data: {
+                  assetId: asset.id,
+                  userId: parsed.data.toCustodianId,
+                  status: "PENDING",
+                  method: null,
+                  acceptedAt: null,
+                  note: "Awaiting assignee acceptance",
+                },
+              });
+            } else {
+              await db.assignmentAcknowledgement.create({
+                data: {
+                  assetId: asset.id,
+                  userId: parsed.data.toCustodianId,
+                  status: "ACCEPTED",
+                  method: parsed.data.acknowledgementMethod,
+                  acceptedAt: new Date(),
+                  note: parsed.data.acknowledgementNote?.trim() || "Accepted",
+                },
+              });
+            }
           }
           results.push({ type: op.type, ok: true });
           break;
@@ -97,6 +113,7 @@ export async function replayOfflineOperations(operations: OfflineOperation[], co
             data: {
               assetId: asset.id,
               description: parsed.data.description,
+              notes: parsed.data.notes?.trim() || null,
               serviceDate: new Date(parsed.data.serviceDate),
               cost: parsed.data.cost ? parsed.data.cost : null,
               vendorName: parsed.data.vendorName?.trim() || null,

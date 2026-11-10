@@ -1,5 +1,6 @@
 import { AssetDetailsTabs } from "@/components/assets/asset-details-tabs";
 import { db } from "@/lib/db";
+import { buildAssetTimeline } from "@/lib/asset-timeline";
 import { getTotalMaintenanceCost, isHighMaintenanceAsset } from "@/lib/maintenance-service";
 
 export async function AssetDetailsTabsPanel({
@@ -9,6 +10,7 @@ export async function AssetDetailsTabsPanel({
   valuation,
   canUploadDocuments,
   overviewBase,
+  disposalPipeline,
 }: {
   assetId: string;
   purchaseCost: number;
@@ -39,31 +41,43 @@ export async function AssetDetailsTabsPanel({
     purchaseDate: string;
     purchaseCost: string;
     warrantyExpiry: string;
+    poNumber: string;
+    invoiceNumber: string;
+    invoiceUrl: string;
+    capitalizedDate: string;
+    ownershipType: string;
+    lessorName: string;
+    leaseWindow: string;
+    leaseMonthlyCost: string;
+  };
+  disposalPipeline: {
+    recommendationState: string | null;
+    approvalStatus: string | null;
+    recommendedAction: string | null;
+    reason: string | null;
+    replacementState: string | null;
+    recommendedReplaceDate: string | null;
   };
 }) {
-  const [maintenanceRecords, statusHistory, documents, disposalRecord, totalMaintenanceCost] =
-    await Promise.all([
-      db.maintenanceRecord.findMany({
-        where: { assetId },
-        orderBy: { serviceDate: "desc" },
-        take: 20,
-        include: { documents: { select: { id: true, fileName: true, fileUrl: true } } },
-      }),
-      db.assetStatusHistory.findMany({
-        where: { assetId },
-        orderBy: { createdAt: "desc" },
-        take: 20,
-      }),
-      db.assetDocument.findMany({
-        where: { assetId },
-        orderBy: { createdAt: "desc" },
-        take: 20,
-      }),
-      db.assetDisposalRecord.findUnique({ where: { assetId } }),
-      getTotalMaintenanceCost(assetId),
-    ]);
+  const [maintenanceRecords, timeline, documents, disposalRecord, totalMaintenanceCost] = await Promise.all([
+    db.maintenanceRecord.findMany({
+      where: { assetId },
+      orderBy: { serviceDate: "desc" },
+      take: 20,
+      include: { documents: { select: { id: true, fileName: true, fileUrl: true } } },
+    }),
+    buildAssetTimeline(assetId, 80),
+    db.assetDocument.findMany({
+      where: { assetId },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+    db.assetDisposalRecord.findUnique({ where: { assetId } }),
+    getTotalMaintenanceCost(assetId),
+  ]);
 
   const highMaintenance = isHighMaintenanceAsset(purchaseCost, totalMaintenanceCost, thresholdPercent);
+  const statusEvents = timeline.filter((item) => item.kind === "status");
 
   return (
     <AssetDetailsTabs
@@ -77,11 +91,11 @@ export async function AssetDetailsTabsPanel({
               description: maintenanceRecords[0].description,
             }
           : null,
-        latestHistory: statusHistory[0]
+        latestHistory: statusEvents[0]
           ? {
-              date: statusHistory[0].createdAt.toLocaleDateString(),
-              from: statusHistory[0].fromStatus ?? "N/A",
-              to: statusHistory[0].toStatus,
+              date: statusEvents[0].at.toLocaleDateString(),
+              from: statusEvents[0].title,
+              to: statusEvents[0].detail,
             }
           : null,
         currentValue: valuation.currentValue.toLocaleString(undefined, {
@@ -116,12 +130,12 @@ export async function AssetDetailsTabsPanel({
         purchaseCost,
         isHighCost: highMaintenance,
       }}
-      history={statusHistory.map((item) => ({
+      timeline={timeline.map((item) => ({
         id: item.id,
-        date: item.createdAt.toLocaleDateString(),
-        from: item.fromStatus ?? "N/A",
-        to: item.toStatus,
-        note: item.note ?? "",
+        at: item.at.toLocaleString(),
+        kind: item.kind,
+        title: item.title,
+        detail: item.detail,
       }))}
       files={documents.map((item) => ({
         id: item.id,
@@ -145,6 +159,7 @@ export async function AssetDetailsTabsPanel({
             }
           : null
       }
+      disposalPipeline={disposalPipeline}
       canUploadDocuments={canUploadDocuments}
     />
   );

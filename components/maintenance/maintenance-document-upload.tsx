@@ -7,7 +7,15 @@ import { uploadMaintenanceDocumentAction } from "@/app/(dashboard)/maintenance/a
 import { SubmitButton } from "@/components/shared/submit-button";
 import { PendingForm } from "@/components/shared/pending-form";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -47,14 +55,18 @@ export function MaintenanceDocumentUpload({
             setOpen(false);
             router.refresh();
           }}
-          className="space-y-3"
+          className="flex min-h-0 flex-1 flex-col"
         >
-          <input type="hidden" name="recordId" value={recordId} />
-          <div className="space-y-1">
-            <Label htmlFor={`document-${recordId}`}>Invoice / report</Label>
-            <Input id={`document-${recordId}`} name="document" type="file" required accept=".pdf,.png,.jpg,.jpeg,.webp" />
-          </div>
-          <SubmitButton idleLabel="Upload" pendingLabel="Uploading..." className="w-full cursor-pointer" />
+          <DialogBody className="space-y-3 pb-2">
+            <input type="hidden" name="recordId" value={recordId} />
+            <div className="space-y-1">
+              <Label htmlFor={`document-${recordId}`}>Invoice / report</Label>
+              <Input id={`document-${recordId}`} name="document" type="file" required accept=".pdf,.png,.jpg,.jpeg,.webp" />
+            </div>
+          </DialogBody>
+          <DialogFooter>
+            <SubmitButton idleLabel="Upload" pendingLabel="Uploading..." className="w-full cursor-pointer sm:w-auto" />
+          </DialogFooter>
         </PendingForm>
       </DialogContent>
     </Dialog>

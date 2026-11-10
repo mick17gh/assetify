@@ -1,11 +1,13 @@
 import {
   ACKNOWLEDGEMENT_METHOD,
+  ACKNOWLEDGEMENT_STATUS,
   ASSET_CONDITION,
   ASSET_REQUEST_STATUS,
   ASSET_REQUEST_URGENCY,
   ASSET_STATUS,
   ASSIGNMENT_TYPE,
   DEPRECIATION_METHOD,
+  DEPRECIATION_RUN_STATUS,
   DISPOSAL_APPROVAL_STATUS,
   DISPOSAL_METHOD,
   DOCUMENT_TYPE,
@@ -16,6 +18,7 @@ import {
   NOT_FOUND_REASON,
   ORGANIZATION_INDUSTRY,
   ORGANIZATION_TYPE,
+  OWNERSHIP_TYPE,
   RECOMMENDATION_STATE,
   REPAIR_OUTCOME,
   TRANSFER_REASON,
@@ -33,6 +36,7 @@ export const ENUM_LABELS: Record<string, Record<string, string>> = {
     [USER_ROLES.FINANCE]: "Finance",
   },
   assetStatus: {
+    [ASSET_STATUS.PENDING_ONBOARDING]: "Pending Onboarding",
     [ASSET_STATUS.ACTIVE]: "Active",
     [ASSET_STATUS.UNDER_REPAIR]: "Under Repair",
     [ASSET_STATUS.FAULTY]: "Faulty",
@@ -43,6 +47,20 @@ export const ENUM_LABELS: Record<string, Record<string, string>> = {
     [ASSET_STATUS.DISPOSED]: "Disposed",
     [ASSET_STATUS.DONATED]: "Donated",
     [ASSET_STATUS.SOLD]: "Sold",
+  },
+  ownershipType: {
+    [OWNERSHIP_TYPE.OWNED]: "Owned",
+    [OWNERSHIP_TYPE.RENTED]: "Rented",
+    [OWNERSHIP_TYPE.LEASED]: "Leased",
+    [OWNERSHIP_TYPE.DONATED_IN]: "Donated in",
+  },
+  acknowledgementStatus: {
+    [ACKNOWLEDGEMENT_STATUS.PENDING]: "Pending",
+    [ACKNOWLEDGEMENT_STATUS.ACCEPTED]: "Accepted",
+  },
+  depreciationRunStatus: {
+    [DEPRECIATION_RUN_STATUS.DRAFT]: "Draft",
+    [DEPRECIATION_RUN_STATUS.POSTED]: "Posted",
   },
   assetCondition: {
     [ASSET_CONDITION.NEW]: "New",
@@ -65,10 +83,13 @@ export const ENUM_LABELS: Record<string, Record<string, string>> = {
   },
   documentType: {
     [DOCUMENT_TYPE.RECEIPT]: "Receipt",
+    [DOCUMENT_TYPE.INVOICE]: "Invoice",
+    [DOCUMENT_TYPE.PURCHASE_ORDER]: "Purchase Order",
     [DOCUMENT_TYPE.WARRANTY_CARD]: "Warranty Card",
     [DOCUMENT_TYPE.MANUAL]: "Manual",
     [DOCUMENT_TYPE.SERVICE_REPORT]: "Service Report",
     [DOCUMENT_TYPE.MAINTENANCE_INVOICE]: "Maintenance Invoice",
+    [DOCUMENT_TYPE.DISPOSAL_EVIDENCE]: "Disposal Evidence",
     [DOCUMENT_TYPE.OTHER]: "Other",
   },
   reminderType: {
@@ -97,6 +118,7 @@ export const ENUM_LABELS: Record<string, Record<string, string>> = {
     [MAINTENANCE_STATUS.SCHEDULED]: "Scheduled",
     [MAINTENANCE_STATUS.IN_PROGRESS]: "In Progress",
     [MAINTENANCE_STATUS.COMPLETED]: "Completed",
+    [MAINTENANCE_STATUS.CANNOT_BE_REPAIRED]: "Cannot be repaired",
   },
   disposalMethod: {
     [DISPOSAL_METHOD.DONATED]: "Donated",
@@ -105,6 +127,9 @@ export const ENUM_LABELS: Record<string, Record<string, string>> = {
   },
   depreciationMethod: {
     [DEPRECIATION_METHOD.STRAIGHT_LINE]: "Straight-Line",
+    [DEPRECIATION_METHOD.DECLINING_BALANCE]: "Declining Balance",
+    [DEPRECIATION_METHOD.DOUBLE_DECLINING_BALANCE]: "Double Declining Balance",
+    [DEPRECIATION_METHOD.SUM_OF_YEARS_DIGITS]: "Sum of Years Digits",
   },
   campaignStatus: {
     [CAMPAIGN_STATUS.DRAFT]: "Draft",
@@ -209,6 +234,7 @@ export const ENUM_LABELS: Record<string, Record<string, string>> = {
     [REPAIR_OUTCOME.REPLACEMENT_RECOMMENDED]: "Replacement Recommended",
     [REPAIR_OUTCOME.BEYOND_ECONOMICAL_REPAIR]: "Beyond Economical Repair",
     [REPAIR_OUTCOME.AWAITING_PARTS]: "Awaiting Parts",
+    [REPAIR_OUTCOME.CANNOT_BE_REPAIRED]: "Cannot be repaired",
     [REPAIR_OUTCOME.OTHER]: "Other",
   },
   disposalApprovalStatus: {

@@ -3,12 +3,13 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { ENUM_LABELS, EXCEPTION_STATUS, EXCEPTION_TYPE } from "@/constants";
 import { EnumSelectFilter } from "@/components/shared/enum-select";
-import { InlineCombobox, type ReferenceOption } from "@/components/shared/reference-selects";
+import { UserLookupPicker } from "@/components/shared/entity-lookups";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { PickerOption } from "@/lib/lookups/types";
 import { getQueryNavigationTarget } from "@/lib/filters/query";
 import { clearPaginationParams } from "@/lib/pagination/page";
 
-export function ExceptionFilters({ assignees }: { assignees: ReferenceOption[] }) {
+export function ExceptionFilters({ assigneeSeed }: { assigneeSeed: PickerOption[] }) {
   const router = useRouter();
   const params = useSearchParams();
   const type = params.get("type") ?? "ALL";
@@ -61,18 +62,19 @@ export function ExceptionFilters({ assignees }: { assignees: ReferenceOption[] }
           ))}
         </SelectContent>
       </Select>
-      <InlineCombobox
+      <UserLookupPicker
         value={assignee}
-        options={assignees}
+        seed={assigneeSeed}
         allowNone
+        noneLabel="All assignees"
         placeholder="All assignees"
+        className="h-9 w-full sm:w-[180px]"
         onValueChange={(value) => {
           updateQuery((next) => {
             if (!value) next.delete("assignee");
             else next.set("assignee", value);
           });
         }}
-        className="h-9 w-full sm:w-[180px]"
       />
     </>
   );

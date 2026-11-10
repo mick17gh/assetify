@@ -6,6 +6,7 @@ import { APP_ROUTES, ERROR_MESSAGES, PERMISSION_KEYS } from "@/constants";
 import { assertPermission } from "@/lib/permissions";
 import { getRequiredSession } from "@/lib/session";
 import { writeAuditLog } from "@/lib/audit";
+import { diffFields } from "@/lib/audit-changes";
 import {
   createConditionFlagSchema,
   createMaintenanceSchema,
@@ -39,6 +40,7 @@ export async function createMaintenanceAction(formData: FormData) {
     data: {
       assetId: parsed.data.assetId,
       description: parsed.data.description,
+      notes: parsed.data.notes?.trim() || null,
       serviceDate: new Date(parsed.data.serviceDate),
       cost: parsed.data.cost ? parsed.data.cost : null,
       vendorName: parsed.data.vendorName?.trim() || null,
@@ -71,6 +73,15 @@ export async function createMaintenanceAction(formData: FormData) {
     action: "maintenance.create",
     entityType: "MaintenanceRecord",
     entityId: parsed.data.assetId,
+    metadata: {
+      changes: [
+        { field: "description", from: null, to: parsed.data.description },
+        { field: "status", from: null, to: parsed.data.status },
+        { field: "repairOutcome", from: null, to: parsed.data.repairOutcome || null },
+        { field: "cost", from: null, to: parsed.data.cost || null },
+        { field: "notes", from: null, to: parsed.data.notes?.trim() || null },
+      ],
+    },
   });
 
   revalidatePath(APP_ROUTES.MAINTENANCE);
@@ -97,10 +108,16 @@ export async function updateMaintenanceAction(formData: FormData) {
     data: {
       assetId: parsed.data.assetId,
       description: parsed.data.description,
+      notes: parsed.data.notes?.trim() || null,
       serviceDate: new Date(parsed.data.serviceDate),
       cost: parsed.data.cost ? parsed.data.cost : null,
       vendorName: parsed.data.vendorName?.trim() || null,
       nextServiceDate: parsed.data.nextServiceDate ? new Date(parsed.data.nextServiceDate) : null,
+      reportedDate: parsed.data.reportedDate ? new Date(parsed.data.reportedDate) : null,
+      sentDate: parsed.data.sentDate ? new Date(parsed.data.sentDate) : null,
+      actualReturnDate: parsed.data.actualReturnDate ? new Date(parsed.data.actualReturnDate) : null,
+      warrantyClaim: parsed.data.warrantyClaim === "true",
+      repairOutcome: parsed.data.repairOutcome || null,
       status: parsed.data.status,
     },
   });
@@ -123,7 +140,31 @@ export async function updateMaintenanceAction(formData: FormData) {
     branchId: record.asset.branchId,
     action: "maintenance.update",
     entityType: "MaintenanceRecord",
-    entityId: parsed.data.id,
+    entityId: parsed.data.assetId,
+    metadata: {
+      recordId: parsed.data.id,
+      changes: diffFields(
+        {
+          assetId: record.assetId,
+          description: record.description,
+          notes: record.notes,
+          status: record.status,
+          repairOutcome: record.repairOutcome,
+          cost: record.cost != null ? String(record.cost) : null,
+          vendorName: record.vendorName,
+        },
+        {
+          assetId: parsed.data.assetId,
+          description: parsed.data.description,
+          notes: parsed.data.notes?.trim() || null,
+          status: parsed.data.status,
+          repairOutcome: parsed.data.repairOutcome || null,
+          cost: parsed.data.cost || null,
+          vendorName: parsed.data.vendorName?.trim() || null,
+        },
+        ["assetId", "description", "notes", "status", "repairOutcome", "cost", "vendorName"],
+      ),
+    },
   });
 
   revalidatePath(APP_ROUTES.MAINTENANCE);

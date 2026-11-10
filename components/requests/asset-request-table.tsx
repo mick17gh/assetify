@@ -116,24 +116,81 @@ function RequestRowActions({
       </Dialog>
 
       <Dialog open={fulfillOpen} onOpenChange={setFulfillOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Mark request fulfilled</DialogTitle>
+            <DialogTitle>Register asset & fulfill</DialogTitle>
             <DialogDescription>
-              Confirm that the pending asset has been set up and assigned. Make sure AIN, serial, and purchase
-              details are complete first.
+              Convert the pending asset into a registered record with final AIN, serial, cost, and optional PO
+              details, then mark the request fulfilled.
             </DialogDescription>
           </DialogHeader>
           <PendingForm
             action={fulfillAssetRequestAction}
             onSuccess={() => setFulfillOpen(false)}
-            successMessage="Request marked as fulfilled."
+            successMessage="Asset registered and request fulfilled."
             className="space-y-3"
           >
             <input type="hidden" name="id" value={row.id} />
+            <input type="hidden" name="activateAsset" value="true" />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label htmlFor={`ain-${row.id}`}>AIN</Label>
+                <input
+                  id={`ain-${row.id}`}
+                  name="ain"
+                  required
+                  className="flex h-10 w-full rounded-md border border-navy-200 bg-white px-3 text-sm"
+                  placeholder="HQ-IT-000123"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor={`serial-${row.id}`}>Serial number</Label>
+                <input
+                  id={`serial-${row.id}`}
+                  name="serialNumber"
+                  required
+                  className="flex h-10 w-full rounded-md border border-navy-200 bg-white px-3 text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor={`cost-${row.id}`}>Purchase cost</Label>
+                <input
+                  id={`cost-${row.id}`}
+                  name="purchaseCost"
+                  required
+                  pattern="^\d+(\.\d{1,2})?$"
+                  className="flex h-10 w-full rounded-md border border-navy-200 bg-white px-3 text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor={`purchaseDate-${row.id}`}>Purchase date</Label>
+                <input
+                  id={`purchaseDate-${row.id}`}
+                  name="purchaseDate"
+                  type="date"
+                  className="flex h-10 w-full rounded-md border border-navy-200 bg-white px-3 text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor={`po-${row.id}`}>PO number</Label>
+                <input
+                  id={`po-${row.id}`}
+                  name="poNumber"
+                  className="flex h-10 w-full rounded-md border border-navy-200 bg-white px-3 text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor={`invoice-${row.id}`}>Invoice number</Label>
+                <input
+                  id={`invoice-${row.id}`}
+                  name="invoiceNumber"
+                  className="flex h-10 w-full rounded-md border border-navy-200 bg-white px-3 text-sm"
+                />
+              </div>
+            </div>
             <SubmitButton
-              idleLabel="Mark fulfilled"
-              pendingLabel="Fulfilling..."
+              idleLabel="Register & fulfill"
+              pendingLabel="Saving..."
               className="w-full cursor-pointer bg-navy-900 hover:bg-navy-950"
             />
           </PendingForm>

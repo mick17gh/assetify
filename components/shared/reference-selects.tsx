@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { FormValueInput } from "@/components/shared/form-value-input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +11,25 @@ import { cn } from "@/lib/utils";
 
 export type ReferenceOption = { id: string; label: string; code?: string; regionId?: string };
 
-/** Compact searchable combobox for table cells (no label). */
+const DEFAULT_MAX_VISIBLE = 150;
+
+function filterOptions(options: ReferenceOption[], query: string, maxVisible: number, selectedId?: string) {
+  const q = query.trim().toLowerCase();
+  const matched = !q
+    ? options
+    : options.filter((option) => {
+        const haystack = `${option.id} ${option.label} ${option.code ?? ""}`.toLowerCase();
+        return haystack.includes(q);
+      });
+  const capped = matched.slice(0, maxVisible);
+  if (selectedId && !capped.some((option) => option.id === selectedId)) {
+    const selected = options.find((option) => option.id === selectedId);
+    if (selected) return [selected, ...capped];
+  }
+  return capped;
+}
+
+/** Compact searchable combobox for table cells (no label). Caps rendered rows for large lists. */
 export function InlineCombobox({
   value,
   options,
@@ -20,6 +38,7 @@ export function InlineCombobox({
   allowNone = false,
   error,
   className,
+  maxVisible = DEFAULT_MAX_VISIBLE,
 }: {
   value: string;
   options: ReferenceOption[];
@@ -28,14 +47,26 @@ export function InlineCombobox({
   allowNone?: boolean;
   error?: boolean;
   className?: string;
+  maxVisible?: number;
 }) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const selectedOption = options.find((option) => option.id === value);
   const display =
     !value || value === "NONE" ? placeholder : (selectedOption?.label ?? placeholder);
+  const visible = useMemo(
+    () => filterOptions(options, query, maxVisible, value || undefined),
+    [options, query, maxVisible, value],
+  );
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) setQuery("");
+      }}
+    >
       <PopoverTrigger asChild>
         <Button
           type="button"
@@ -53,9 +84,9 @@ export function InlineCombobox({
           <ChevronsUpDown className="ml-1 h-3.5 w-3.5 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[240px] p-0" align="start">
-        <Command>
-          <CommandInput placeholder="Search..." />
+      <PopoverContent className="w-[280px] p-0" align="start">
+        <Command shouldFilter={false}>
+          <CommandInput placeholder="Search..." value={query} onValueChange={setQuery} />
           <CommandList>
             <CommandEmpty>No options found.</CommandEmpty>
             <CommandGroup>
@@ -71,7 +102,7 @@ export function InlineCombobox({
                   None
                 </CommandItem>
               ) : null}
-              {options.map((option) => (
+              {visible.map((option) => (
                 <CommandItem
                   key={option.id}
                   value={`${option.id} ${option.label}`}
@@ -86,6 +117,11 @@ export function InlineCombobox({
               ))}
             </CommandGroup>
           </CommandList>
+          {options.length > maxVisible && !query.trim() ? (
+            <p className="border-t border-navy-100 px-3 py-1.5 text-[11px] text-navy-900/55">
+              Showing {maxVisible} of {options.length}. Type to narrow.
+            </p>
+          ) : null}
         </Command>
       </PopoverContent>
     </Popover>

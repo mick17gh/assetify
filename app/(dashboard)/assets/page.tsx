@@ -95,8 +95,8 @@ export default async function AssetsPage({ searchParams }: { searchParams: Promi
               <ImportAssetsModal
                 branches={refs.branches}
                 categories={refs.categories}
-                vendors={refs.vendors}
-                custodians={refs.custodians}
+                vendorSeed={refs.vendors}
+                custodianSeed={refs.custodians}
                 locations={{
                   departments: refs.departments,
                   rooms: refs.rooms,
@@ -107,8 +107,8 @@ export default async function AssetsPage({ searchParams }: { searchParams: Promi
                 branches={refs.branches}
                 regions={refs.regions}
                 categories={refs.categories}
-                vendors={refs.vendors}
-                custodians={refs.custodians}
+                vendorSeed={refs.vendors}
+                custodianSeed={refs.custodians}
                 locations={{
                   departments: refs.departments,
                   rooms: refs.rooms,

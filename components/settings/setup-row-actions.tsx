@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { SubmitButton } from "@/components/shared/submit-button";
 import { PendingForm } from "@/components/shared/pending-form";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -47,11 +47,13 @@ export function SetupRowActions({
             action={updateAction}
             onSuccess={() => setOpen(false)}
             successMessage="Updated."
-            className="space-y-3"
+            className="flex min-h-0 flex-1 flex-col"
           >
             <input type="hidden" name="id" value={recordId} />
-            {editFields}
-            <SubmitButton idleLabel="Update" pendingLabel="Updating..." className="w-full cursor-pointer" />
+            <DialogBody className="space-y-3 pb-2">{editFields}</DialogBody>
+            <DialogFooter>
+              <SubmitButton idleLabel="Update" pendingLabel="Updating..." className="w-full cursor-pointer sm:w-auto" />
+            </DialogFooter>
           </PendingForm>
         </DialogContent>
       </Dialog>

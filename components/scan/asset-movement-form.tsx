@@ -4,13 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createAssetMovementAction } from "@/app/(dashboard)/locations/actions";
 import { EnumSelect } from "@/components/shared/enum-select";
+import { AssetLookupSelect, UserLookupSelect } from "@/components/shared/entity-lookups";
 import { OptionalReferenceSelect, ReferenceSelect } from "@/components/shared/reference-selects";
 import { SetupTextField } from "@/components/settings/setup-create-modal";
 import { SubmitButton } from "@/components/shared/submit-button";
 import { PendingForm } from "@/components/shared/pending-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { APP_ROUTES, FEATURE_FLAGS, MOVEMENT_TYPE } from "@/constants";
-import type { BranchRoom, BranchUser, MovementFormOptions, RoomShelf } from "@/lib/qr/asset-scan-profile";
+import type { BranchRoom, MovementFormOptions, RoomShelf } from "@/lib/qr/asset-scan-profile";
 import { movementFromLocationType, type QrLocationType, QR_LOCATION_TYPES } from "@/lib/qr/scan-helpers";
 import { enqueueOfflineOperation } from "@/hooks/use-offline-queue";
 import { MovementExtraFields } from "@/components/locations/movement-extra-fields";
@@ -39,7 +40,7 @@ export function AssetMovementForm({
   onAssetIdChange?: (assetId: string) => void;
 }) {
   const router = useRouter();
-  const { assets, branches, departments, rooms, shelves, users } = options;
+  const { assetSeed, userSeed, branches, departments, rooms, shelves } = options;
   const [selectedAssetId, setSelectedAssetId] = useState(assetId);
   const [movementType, setMovementType] = useState<string>(MOVEMENT_TYPE.BRANCH_TRANSFER);
   const [branchId, setBranchId] = useState(branches[0]?.id ?? "");
@@ -55,10 +56,6 @@ export function AssetMovementForm({
   const shelfOptions = useMemo(
     () => shelves.filter((shelf) => shelf.roomId === roomId).map((shelf) => ({ id: shelf.id, label: shelf.name })),
     [shelves, roomId],
-  );
-  const userOptions = useMemo(
-    () => users.filter((user) => !user.branchId || user.branchId === branchId).map((user) => ({ id: user.id, label: user.name })),
-    [users, branchId],
   );
   const departmentOptions = useMemo(
     () => departments.filter((department) => department.branchId === branchId).map((department) => ({ id: department.id, label: department.name })),
@@ -134,10 +131,9 @@ export function AssetMovementForm({
           className="space-y-3"
         >
           {showAssetSelect ? (
-            <ReferenceSelect
+            <AssetLookupSelect
               name="assetId"
-              label="Asset"
-              options={assets}
+              seed={assetSeed}
               value={selectedAssetId}
               onValueChange={(value) => {
                 setSelectedAssetId(value);
@@ -181,7 +177,14 @@ export function AssetMovementForm({
           )}
           <OptionalReferenceSelect name="toRoomId" label="Target room" options={roomOptions} value={roomId} onValueChange={setRoomId} />
           <OptionalReferenceSelect name="toShelfId" label="Target shelf" options={shelfOptions} value={shelfId} onValueChange={setShelfId} />
-          <OptionalReferenceSelect name="toCustodianId" label="Target custodian" options={userOptions} value={custodianId} onValueChange={setCustodianId} />
+          <UserLookupSelect
+            name="toCustodianId"
+            label="Target custodian"
+            seed={userSeed}
+            value={custodianId}
+            onValueChange={setCustodianId}
+            allowNone
+          />
           <MovementExtraFields movementType={movementType} />
           <SetupTextField name="note" label="Movement note" placeholder="Reason or context (optional)" />
           <SubmitButton

@@ -28,12 +28,13 @@ export const APP_ROUTES = {
   SETTINGS_FEATURES: "/settings/features",
   SETTINGS_POLICIES: "/settings/policies",
   SETTINGS_DEPRECIATION: "/settings/depreciation",
+  SETTINGS_HEALTH_CHECK: "/settings/health-check",
   SETTINGS_REMINDERS: "/settings/reminders",
   SETTINGS_AUDIT: "/settings/audit",
+  ACKNOWLEDGEMENTS: "/acknowledgements",
 } as const;
 
 export const API_ROUTES = {
-  EXPORT_REPORTS: "/api/reports/export",
   OFFLINE_SYNC: "/api/offline/sync",
   REMINDERS_DISPATCH: "/api/reminders/dispatch",
   CSV_IMPORT: "/api/assets/import",

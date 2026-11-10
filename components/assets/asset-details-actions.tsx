@@ -2,8 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MoreHorizontal, PencilLine, PlusCircle, RefreshCw, Upload, Calculator, AlertTriangle } from "lucide-react";
 import {
+  MoreHorizontal,
+  PencilLine,
+  PlusCircle,
+  RefreshCw,
+  Upload,
+  Calculator,
+  AlertTriangle,
+  CheckCircle2,
+} from "lucide-react";
+import {
+  completeAssetOnboardingAction,
   createWorkOrderAction,
   updateAssetDepreciationAction,
   updateAssetDetailsAction,
@@ -15,6 +25,7 @@ import {
 } from "@/app/(dashboard)/assets/[assetId]/actions";
 import { reportExceptionAction } from "@/app/(dashboard)/exceptions/actions";
 import { DisposalModal } from "@/components/assets/disposal-modal";
+import { ProcurementLeaseFields } from "@/components/assets/procurement-lease-fields";
 import { ASSET_CONDITION, ASSET_STATUS, DEPRECIATION_METHOD, DOCUMENT_TYPE, EXCEPTION_TYPE } from "@/constants";
 import { EnumSelect } from "@/components/shared/enum-select";
 import { ReferenceSelect, type ReferenceOption } from "@/components/shared/reference-selects";
@@ -22,7 +33,16 @@ import { SetupTextField } from "@/components/settings/setup-create-modal";
 import { SubmitButton } from "@/components/shared/submit-button";
 import { PendingForm } from "@/components/shared/pending-form";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,6 +60,9 @@ export function AssetDetailsActions({
   initialCondition,
   initialCategoryId,
   initialPurchaseCost,
+  initialAin,
+  initialSerialNumber,
+  procurement,
   categories,
   canEditCategoryAndCost,
   canApproveDisposal,
@@ -59,6 +82,19 @@ export function AssetDetailsActions({
   initialCondition: string;
   initialCategoryId: string;
   initialPurchaseCost: string;
+  initialAin: string;
+  initialSerialNumber: string;
+  procurement: {
+    poNumber: string;
+    invoiceNumber: string;
+    invoiceUrl: string;
+    capitalizedDate: string;
+    ownershipType: string;
+    lessorName: string;
+    leaseStartDate: string;
+    leaseEndDate: string;
+    leaseMonthlyCost: string;
+  };
   categories: ReferenceOption[];
   canEditCategoryAndCost: boolean;
   canApproveDisposal: boolean;
@@ -72,12 +108,15 @@ export function AssetDetailsActions({
   const [docType, setDocType] = useState<string>(DOCUMENT_TYPE.OTHER);
   const [workOrderOpen, setWorkOrderOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [onboardOpen, setOnboardOpen] = useState(false);
   const [depreciationOpen, setDepreciationOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
   const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
   const [documentDialogOpen, setDocumentDialogOpen] = useState(false);
   const [recommendOpen, setRecommendOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const needsOnboarding =
+    initialStatus === ASSET_STATUS.PENDING_ONBOARDING || initialAin.startsWith("PEND-");
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -102,6 +141,12 @@ export function AssetDetailsActions({
                     assetId: String(formData.get("assetId") ?? ""),
                     description: String(formData.get("description") ?? ""),
                     serviceDate: String(formData.get("dueDate") ?? new Date().toISOString().slice(0, 10)),
+                    status: "SCHEDULED",
+                    vendorName: "Internal Work Order",
+                    notes: "",
+                    cost: "",
+                    warrantyClaim: "",
+                    repairOutcome: "",
                   },
                 });
                 return;
@@ -113,15 +158,19 @@ export function AssetDetailsActions({
               setWorkOrderOpen(false);
               router.refresh();
             }}
-            className="space-y-3"
+            className="flex min-h-0 flex-1 flex-col"
           >
-            <input type="hidden" name="assetId" value={assetId} />
-            <div className="space-y-1">
-              <Label htmlFor="description">Issue / Task</Label>
-              <Textarea id="description" name="description" required />
-            </div>
-            <SetupTextField name="dueDate" label="Due Date" type="date" />
-            <SubmitButton idleLabel="Create" pendingLabel="Creating..." className="w-full cursor-pointer" />
+            <DialogBody className="space-y-3 pb-2">
+              <input type="hidden" name="assetId" value={assetId} />
+              <div className="space-y-1">
+                <Label htmlFor="description">Issue / Task</Label>
+                <Textarea id="description" name="description" required />
+              </div>
+              <SetupTextField name="dueDate" label="Due Date" type="date" />
+            </DialogBody>
+            <DialogFooter>
+              <SubmitButton idleLabel="Create" pendingLabel="Creating..." className="w-full cursor-pointer sm:w-auto" />
+            </DialogFooter>
           </PendingForm>
         </DialogContent>
       </Dialog>
@@ -134,6 +183,70 @@ export function AssetDetailsActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          {needsOnboarding ? (
+            <Dialog open={onboardOpen} onOpenChange={setOnboardOpen}>
+              <DialogTrigger asChild>
+                <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  Complete onboarding
+                </DropdownMenuItem>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Complete onboarding</DialogTitle>
+                  <DialogDescription>
+                    Replace placeholder identifiers, capture procurement details, and activate the asset.
+                  </DialogDescription>
+                </DialogHeader>
+                <PendingForm
+                  action={completeAssetOnboardingAction}
+                  successMessage="Onboarding completed."
+                  onSuccess={() => {
+                    setOnboardOpen(false);
+                    router.refresh();
+                  }}
+                  className="flex min-h-0 flex-1 flex-col"
+                >
+                  <DialogBody className="space-y-3 pb-2">
+                    <input type="hidden" name="assetId" value={assetId} />
+                    <SetupTextField name="ain" label="AIN" required defaultValue={initialAin.startsWith("PEND-") ? "" : initialAin} />
+                    <SetupTextField
+                      name="serialNumber"
+                      label="Serial number"
+                      required
+                      defaultValue={initialSerialNumber.startsWith("PEND-") ? "" : initialSerialNumber}
+                    />
+                    <SetupTextField
+                      name="purchaseCost"
+                      label="Purchase cost"
+                      required
+                      defaultValue={initialPurchaseCost === "0.00" ? "" : initialPurchaseCost}
+                      pattern="^\d+(\.\d{1,2})?$"
+                    />
+                    <SetupTextField name="purchaseDate" label="Purchase date" type="date" />
+                    <SetupTextField name="poNumber" label="PO number" defaultValue={procurement.poNumber} />
+                    <SetupTextField name="invoiceNumber" label="Invoice number" defaultValue={procurement.invoiceNumber} />
+                    <SetupTextField name="invoiceUrl" label="Invoice URL" defaultValue={procurement.invoiceUrl} />
+                    <SetupTextField
+                      name="capitalizedDate"
+                      label="Capitalized date"
+                      type="date"
+                      defaultValue={procurement.capitalizedDate}
+                    />
+                    <SetupTextField name="note" label="Note" />
+                  </DialogBody>
+                  <DialogFooter>
+                    <SubmitButton
+                      idleLabel="Activate asset"
+                      pendingLabel="Saving..."
+                      className="w-full cursor-pointer bg-navy-900 hover:bg-navy-950 sm:w-auto"
+                    />
+                  </DialogFooter>
+                </PendingForm>
+              </DialogContent>
+            </Dialog>
+          ) : null}
+
           <Dialog open={editOpen} onOpenChange={setEditOpen}>
             <DialogTrigger asChild>
               <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
@@ -153,36 +266,45 @@ export function AssetDetailsActions({
                   setEditOpen(false);
                   router.refresh();
                 }}
-                className="space-y-3"
+                className="flex min-h-0 flex-1 flex-col"
               >
-                <input type="hidden" name="assetId" value={assetId} />
-                <SetupTextField name="name" label="Name" required defaultValue={initialName} />
-                <SetupTextField name="manufacturer" label="Manufacturer" defaultValue={initialManufacturer} />
-                <SetupTextField name="modelName" label="Model" defaultValue={initialModelName} />
-                <SetupTextField name="existingAssetNumber" label="Existing asset number" defaultValue={initialExistingAssetNumber} />
-                <div className="space-y-1">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea id="description" name="description" defaultValue={initialDescription} />
-                </div>
-                {canEditCategoryAndCost ? (
-                  <>
-                    <ReferenceSelect
-                      name="categoryId"
-                      label="Category"
-                      options={categories}
-                      defaultValue={initialCategoryId}
-                      required
-                    />
-                    <SetupTextField
-                      name="purchaseCost"
-                      label="Purchase Cost (GHS)"
-                      required
-                      defaultValue={initialPurchaseCost}
-                      pattern="^\d+(\.\d{1,2})?$"
-                    />
-                  </>
-                ) : null}
-                <SubmitButton idleLabel="Save changes" pendingLabel="Saving..." className="w-full cursor-pointer bg-navy-900 hover:bg-navy-950" />
+                <DialogBody className="space-y-3 pb-2">
+                  <input type="hidden" name="assetId" value={assetId} />
+                  <SetupTextField name="name" label="Name" required defaultValue={initialName} />
+                  <SetupTextField name="manufacturer" label="Manufacturer" defaultValue={initialManufacturer} />
+                  <SetupTextField name="modelName" label="Model" defaultValue={initialModelName} />
+                  <SetupTextField name="existingAssetNumber" label="Existing asset number" defaultValue={initialExistingAssetNumber} />
+                  <div className="space-y-1">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea id="description" name="description" defaultValue={initialDescription} />
+                  </div>
+                  {canEditCategoryAndCost ? (
+                    <>
+                      <ReferenceSelect
+                        name="categoryId"
+                        label="Category"
+                        options={categories}
+                        defaultValue={initialCategoryId}
+                        required
+                      />
+                      <SetupTextField
+                        name="purchaseCost"
+                        label="Purchase Cost (GHS)"
+                        required
+                        defaultValue={initialPurchaseCost}
+                        pattern="^\d+(\.\d{1,2})?$"
+                      />
+                    </>
+                  ) : null}
+                  <ProcurementLeaseFields defaults={procurement} />
+                </DialogBody>
+                <DialogFooter>
+                  <SubmitButton
+                    idleLabel="Save changes"
+                    pendingLabel="Saving..."
+                    className="w-full cursor-pointer bg-navy-900 hover:bg-navy-950 sm:w-auto"
+                  />
+                </DialogFooter>
               </PendingForm>
             </DialogContent>
           </Dialog>
@@ -208,28 +330,36 @@ export function AssetDetailsActions({
                   setDepreciationOpen(false);
                   router.refresh();
                 }}
-                className="space-y-3"
+                className="flex min-h-0 flex-1 flex-col"
               >
-                <input type="hidden" name="assetId" value={assetId} />
-                <SetupTextField
-                  name="depreciationUsefulLifeYears"
-                  label="Useful life (years)"
-                  type="number"
-                  defaultValue={depreciationUsefulLifeYears}
-                />
-                <SetupTextField
-                  name="depreciationSalvageValue"
-                  label="Salvage value (GHS)"
-                  defaultValue={depreciationSalvageValue}
-                />
-                <EnumSelect
-                  name="depreciationMethodOverride"
-                  label="Method"
-                  labelKey="depreciationMethod"
-                  values={DEPRECIATION_METHOD}
-                  defaultValue={depreciationMethodOverride || DEPRECIATION_METHOD.STRAIGHT_LINE}
-                />
-                <SubmitButton idleLabel="Save overrides" pendingLabel="Saving..." className="w-full cursor-pointer bg-navy-900 hover:bg-navy-950" />
+                <DialogBody className="space-y-3 pb-2">
+                  <input type="hidden" name="assetId" value={assetId} />
+                  <SetupTextField
+                    name="depreciationUsefulLifeYears"
+                    label="Useful life (years)"
+                    type="number"
+                    defaultValue={depreciationUsefulLifeYears}
+                  />
+                  <SetupTextField
+                    name="depreciationSalvageValue"
+                    label="Salvage value (GHS)"
+                    defaultValue={depreciationSalvageValue}
+                  />
+                  <EnumSelect
+                    name="depreciationMethodOverride"
+                    label="Method"
+                    labelKey="depreciationMethod"
+                    values={DEPRECIATION_METHOD}
+                    defaultValue={depreciationMethodOverride || DEPRECIATION_METHOD.STRAIGHT_LINE}
+                  />
+                </DialogBody>
+                <DialogFooter>
+                  <SubmitButton
+                    idleLabel="Save overrides"
+                    pendingLabel="Saving..."
+                    className="w-full cursor-pointer bg-navy-900 hover:bg-navy-950 sm:w-auto"
+                  />
+                </DialogFooter>
               </PendingForm>
             </DialogContent>
           </Dialog>
@@ -252,13 +382,17 @@ export function AssetDetailsActions({
                   setStatusOpen(false);
                   router.refresh();
                 }}
-                className="space-y-3"
+                className="flex min-h-0 flex-1 flex-col"
               >
-                <input type="hidden" name="assetId" value={assetId} />
-                <EnumSelect name="status" label="Status" labelKey="assetStatus" values={ASSET_STATUS} defaultValue={initialStatus} required />
-                <EnumSelect name="condition" label="Condition" labelKey="assetCondition" values={ASSET_CONDITION} defaultValue={initialCondition} required />
-                <SetupTextField name="note" label="Note" />
-                <SubmitButton idleLabel="Update status" pendingLabel="Updating..." className="w-full cursor-pointer" />
+                <DialogBody className="space-y-3 pb-2">
+                  <input type="hidden" name="assetId" value={assetId} />
+                  <EnumSelect name="status" label="Status" labelKey="assetStatus" values={ASSET_STATUS} defaultValue={initialStatus} required />
+                  <EnumSelect name="condition" label="Condition" labelKey="assetCondition" values={ASSET_CONDITION} defaultValue={initialCondition} required />
+                  <SetupTextField name="note" label="Note" />
+                </DialogBody>
+                <DialogFooter>
+                  <SubmitButton idleLabel="Update status" pendingLabel="Updating..." className="w-full cursor-pointer sm:w-auto" />
+                </DialogFooter>
               </PendingForm>
             </DialogContent>
           </Dialog>
@@ -281,14 +415,18 @@ export function AssetDetailsActions({
                   setPhotoDialogOpen(false);
                   router.refresh();
                 }}
-                className="space-y-3"
+                className="flex min-h-0 flex-1 flex-col"
               >
-                <input type="hidden" name="assetId" value={assetId} />
-                <div className="space-y-1">
-                  <Label htmlFor="photo">Photo</Label>
-                  <Input id="photo" name="photo" type="file" accept="image/*" required />
-                </div>
-                <SubmitButton idleLabel="Upload photo" pendingLabel="Uploading..." className="w-full cursor-pointer" />
+                <DialogBody className="space-y-3 pb-2">
+                  <input type="hidden" name="assetId" value={assetId} />
+                  <div className="space-y-1">
+                    <Label htmlFor="photo">Photo</Label>
+                    <Input id="photo" name="photo" type="file" accept="image/*" required />
+                  </div>
+                </DialogBody>
+                <DialogFooter>
+                  <SubmitButton idleLabel="Upload photo" pendingLabel="Uploading..." className="w-full cursor-pointer sm:w-auto" />
+                </DialogFooter>
               </PendingForm>
             </DialogContent>
           </Dialog>
@@ -311,27 +449,31 @@ export function AssetDetailsActions({
                   setDocumentDialogOpen(false);
                   router.refresh();
                 }}
-                className="space-y-3"
+                className="flex min-h-0 flex-1 flex-col"
               >
-                <input type="hidden" name="assetId" value={assetId} />
-                <EnumSelect
-                  name="documentType"
-                  label="Document Type"
-                  labelKey="documentType"
-                  values={DOCUMENT_TYPE}
-                  value={docType}
-                  onValueChange={setDocType}
-                  required
-                />
-                <div className="space-y-1">
-                  <Label htmlFor="displayName">Document name</Label>
-                  <Input id="displayName" name="displayName" placeholder="e.g. Warranty card" required />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="document">File</Label>
-                  <Input id="document" name="document" type="file" required />
-                </div>
-                <SubmitButton idleLabel="Upload document" pendingLabel="Uploading..." className="w-full cursor-pointer" />
+                <DialogBody className="space-y-3 pb-2">
+                  <input type="hidden" name="assetId" value={assetId} />
+                  <EnumSelect
+                    name="documentType"
+                    label="Document Type"
+                    labelKey="documentType"
+                    values={DOCUMENT_TYPE}
+                    value={docType}
+                    onValueChange={setDocType}
+                    required
+                  />
+                  <div className="space-y-1">
+                    <Label htmlFor="displayName">Document name</Label>
+                    <Input id="displayName" name="displayName" placeholder="e.g. Warranty card" required />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="document">File</Label>
+                    <Input id="document" name="document" type="file" required />
+                  </div>
+                </DialogBody>
+                <DialogFooter>
+                  <SubmitButton idleLabel="Upload document" pendingLabel="Uploading..." className="w-full cursor-pointer sm:w-auto" />
+                </DialogFooter>
               </PendingForm>
             </DialogContent>
           </Dialog>
@@ -347,12 +489,24 @@ export function AssetDetailsActions({
                 <DialogTitle>Recommend disposal</DialogTitle>
                 <DialogDescription>This marks the asset Pending Disposal. Nothing is disposed until the recommendation is approved and recorded.</DialogDescription>
               </DialogHeader>
-              <PendingForm action={recommendDisposalAction} successMessage="Recommendation saved." onSuccess={() => { setRecommendOpen(false); router.refresh(); }} className="space-y-3">
-                <input type="hidden" name="assetId" value={assetId} />
-                <EnumSelect name="condition" label="Condition" labelKey="assetCondition" values={ASSET_CONDITION} defaultValue={initialCondition} required />
-                <SetupTextField name="recommendedAction" label="Recommended action" required minLength={2} />
-                <SetupTextField name="reason" label="Reason" required minLength={3} />
-                <SubmitButton idleLabel="Save recommendation" pendingLabel="Saving..." className="w-full cursor-pointer" />
+              <PendingForm
+                action={recommendDisposalAction}
+                successMessage="Recommendation saved."
+                onSuccess={() => {
+                  setRecommendOpen(false);
+                  router.refresh();
+                }}
+                className="flex min-h-0 flex-1 flex-col"
+              >
+                <DialogBody className="space-y-3 pb-2">
+                  <input type="hidden" name="assetId" value={assetId} />
+                  <EnumSelect name="condition" label="Condition" labelKey="assetCondition" values={ASSET_CONDITION} defaultValue={initialCondition} required />
+                  <SetupTextField name="recommendedAction" label="Recommended action" required minLength={2} />
+                  <SetupTextField name="reason" label="Reason" required minLength={3} />
+                </DialogBody>
+                <DialogFooter>
+                  <SubmitButton idleLabel="Save recommendation" pendingLabel="Saving..." className="w-full cursor-pointer sm:w-auto" />
+                </DialogFooter>
               </PendingForm>
             </DialogContent>
           </Dialog>
@@ -390,16 +544,20 @@ export function AssetDetailsActions({
                   setReportOpen(false);
                   router.refresh();
                 }}
-                className="space-y-3"
+                className="flex min-h-0 flex-1 flex-col"
               >
-                <input type="hidden" name="assetId" value={assetId} />
-                <EnumSelect name="type" label="Type" labelKey="exceptionType" values={EXCEPTION_TYPE} required />
-                <div className="space-y-1">
-                  <Label htmlFor="exception-description">Description</Label>
-                  <Textarea id="exception-description" name="description" required />
-                </div>
-                <SetupTextField name="dueDate" label="Due date" type="date" />
-                <SubmitButton idleLabel="Report exception" pendingLabel="Saving..." className="w-full cursor-pointer" />
+                <DialogBody className="space-y-3 pb-2">
+                  <input type="hidden" name="assetId" value={assetId} />
+                  <EnumSelect name="type" label="Type" labelKey="exceptionType" values={EXCEPTION_TYPE} required />
+                  <div className="space-y-1">
+                    <Label htmlFor="exception-description">Description</Label>
+                    <Textarea id="exception-description" name="description" required />
+                  </div>
+                  <SetupTextField name="dueDate" label="Due date" type="date" />
+                </DialogBody>
+                <DialogFooter>
+                  <SubmitButton idleLabel="Report exception" pendingLabel="Saving..." className="w-full cursor-pointer sm:w-auto" />
+                </DialogFooter>
               </PendingForm>
             </DialogContent>
           </Dialog>

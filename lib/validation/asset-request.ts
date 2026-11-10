@@ -30,6 +30,14 @@ export const reviewAssetRequestSchema = z
 
 export const fulfillAssetRequestSchema = z.object({
   id: entityId,
+  ain: z.string().trim().min(4).max(32).optional().or(z.literal("")),
+  serialNumber: z.string().trim().min(4).max(50).optional().or(z.literal("")),
+  purchaseCost: z.string().trim().optional().or(z.literal("")),
+  purchaseDate: z.string().optional().or(z.literal("")),
+  poNumber: z.string().max(80).optional().or(z.literal("")),
+  invoiceNumber: z.string().max(80).optional().or(z.literal("")),
+  capitalizedDate: z.string().optional().or(z.literal("")),
+  activateAsset: z.string().optional(),
 });
 
 export const ASSET_REQUEST_REVIEW_DECISION = {

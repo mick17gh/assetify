@@ -3,7 +3,15 @@ import { OverviewGrid } from "@/components/dashboard/overview-grid";
 import { AnalyticsCharts } from "@/components/dashboard/analytics-charts";
 import { PortfolioFilters } from "@/components/dashboard/portfolio-filters";
 import { db } from "@/lib/db";
-import { ASSET_CONDITION, ASSET_STATUS, ENUM_LABELS, RECOMMENDATION_STATE, USER_ROLES } from "@/constants";
+import {
+  ACKNOWLEDGEMENT_STATUS,
+  APP_ROUTES,
+  ASSET_CONDITION,
+  ASSET_STATUS,
+  ENUM_LABELS,
+  RECOMMENDATION_STATE,
+  USER_ROLES,
+} from "@/constants";
 import { getRequiredSession } from "@/lib/session";
 import { getAssetScopeWhere } from "@/lib/scoping";
 import { snapshotCurrentQuarter } from "@/lib/budget-service";
@@ -57,7 +65,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       })
     : null;
 
-  const [totalAssets, warrantyExpiringSoon, replacementDueQuarter, yearlyBudget, statusGroups, regionGroups, quarterSnapshot, openExceptions, attention, refs, years] =
+  const [totalAssets, warrantyExpiringSoon, replacementDueQuarter, yearlyBudget, statusGroups, regionGroups, quarterSnapshot, openExceptions, attention, refs, years, pendingAcknowledgements, pendingOnboarding] =
     await Promise.all([
       db.asset.count({ where: assetScope }),
       db.asset.count({
@@ -84,6 +92,14 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         : Promise.resolve(null),
       getReferenceDataForSession(session),
       db.asset.findMany({ where: assetScope, select: { purchaseDate: true }, take: 500 }),
+      db.assignmentAcknowledgement.count({
+        where: {
+          userId: session.userId,
+          status: ACKNOWLEDGEMENT_STATUS.PENDING,
+          asset: assetScope,
+        },
+      }),
+      db.asset.count({ where: { ...assetScope, status: ASSET_STATUS.PENDING_ONBOARDING } }),
     ]);
 
   const branchIds = [...new Set(regionGroups.map((item) => item.branchId))];
@@ -132,13 +148,47 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         openExceptions={openExceptions}
         attention={attention ?? emptyAttention}
       />
+      {(pendingAcknowledgements > 0 || pendingOnboarding > 0) && (
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          {pendingAcknowledgements > 0 ? (
+            <Card className="border-amber-200 bg-amber-50/50 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-amber-950">Pending acknowledgements</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-amber-950/80">
+                You have {pendingAcknowledgements} deferred custody acceptance
+                {pendingAcknowledgements === 1 ? "" : "s"}.{" "}
+                <a href={APP_ROUTES.ACKNOWLEDGEMENTS} className="font-medium underline underline-offset-2">
+                  Review now
+                </a>
+              </CardContent>
+            </Card>
+          ) : null}
+          {pendingOnboarding > 0 ? (
+            <Card className="border-sky-200 bg-sky-50/50 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-sky-950">Pending onboarding</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-sky-950/80">
+                {pendingOnboarding} asset{pendingOnboarding === 1 ? "" : "s"} still need registration completion.{" "}
+                <a
+                  href={`${APP_ROUTES.ASSETS}?status=${ASSET_STATUS.PENDING_ONBOARDING}`}
+                  className="font-medium underline underline-offset-2"
+                >
+                  Open list
+                </a>
+              </CardContent>
+            </Card>
+          ) : null}
+        </div>
+      )}
       <div className="mt-6">
         <PortfolioFilters
           regions={refs.regions}
           branches={refs.branches}
           departments={refs.departments.map((item) => ({ id: item.id, label: item.name }))}
           categories={refs.categories}
-          custodians={refs.custodians}
+          custodianSeed={refs.custodians}
           years={yearOptions}
         />
         <div className="mb-4 grid min-w-0 gap-3 md:grid-cols-2">

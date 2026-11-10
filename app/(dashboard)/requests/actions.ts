@@ -168,8 +168,8 @@ export async function reviewAssetRequestAction(formData: FormData) {
         description: `Created from approved request. Reason: ${request.reason}`,
         purchaseDate: new Date(),
         purchaseCost: 0,
-        status: ASSET_STATUS.IN_STORAGE,
-        condition: ASSET_CONDITION.GOOD,
+        status: ASSET_STATUS.PENDING_ONBOARDING,
+        condition: ASSET_CONDITION.NEW,
         branchId: request.branchId,
         departmentId: request.departmentId,
         categoryId: request.categoryId,
@@ -182,8 +182,8 @@ export async function reviewAssetRequestAction(formData: FormData) {
       data: {
         assetId: placeholderAsset.id,
         fromStatus: null,
-        toStatus: ASSET_STATUS.IN_STORAGE,
-        note: "Created from approved asset request",
+        toStatus: ASSET_STATUS.PENDING_ONBOARDING,
+        note: "Created from approved asset request — complete registration to activate",
       },
     });
 
@@ -247,6 +247,57 @@ export async function fulfillAssetRequestAction(formData: FormData) {
     },
   });
   if (!request) throw new Error("Approved request not found.");
+  if (!request.fulfilledAssetId) throw new Error("Approved request has no linked asset to register.");
+
+  const asset = await db.asset.findFirst({
+    where: { id: request.fulfilledAssetId, organizationId: orgId(session) },
+  });
+  if (!asset) throw new Error("Linked asset not found.");
+
+  const nextAin = parsed.data.ain?.trim() || asset.ain;
+  const nextSerial = parsed.data.serialNumber?.trim() || asset.serialNumber;
+  const nextCost = parsed.data.purchaseCost?.trim() || String(asset.purchaseCost);
+  const activate = parsed.data.activateAsset !== "false";
+
+  if (activate) {
+    if (nextAin.startsWith("PEND-") || nextSerial.startsWith("PEND-")) {
+      throw new Error("Enter final AIN and serial number before fulfilling.");
+    }
+    if (!nextCost || Number(nextCost) <= 0) {
+      throw new Error("Enter purchase cost before fulfilling.");
+    }
+  }
+
+  await db.asset.update({
+    where: { id: asset.id },
+    data: {
+      ain: nextAin,
+      serialNumber: nextSerial,
+      purchaseCost: nextCost,
+      purchaseDate: parsed.data.purchaseDate ? new Date(parsed.data.purchaseDate) : asset.purchaseDate,
+      poNumber: parsed.data.poNumber?.trim() || asset.poNumber,
+      invoiceNumber: parsed.data.invoiceNumber?.trim() || asset.invoiceNumber,
+      capitalizedDate: parsed.data.capitalizedDate ? new Date(parsed.data.capitalizedDate) : asset.capitalizedDate,
+      ...(activate
+        ? {
+            status: ASSET_STATUS.ACTIVE,
+            onboardingCompletedAt: new Date(),
+          }
+        : {}),
+    },
+  });
+
+  if (activate && asset.status !== ASSET_STATUS.ACTIVE) {
+    await db.assetStatusHistory.create({
+      data: {
+        assetId: asset.id,
+        fromStatus: asset.status,
+        toStatus: ASSET_STATUS.ACTIVE,
+        note: "Asset registered from fulfilled request",
+      },
+    });
+    await syncReplacementForAsset(asset.id);
+  }
 
   await db.assetRequest.update({
     where: { id: request.id },
@@ -260,7 +311,10 @@ export async function fulfillAssetRequestAction(formData: FormData) {
     action: "asset.request.fulfill",
     entityType: "AssetRequest",
     entityId: request.id,
+    metadata: { assetId: asset.id, activated: activate },
   });
 
   revalidatePath(APP_ROUTES.ASSET_REQUESTS);
+  revalidatePath(APP_ROUTES.ASSETS);
+  revalidatePath(`/assets/${asset.id}`);
 }

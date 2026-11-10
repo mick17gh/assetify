@@ -43,8 +43,9 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
         category: true,
         organization: { select: { maintenanceCostThresholdPercent: true } },
         photos: { orderBy: { createdAt: "desc" }, take: 1 },
-        acknowledgements: { orderBy: { acceptedAt: "desc" }, take: 1, include: { user: { select: { name: true } } } },
+        acknowledgements: { orderBy: { createdAt: "desc" }, take: 1, include: { user: { select: { name: true } } } },
         disposalRecommendations: { orderBy: { recommendedAt: "desc" }, take: 1 },
+        replacementEvaluations: { orderBy: { calculatedAt: "desc" }, take: 1 },
       },
     }),
     session.organizationId ? isQrLocationScanningEnabled(session.organizationId) : Promise.resolve(false),
@@ -74,10 +75,15 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
           method: depreciationPolicy.method,
           usefulLifeYears: depreciationPolicy.usefulLifeYears,
           salvagePercent: Number(depreciationPolicy.salvagePercent),
+          decliningRatePercent:
+            depreciationPolicy.decliningRatePercent != null
+              ? Number(depreciationPolicy.decliningRatePercent)
+              : null,
         }
       : null,
   );
 
+  const latestAck = asset.acknowledgements[0];
   const overviewBase = {
     status: asset.status,
     condition: asset.condition,
@@ -87,8 +93,10 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
     existingAssetNumber: asset.existingAssetNumber || "N/A",
     assignmentType: asset.assignmentType ? ENUM_LABELS.assignmentType[asset.assignmentType] : "N/A",
     expectedReturn: asset.expectedReturnDate ? asset.expectedReturnDate.toLocaleDateString() : "N/A",
-    acknowledgement: asset.acknowledgements[0]
-      ? `${ENUM_LABELS.acknowledgementMethod[asset.acknowledgements[0].method]} by ${asset.acknowledgements[0].user.name} on ${asset.acknowledgements[0].acceptedAt.toLocaleString()}`
+    acknowledgement: latestAck
+      ? latestAck.status === "PENDING"
+        ? `Pending acceptance by ${latestAck.user.name}`
+        : `${latestAck.method ? ENUM_LABELS.acknowledgementMethod[latestAck.method] : "Accepted"} by ${latestAck.user.name}${latestAck.acceptedAt ? ` on ${latestAck.acceptedAt.toLocaleString()}` : ""}`
       : "None",
     category: asset.category.name,
     branch: asset.branch.name,
@@ -103,6 +111,35 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
       maximumFractionDigits: 2,
     }),
     warrantyExpiry: asset.warrantyExpiryDate ? asset.warrantyExpiryDate.toLocaleDateString() : "N/A",
+    poNumber: asset.poNumber || "N/A",
+    invoiceNumber: asset.invoiceNumber || "N/A",
+    invoiceUrl: asset.invoiceUrl || "N/A",
+    capitalizedDate: asset.capitalizedDate ? asset.capitalizedDate.toLocaleDateString() : "N/A",
+    ownershipType: ENUM_LABELS.ownershipType[asset.ownershipType] ?? asset.ownershipType,
+    lessorName: asset.lessorName || "N/A",
+    leaseWindow:
+      asset.leaseStartDate || asset.leaseEndDate
+        ? `${asset.leaseStartDate ? asset.leaseStartDate.toLocaleDateString() : "?"} → ${asset.leaseEndDate ? asset.leaseEndDate.toLocaleDateString() : "?"}`
+        : "N/A",
+    leaseMonthlyCost:
+      asset.leaseMonthlyCost != null
+        ? Number(asset.leaseMonthlyCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        : "N/A",
+  };
+
+  const disposalRec = asset.disposalRecommendations[0];
+  const replacement = asset.replacementEvaluations[0];
+  const disposalPipeline = {
+    recommendationState: disposalRec ? ENUM_LABELS.recommendationState[disposalRec.state] ?? disposalRec.state : null,
+    approvalStatus: disposalRec
+      ? ENUM_LABELS.disposalApprovalStatus[disposalRec.approvalStatus] ?? disposalRec.approvalStatus
+      : null,
+    recommendedAction: disposalRec?.recommendedAction ?? null,
+    reason: disposalRec?.reason ?? null,
+    replacementState: replacement
+      ? ENUM_LABELS.recommendationState[replacement.state] ?? replacement.state
+      : null,
+    recommendedReplaceDate: replacement ? replacement.recommendedReplaceDate.toLocaleDateString() : null,
   };
 
   return (
@@ -132,6 +169,20 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
               initialCondition={asset.condition}
               initialCategoryId={asset.categoryId}
               initialPurchaseCost={Number(asset.purchaseCost).toFixed(2)}
+              initialAin={asset.ain}
+              initialSerialNumber={asset.serialNumber}
+              procurement={{
+                poNumber: asset.poNumber ?? "",
+                invoiceNumber: asset.invoiceNumber ?? "",
+                invoiceUrl: asset.invoiceUrl ?? "",
+                capitalizedDate: asset.capitalizedDate ? asset.capitalizedDate.toISOString().slice(0, 10) : "",
+                ownershipType: asset.ownershipType,
+                lessorName: asset.lessorName ?? "",
+                leaseStartDate: asset.leaseStartDate ? asset.leaseStartDate.toISOString().slice(0, 10) : "",
+                leaseEndDate: asset.leaseEndDate ? asset.leaseEndDate.toISOString().slice(0, 10) : "",
+                leaseMonthlyCost:
+                  asset.leaseMonthlyCost != null ? Number(asset.leaseMonthlyCost).toFixed(2) : "",
+              }}
               categories={refs.categories}
               canEditCategoryAndCost={canEditCategoryAndCost}
               canApproveDisposal={hasPermission(session.role, PERMISSION_KEYS.ASSET_APPROVE)}
@@ -241,6 +292,7 @@ export default async function AssetDetailsPage({ params }: { params: Promise<{ a
               }}
               canUploadDocuments={canUploadDocuments}
               overviewBase={overviewBase}
+              disposalPipeline={disposalPipeline}
             />
           </Suspense>
         </div>

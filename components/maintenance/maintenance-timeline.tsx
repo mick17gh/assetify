@@ -1,5 +1,6 @@
 "use client";
 
+import { DocumentOpenButton } from "@/components/documents/document-open-button";
 import { MaintenanceDocumentUpload } from "@/components/maintenance/maintenance-document-upload";
 import { Badge } from "@/components/ui/badge";
 import { ENUM_LABELS } from "@/constants/labels";
@@ -54,12 +55,11 @@ export function MaintenanceTimeline({
                 <p className="text-sm text-navy-900/80">{item.description}</p>
                 {item.vendorName ? <p className="mt-1 text-xs text-navy-900/60">Vendor: {item.vendorName}</p> : null}
                 {item.documents.length > 0 ? (
-                  <ul className="mt-2 space-y-1 text-xs">
+                  <ul className="mt-2 space-y-2">
                     {item.documents.map((doc) => (
-                      <li key={doc.id}>
-                        <a href={doc.fileUrl} target="_blank" rel="noreferrer" className="text-navy-900 hover:underline">
-                          {doc.fileName}
-                        </a>
+                      <li key={doc.id} className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="truncate text-xs text-navy-900/80">{doc.fileName}</span>
+                        <DocumentOpenButton fileUrl={doc.fileUrl} fileName={doc.fileName} label="View" />
                       </li>
                     ))}
                   </ul>

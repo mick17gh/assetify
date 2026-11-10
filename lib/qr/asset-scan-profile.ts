@@ -1,8 +1,11 @@
 import { ENUM_LABELS } from "@/constants/labels";
+import { getRecentAssetsForPicker } from "@/lib/assets/picker-search";
 import { db } from "@/lib/db";
+import type { PickerOption } from "@/lib/lookups/types";
 import { isQrLocationScanningEnabled } from "@/lib/organization-settings";
 import { getAssetScopeWhere } from "@/lib/scoping";
 import type { AppSession } from "@/lib/session";
+import { getRecentUsersForPicker } from "@/lib/users/picker-search";
 
 export type AssetScanProfile = {
   id: string;
@@ -40,17 +43,16 @@ export type StatusHistoryItem = {
 
 export type BranchRoom = { id: string; name: string; branchId: string };
 export type RoomShelf = { id: string; name: string; roomId: string };
-export type BranchUser = { id: string; name: string; branchId: string | null };
 export type BranchDepartment = { id: string; name: string; branchId: string };
 export type ReferenceOption = { id: string; label: string };
 
 export type MovementFormOptions = {
-  assets: ReferenceOption[];
+  assetSeed: PickerOption[];
+  userSeed: PickerOption[];
   branches: ReferenceOption[];
   departments: BranchDepartment[];
   rooms: BranchRoom[];
   shelves: RoomShelf[];
-  users: BranchUser[];
 };
 
 export type AssetScanPageData = {
@@ -108,14 +110,9 @@ async function loadMovementFormOptions(
   session: AppSession,
   asset: { id: string; name: string; ain: string },
 ): Promise<MovementFormOptions> {
-  const assetScope = getAssetScopeWhere(session);
-  const [assets, branches, departments, rooms, shelves, users] = await Promise.all([
-    db.asset.findMany({
-      where: assetScope,
-      orderBy: { name: "asc" },
-      select: { id: true, name: true, ain: true },
-      take: 500,
-    }),
+  const [assetSeed, userSeed, branches, departments, rooms, shelves] = await Promise.all([
+    getRecentAssetsForPicker({ organizationId }),
+    getRecentUsersForPicker({ organizationId, branchId: session.branchId }),
     db.branch.findMany({
       where: { organizationId },
       orderBy: { name: "asc" },
@@ -136,24 +133,20 @@ async function loadMovementFormOptions(
       orderBy: { name: "asc" },
       select: { id: true, name: true, roomId: true },
     }),
-    db.user.findMany({
-      where: { organizationId, isActive: true },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true, branchId: true },
-    }),
   ]);
 
-  const assetOptions = assets.some((item) => item.id === asset.id)
-    ? assets.map((item) => ({ id: item.id, label: `${item.name} (${item.ain})` }))
-    : [{ id: asset.id, label: `${asset.name} (${asset.ain})` }, ...assets.map((item) => ({ id: item.id, label: `${item.name} (${item.ain})` }))];
+  const current: PickerOption = { id: asset.id, label: `${asset.name} (${asset.ain})`, subtitle: asset.ain };
+  const seeded = assetSeed.some((item) => item.id === current.id)
+    ? assetSeed
+    : [current, ...assetSeed];
 
   return {
-    assets: assetOptions,
+    assetSeed: seeded,
+    userSeed,
     branches: branches.map((branch) => ({ id: branch.id, label: `${branch.name} (${branch.code})` })),
     departments,
     rooms,
     shelves,
-    users,
   };
 }
 

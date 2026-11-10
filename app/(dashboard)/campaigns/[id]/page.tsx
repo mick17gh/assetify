@@ -19,6 +19,7 @@ import { db } from "@/lib/db";
 import { hasPermission } from "@/lib/permissions";
 import { requireOrganizationId } from "@/lib/scoping";
 import { getRequiredSession } from "@/lib/session";
+import { getRecentUsersForPicker } from "@/lib/users/picker-search";
 
 function dayValue(date: Date) {
   return date.toISOString().slice(0, 10);
@@ -41,7 +42,7 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
   });
   if (!campaign) notFound();
 
-  const [stats, branches, departments, categories, users, regions, branchProgress, scopeAssets, assigned, pendingInvestigation] = await Promise.all([
+  const [stats, branches, departments, categories, officerSeed, regions, branchProgress, scopeAssets, assigned, pendingInvestigation] = await Promise.all([
     getCampaignStats(campaign.id, organizationId),
     db.branch.findMany({ where: { organizationId }, orderBy: { name: "asc" }, select: { id: true, name: true, regionId: true } }),
     db.department.findMany({
@@ -50,11 +51,7 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
       select: { id: true, name: true },
     }),
     db.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
-    db.user.findMany({
-      where: { organizationId, isActive: true },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true },
-    }),
+    getRecentUsersForPicker({ organizationId }),
     db.region.findMany({ where: { organizationId }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
     progressByBranch(campaign.id, organizationId),
     db.campaignScopeSnapshot.findMany({
@@ -215,7 +212,7 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
                 <div className={`${pageActionGroupClass} mb-4 sm:ml-auto`}>
                   <AssignOfficerDialog
                     campaignId={campaign.id}
-                    officers={users.map((user) => ({ id: user.id, label: user.name }))}
+                    officerSeed={officerSeed}
                     branches={branchOptions}
                   />
                 </div>

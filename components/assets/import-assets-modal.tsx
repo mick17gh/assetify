@@ -12,12 +12,16 @@ import {
   REGEX,
 } from "@/constants";
 import { parseCsv, validateImportRows } from "@/lib/import-parser";
+import { UserLookupPicker, VendorLookupPicker } from "@/components/shared/entity-lookups";
 import { InlineCombobox, type ReferenceOption } from "@/components/shared/reference-selects";
+import type { PickerOption } from "@/lib/lookups/types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -84,13 +88,13 @@ function matchByName(hint: string, options: Array<{ id: string; name: string }>)
   return options.find((option) => option.name.toLowerCase() === needle)?.id ?? "";
 }
 
-function matchVendorId(hint: string, vendors: ReferenceOption[]) {
+function matchVendorId(hint: string, vendors: PickerOption[]) {
   const needle = hint.trim().toLowerCase();
   if (!needle) return "";
   return vendors.find((v) => v.label.toLowerCase() === needle)?.id ?? "";
 }
 
-function matchCustodianId(hint: string, custodians: ReferenceOption[]) {
+function matchCustodianId(hint: string, custodians: PickerOption[]) {
   const needle = hint.trim().toLowerCase();
   if (!needle) return "";
   return (
@@ -165,8 +169,8 @@ function mapImportItemToPreviewRow(
   refs: {
     branches: ReferenceOption[];
     categories: ReferenceOption[];
-    vendors: ReferenceOption[];
-    custodians: ReferenceOption[];
+    vendors: PickerOption[];
+    custodians: PickerOption[];
     locations: LocationRefs;
   },
 ): PreviewRow {
@@ -217,14 +221,14 @@ function mapImportItemToPreviewRow(
 export function ImportAssetsModal({
   branches,
   categories,
-  vendors,
-  custodians,
+  vendorSeed,
+  custodianSeed,
   locations,
 }: {
   branches: ReferenceOption[];
   categories: ReferenceOption[];
-  vendors: ReferenceOption[];
-  custodians: ReferenceOption[];
+  vendorSeed: PickerOption[];
+  custodianSeed: PickerOption[];
   locations: LocationRefs;
 }) {
   const router = useRouter();
@@ -279,7 +283,7 @@ export function ImportAssetsModal({
 
       const previewRows: PreviewRow[] = [];
       const batchSize = 15;
-      const refs = { branches, categories, vendors, custodians, locations };
+      const refs = { branches, categories, vendors: vendorSeed, custodians: custodianSeed, locations };
       setParseProgress({ done: 0, total: parsed.length });
 
       for (let i = 0; i < parsed.length; i += batchSize) {
@@ -436,7 +440,7 @@ export function ImportAssetsModal({
         </DialogHeader>
 
         {step === "upload" ? (
-          <div className="space-y-4">
+          <DialogBody className="space-y-4 pb-2">
             <Button
               variant="outline"
               asChild
@@ -471,9 +475,10 @@ export function ImportAssetsModal({
               </div>
             ) : null}
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
-          </div>
+          </DialogBody>
         ) : (
           <div className="flex min-h-0 flex-1 flex-col gap-3">
+            <DialogBody className="flex min-h-0 flex-1 flex-col gap-3 pb-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="text-sm text-navy-900/75">
                 <span className="font-medium text-navy-950">{rows.length}</span> rows from{" "}
@@ -655,20 +660,24 @@ export function ImportAssetsModal({
                           />
                         </td>
                         <td className="px-2 py-1.5">
-                          <InlineCombobox
+                          <VendorLookupPicker
                             value={row.vendorId}
-                            options={vendors}
+                            seed={vendorSeed}
                             allowNone
+                            noneLabel="None"
                             placeholder="None"
+                            className="h-8"
                             onValueChange={(vendorId) => updateRow(row.key, { vendorId })}
                           />
                         </td>
                         <td className="px-2 py-1.5">
-                          <InlineCombobox
+                          <UserLookupPicker
                             value={row.custodianId}
-                            options={custodians}
+                            seed={custodianSeed}
                             allowNone
+                            noneLabel="None"
                             placeholder="None"
+                            className="h-8"
                             onValueChange={(custodianId) => updateRow(row.key, { custodianId })}
                           />
                         </td>
@@ -732,7 +741,8 @@ export function ImportAssetsModal({
               </table>
             </div>
 
-            <div className="flex flex-col gap-2">
+            </DialogBody>
+            <DialogFooter className="flex-col gap-2 sm:flex-col">
               <Button
                 onClick={() => void handleConfirm()}
                 disabled={!rows.length || submitting || invalidCount > 0}
@@ -752,7 +762,7 @@ export function ImportAssetsModal({
                   {result.failedRows ? ` (${result.failedRows} failed)` : ""}.
                 </p>
               ) : null}
-            </div>
+            </DialogFooter>
           </div>
         )}
       </DialogContent>

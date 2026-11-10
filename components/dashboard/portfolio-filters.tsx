@@ -3,7 +3,9 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { ASSET_CONDITION, ASSET_STATUS } from "@/constants";
 import { EnumSelectFilter } from "@/components/shared/enum-select";
+import { UserLookupPicker } from "@/components/shared/entity-lookups";
 import { InlineCombobox, type ReferenceOption } from "@/components/shared/reference-selects";
+import type { PickerOption } from "@/lib/lookups/types";
 import { clearPaginationParams } from "@/lib/pagination/page";
 import { getQueryNavigationTarget } from "@/lib/filters/query";
 
@@ -12,14 +14,14 @@ export function PortfolioFilters({
   branches,
   departments,
   categories,
-  custodians,
+  custodianSeed,
   years,
 }: {
   regions: ReferenceOption[];
   branches: ReferenceOption[];
   departments: ReferenceOption[];
   categories: ReferenceOption[];
-  custodians: ReferenceOption[];
+  custodianSeed: PickerOption[];
   years: string[];
 }) {
   const router = useRouter();
@@ -42,7 +44,14 @@ export function PortfolioFilters({
       <InlineCombobox value={params.get("branch") ?? ""} options={branches} onValueChange={(value) => setParam("branch", value)} placeholder="All branches" allowNone />
       <InlineCombobox value={params.get("department") ?? ""} options={departments} onValueChange={(value) => setParam("department", value)} placeholder="All departments" allowNone />
       <InlineCombobox value={params.get("category") ?? ""} options={categories} onValueChange={(value) => setParam("category", value)} placeholder="All categories" allowNone />
-      <InlineCombobox value={params.get("custodian") ?? ""} options={custodians} onValueChange={(value) => setParam("custodian", value)} placeholder="All custodians" allowNone />
+      <UserLookupPicker
+        value={params.get("custodian") ?? ""}
+        seed={custodianSeed}
+        allowNone
+        noneLabel="All custodians"
+        placeholder="All custodians"
+        onValueChange={(value) => setParam("custodian", value)}
+      />
       <EnumSelectFilter name="condition" label="Condition" labelKey="assetCondition" values={ASSET_CONDITION} value={params.get("condition") ?? "ALL"} onValueChange={(value) => setParam("condition", value)} className="w-full sm:w-full" />
       <EnumSelectFilter name="status" label="Status" labelKey="assetStatus" values={ASSET_STATUS} value={params.get("status") ?? "ALL"} onValueChange={(value) => setParam("status", value)} className="w-full sm:w-full" />
       <InlineCombobox value={params.get("year") ?? ""} options={yearOptions} onValueChange={(value) => setParam("year", value)} placeholder="All acquisition years" allowNone />

@@ -1,11 +1,11 @@
 "use client";
 
 import { DocumentOpenButton } from "@/components/documents/document-open-button";
+import { AssetTimeline, type TimelineItem } from "@/components/assets/asset-timeline";
 import { MaintenanceTimeline } from "@/components/maintenance/maintenance-timeline";
-import { CheckCircle2, Clock3, FileText, MapPin, User, Wrench, XCircle } from "lucide-react";
+import { FileText, MapPin, User } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 
 type MaintenanceItem = {
   id: string;
@@ -15,14 +15,6 @@ type MaintenanceItem = {
   vendorName: string;
   status: string;
   documents: Array<{ id: string; fileName: string; fileUrl: string }>;
-};
-
-type HistoryItem = {
-  id: string;
-  date: string;
-  from: string;
-  to: string;
-  note: string;
 };
 
 type FileItem = {
@@ -53,6 +45,14 @@ type OverviewData = {
   purchaseDate: string;
   purchaseCost: string;
   warrantyExpiry: string;
+  poNumber: string;
+  invoiceNumber: string;
+  invoiceUrl: string;
+  capitalizedDate: string;
+  ownershipType: string;
+  lessorName: string;
+  leaseWindow: string;
+  leaseMonthlyCost: string;
   maintenanceCount: number;
   documentCount: number;
   latestMaintenance: { date: string; description: string } | null;
@@ -66,75 +66,34 @@ export function AssetDetailsTabs({
   overview,
   maintenance,
   maintenanceSummary,
-  history,
+  timeline,
   files,
   disposalRecord,
+  disposalPipeline,
   canUploadDocuments = false,
 }: {
   overview: OverviewData;
   maintenance: MaintenanceItem[];
   maintenanceSummary: { totalCost: number; purchaseCost: number; isHighCost: boolean };
-  history: HistoryItem[];
+  timeline: TimelineItem[];
   files: FileItem[];
   disposalRecord: { method: string; disposalDate: string; reason: string; salePrice: string | null } | null;
+  disposalPipeline: {
+    recommendationState: string | null;
+    approvalStatus: string | null;
+    recommendedAction: string | null;
+    reason: string | null;
+    replacementState: string | null;
+    recommendedReplaceDate: string | null;
+  };
   canUploadDocuments?: boolean;
 }) {
-  const statusMeta: Record<string, { badge: string; dot: string; icon: React.ComponentType<{ className?: string }> }> = {
-    ACTIVE: {
-      badge: "bg-emerald-100 text-emerald-700",
-      dot: "bg-emerald-500",
-      icon: CheckCircle2,
-    },
-    UNDER_REPAIR: {
-      badge: "bg-amber-100 text-amber-700",
-      dot: "bg-amber-500",
-      icon: Wrench,
-    },
-    FAULTY: {
-      badge: "bg-orange-100 text-orange-700",
-      dot: "bg-orange-500",
-      icon: XCircle,
-    },
-    IN_STORAGE: {
-      badge: "bg-blue-100 text-blue-700",
-      dot: "bg-blue-500",
-      icon: Clock3,
-    },
-    MISSING: {
-      badge: "bg-rose-100 text-rose-700",
-      dot: "bg-rose-500",
-      icon: XCircle,
-    },
-    DISPOSED: {
-      badge: "bg-zinc-100 text-zinc-700",
-      dot: "bg-zinc-500",
-      icon: XCircle,
-    },
-    DONATED: {
-      badge: "bg-sky-100 text-sky-700",
-      dot: "bg-sky-500",
-      icon: CheckCircle2,
-    },
-    SOLD: {
-      badge: "bg-indigo-100 text-indigo-700",
-      dot: "bg-indigo-500",
-      icon: CheckCircle2,
-    },
-    "N/A": {
-      badge: "bg-navy-100 text-navy-700",
-      dot: "bg-navy-500",
-      icon: Clock3,
-    },
-  };
-
-  const getStatusMeta = (status: string) => statusMeta[status] ?? statusMeta["N/A"];
-
   return (
     <Tabs defaultValue="overview" className="w-full">
       <TabsList className="mb-4 h-auto rounded-lg bg-navy-50">
         <TabsTrigger value="overview">Overview</TabsTrigger>
         <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
-        <TabsTrigger value="history">History</TabsTrigger>
+        <TabsTrigger value="history">Timeline</TabsTrigger>
         <TabsTrigger value="files">Files</TabsTrigger>
       </TabsList>
       <TabsContent value="overview">
@@ -159,7 +118,7 @@ export function AssetDetailsTabs({
               <div className="rounded-lg border border-navy-100 bg-navy-50/50 p-4">
                 <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-navy-950">
                   <MapPin className="h-4 w-4 text-navy-700" />
-                  Location & ownership
+                  Location & custody
                 </p>
                 <div className="space-y-2 text-sm text-navy-900/75">
                   <p>
@@ -178,14 +137,38 @@ export function AssetDetailsTabs({
                   <p>
                     <span className="font-medium text-navy-950">Acknowledgement:</span> {overview.acknowledgement}
                   </p>
+                  <p>
+                    <span className="font-medium text-navy-950">Ownership:</span> {overview.ownershipType}
+                  </p>
+                  {overview.lessorName !== "N/A" ? (
+                    <p>
+                      <span className="font-medium text-navy-950">Lessor:</span> {overview.lessorName}
+                      {overview.leaseWindow !== "N/A" ? ` · ${overview.leaseWindow}` : ""}
+                      {overview.leaseMonthlyCost !== "N/A" ? ` · GHS ${overview.leaseMonthlyCost}/mo` : ""}
+                    </p>
+                  ) : null}
                 </div>
               </div>
               <div className="rounded-lg border border-navy-100 bg-navy-50/50 p-4">
-                <p className="mb-2 text-sm font-semibold text-navy-950">Financial snapshot</p>
+                <p className="mb-2 text-sm font-semibold text-navy-950">Procurement & valuation</p>
                 <div className="space-y-2 text-sm text-navy-900/75">
                   <p>
                     <span className="font-medium text-navy-950">Purchase date:</span> {overview.purchaseDate}
                   </p>
+                  <p>
+                    <span className="font-medium text-navy-950">Capitalized:</span> {overview.capitalizedDate}
+                  </p>
+                  <p>
+                    <span className="font-medium text-navy-950">PO / Invoice:</span> {overview.poNumber} / {overview.invoiceNumber}
+                  </p>
+                  {overview.invoiceUrl !== "N/A" ? (
+                    <p>
+                      <span className="font-medium text-navy-950">Invoice link:</span>{" "}
+                      <a href={overview.invoiceUrl} target="_blank" rel="noreferrer" className="underline">
+                        Open
+                      </a>
+                    </p>
+                  ) : null}
                   <p>
                     <span className="font-medium text-navy-950">Purchase cost:</span> {overview.purchaseCost}
                   </p>
@@ -205,10 +188,36 @@ export function AssetDetailsTabs({
               </div>
             </div>
 
+            {!disposalRecord && (disposalPipeline.recommendationState || disposalPipeline.replacementState) ? (
+              <div className="rounded-lg border border-amber-100 bg-amber-50/60 p-4 text-sm">
+                <p className="mb-2 font-semibold text-amber-950">Disposal / replacement pipeline</p>
+                <div className="space-y-1 text-amber-950/80">
+                  {disposalPipeline.recommendationState ? (
+                    <p>
+                      Disposal recommendation: {disposalPipeline.recommendationState}
+                      {disposalPipeline.approvalStatus ? ` · ${disposalPipeline.approvalStatus}` : ""}
+                    </p>
+                  ) : null}
+                  {disposalPipeline.recommendedAction ? <p>Action: {disposalPipeline.recommendedAction}</p> : null}
+                  {disposalPipeline.reason ? <p>Reason: {disposalPipeline.reason}</p> : null}
+                  {disposalPipeline.replacementState ? (
+                    <p>
+                      Replacement: {disposalPipeline.replacementState}
+                      {disposalPipeline.recommendedReplaceDate
+                        ? ` · target ${disposalPipeline.recommendedReplaceDate}`
+                        : ""}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+
             {disposalRecord ? (
               <div className="rounded-lg border border-rose-100 bg-rose-50/50 p-4 text-sm">
                 <p className="mb-2 font-semibold text-rose-900">Disposal record</p>
-                <p>{disposalRecord.method} on {disposalRecord.disposalDate}</p>
+                <p>
+                  {disposalRecord.method} on {disposalRecord.disposalDate}
+                </p>
                 <p className="text-rose-900/80">{disposalRecord.reason}</p>
                 {disposalRecord.salePrice ? <p>Sale price: GHS {disposalRecord.salePrice}</p> : null}
               </div>
@@ -217,7 +226,7 @@ export function AssetDetailsTabs({
             <div className="grid gap-3 md:grid-cols-3">
               <OverviewStat label="Maintenance records" value={String(overview.maintenanceCount)} />
               <OverviewStat label="Attached files" value={String(overview.documentCount)} />
-              <OverviewStat label="Status changes" value={String(history.length)} />
+              <OverviewStat label="Timeline events" value={String(timeline.length)} />
             </div>
 
             <div className="grid gap-3 md:grid-cols-2">
@@ -232,10 +241,10 @@ export function AssetDetailsTabs({
                 )}
               </div>
               <div className="rounded-lg border border-navy-100 bg-white p-3 text-sm">
-                <p className="mb-1 font-medium text-navy-950">Latest status change</p>
+                <p className="mb-1 font-medium text-navy-950">Latest timeline event</p>
                 {overview.latestHistory ? (
                   <p className="text-navy-900/75">
-                    {overview.latestHistory.date}: {overview.latestHistory.from} → {overview.latestHistory.to}
+                    {overview.latestHistory.date}: {overview.latestHistory.to}
                   </p>
                 ) : (
                   <p className="text-navy-900/60">No lifecycle history yet.</p>
@@ -261,51 +270,7 @@ export function AssetDetailsTabs({
       <TabsContent value="history">
         <Card className="border-navy-200 shadow-sm">
           <CardContent className="pt-6">
-            {history.length === 0 ? (
-              <p className="text-sm text-navy-900/70">No status history yet.</p>
-            ) : (
-              <div className="relative pl-8">
-                <span className="absolute top-1 bottom-1 left-3 w-px bg-navy-200" />
-                <div className="space-y-4">
-                  {history.map((item, index) => {
-                    const fromMeta = getStatusMeta(item.from);
-                    const toMeta = getStatusMeta(item.to);
-                    const ToIcon = toMeta.icon;
-
-                    return (
-                      <div key={item.id} className="relative">
-                        <span
-                          className={cn(
-                            "absolute top-4 -left-[1.35rem] h-3.5 w-3.5 rounded-full ring-4 ring-white",
-                            toMeta.dot,
-                          )}
-                        />
-                        <div className="rounded-xl border border-navy-100 bg-white p-4 shadow-sm">
-                          <div className="mb-2 flex items-center justify-between gap-2">
-                            <p className="flex items-center gap-2 text-sm font-semibold text-navy-950">
-                              <ToIcon className="h-4 w-4 text-navy-700" />
-                              <span>Lifecycle update</span>
-                            </p>
-                            <span className="text-xs font-medium text-navy-900/65">{item.date}</span>
-                          </div>
-                          <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
-                            <span className={cn("rounded-md px-2 py-1 font-medium", fromMeta.badge)}>
-                              {item.from}
-                            </span>
-                            <span className="text-navy-900/60">to</span>
-                            <span className={cn("rounded-md px-2 py-1 font-medium", toMeta.badge)}>
-                              {item.to}
-                            </span>
-                            <span className="ml-auto text-navy-900/45">#{history.length - index}</span>
-                          </div>
-                          <p className="text-sm text-navy-900/70">{item.note || "No note provided."}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+            <AssetTimeline items={timeline} />
           </CardContent>
         </Card>
       </TabsContent>

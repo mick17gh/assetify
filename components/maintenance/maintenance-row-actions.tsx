@@ -9,12 +9,21 @@ import {
 } from "@/app/(dashboard)/maintenance/actions";
 import { SetupTextField } from "@/components/settings/setup-create-modal";
 import { EnumSelect } from "@/components/shared/enum-select";
-import { ReferenceOption, ReferenceSelect } from "@/components/shared/reference-selects";
+import { AssetLookupSelect } from "@/components/shared/entity-lookups";
 import { SubmitButton } from "@/components/shared/submit-button";
 import { PendingForm } from "@/components/shared/pending-form";
 import { MaintenanceDocumentUpload } from "@/components/maintenance/maintenance-document-upload";
+import { DocumentOpenButton } from "@/components/documents/document-open-button";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,7 +40,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MAINTENANCE_STATUS } from "@/constants";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import type { PickerOption } from "@/lib/lookups/types";
+import { MAINTENANCE_STATUS, REPAIR_OUTCOME } from "@/constants";
 
 type MaintenanceDocument = { id: string; fileName: string; displayName?: string; fileUrl: string };
 
@@ -50,24 +62,38 @@ export function MaintenanceRowActions({
   recordId,
   assetId,
   description,
+  notes = "",
   serviceDate,
   cost,
   vendorName,
   nextServiceDate,
+  reportedDate = "",
+  sentDate = "",
+  actualReturnDate = "",
+  warrantyClaim = false,
   status,
-  assets,
+  repairOutcome = "",
+  assetSeed,
+  assetLabel,
   documents = [],
   canUpload = false,
 }: {
   recordId: string;
   assetId: string;
   description: string;
+  notes?: string;
   serviceDate: string;
   cost: string;
   vendorName: string;
   nextServiceDate: string;
+  reportedDate?: string;
+  sentDate?: string;
+  actualReturnDate?: string;
+  warrantyClaim?: boolean;
   status: string;
-  assets: ReferenceOption[];
+  repairOutcome?: string;
+  assetSeed: PickerOption[];
+  assetLabel: string;
   documents?: MaintenanceDocument[];
   canUpload?: boolean;
 }) {
@@ -90,29 +116,31 @@ export function MaintenanceRowActions({
                 : `${documents.length} file${documents.length === 1 ? "" : "s"} attached.`}
             </DialogDescription>
           </DialogHeader>
-          {documents.length === 0 ? (
-            <p className="text-sm text-navy-900/65">Upload an invoice using the Invoice button.</p>
-          ) : (
-            <ul className="space-y-2">
-              {documents.map((doc) => (
-                <li key={doc.id}>
-                  <a
-                    href={doc.fileUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-3 rounded-lg border border-navy-100 bg-navy-50/50 px-3 py-2.5 text-sm text-navy-950 transition-colors hover:bg-navy-50"
-                  >
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-white text-navy-900 shadow-sm">
-                      <FileText className="h-4 w-4" />
-                    </span>
-                    <span className="min-w-0 flex-1 truncate font-medium" title={doc.displayName ?? doc.fileName}>
-                      {doc.displayName ?? displayFileName(doc.fileName)}
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
+          <DialogBody>
+            {documents.length === 0 ? (
+              <p className="text-sm text-navy-900/65">Upload an invoice using the Invoice button.</p>
+            ) : (
+              <ul className="space-y-2">
+                {documents.map((doc) => {
+                  const name = doc.displayName ?? displayFileName(doc.fileName);
+                  return (
+                    <li
+                      key={doc.id}
+                      className="flex items-center gap-3 rounded-lg border border-navy-100 bg-navy-50/50 px-3 py-2.5 text-sm text-navy-950"
+                    >
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-white text-navy-900 shadow-sm">
+                        <FileText className="h-4 w-4" />
+                      </span>
+                      <span className="min-w-0 flex-1 truncate font-medium" title={name}>
+                        {name}
+                      </span>
+                      <DocumentOpenButton fileUrl={doc.fileUrl} fileName={name} label="View" />
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </DialogBody>
         </DialogContent>
       </Dialog>
 
@@ -125,24 +153,64 @@ export function MaintenanceRowActions({
             action={updateMaintenanceAction}
             onSuccess={() => setEditOpen(false)}
             successMessage="Maintenance record updated."
-            className="min-w-0 space-y-3"
+            className="flex min-h-0 min-w-0 flex-1 flex-col"
           >
-            <input type="hidden" name="id" value={recordId} />
-            <ReferenceSelect name="assetId" label="Asset" options={assets} value={assetId} required />
-            <SetupTextField name="description" label="Description" required minLength={3} maxLength={2000} defaultValue={description} />
-            <SetupTextField name="serviceDate" label="Service date" type="date" required defaultValue={serviceDate} />
-            <SetupTextField name="cost" label="Cost" defaultValue={cost} />
-            <SetupTextField name="vendorName" label="Vendor name" defaultValue={vendorName} maxLength={120} />
-            <SetupTextField name="nextServiceDate" label="Next service date" type="date" defaultValue={nextServiceDate} />
-            <EnumSelect
-              name="status"
-              label="Status"
-              labelKey="maintenanceStatus"
-              values={MAINTENANCE_STATUS}
-              defaultValue={status}
-              required
-            />
-            <SubmitButton idleLabel="Update" pendingLabel="Updating..." className="w-full cursor-pointer" />
+            <DialogBody className="min-w-0 space-y-3 pb-2">
+              <input type="hidden" name="id" value={recordId} />
+              <AssetLookupSelect
+                name="assetId"
+                value={assetId}
+                seed={[{ id: assetId, label: assetLabel }, ...assetSeed.filter((item) => item.id !== assetId)]}
+                required
+              />
+              <SetupTextField name="description" label="Description" required minLength={3} maxLength={2000} defaultValue={description} />
+              <SetupTextField name="serviceDate" label="Service date" type="date" required defaultValue={serviceDate} />
+              <SetupTextField name="reportedDate" label="Date reported" type="date" defaultValue={reportedDate} />
+              <SetupTextField name="sentDate" label="Date sent" type="date" defaultValue={sentDate} />
+              <SetupTextField name="actualReturnDate" label="Actual return" type="date" defaultValue={actualReturnDate} />
+              <SetupTextField name="cost" label="Cost" defaultValue={cost} />
+              <SetupTextField name="vendorName" label="Vendor name" defaultValue={vendorName} maxLength={120} />
+              <SetupTextField name="nextServiceDate" label="Next service date" type="date" defaultValue={nextServiceDate} />
+              <div className="min-w-0 space-y-1">
+                <Label htmlFor={`notes-${recordId}`}>Notes</Label>
+                <Textarea
+                  id={`notes-${recordId}`}
+                  name="notes"
+                  maxLength={4000}
+                  defaultValue={notes}
+                  placeholder="Additional notes (optional)"
+                  className="min-w-0"
+                />
+              </div>
+              <label className="flex items-center gap-2 text-sm text-navy-900">
+                <input
+                  type="checkbox"
+                  name="warrantyClaim"
+                  value="true"
+                  defaultChecked={warrantyClaim}
+                  className="h-4 w-4"
+                />
+                Warranty claim
+              </label>
+              <EnumSelect
+                name="status"
+                label="Status"
+                labelKey="maintenanceStatus"
+                values={MAINTENANCE_STATUS}
+                defaultValue={status}
+                required
+              />
+              <EnumSelect
+                name="repairOutcome"
+                label="Repair outcome"
+                labelKey="repairOutcome"
+                values={REPAIR_OUTCOME}
+                defaultValue={repairOutcome || undefined}
+              />
+            </DialogBody>
+            <DialogFooter>
+              <SubmitButton idleLabel="Update" pendingLabel="Updating..." className="w-full cursor-pointer sm:w-auto" />
+            </DialogFooter>
           </PendingForm>
         </DialogContent>
       </Dialog>

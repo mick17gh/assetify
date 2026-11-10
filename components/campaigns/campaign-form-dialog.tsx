@@ -7,7 +7,16 @@ import { OptionalReferenceSelect, MultiReferenceSelect, type ReferenceOption } f
 import { PendingForm } from "@/components/shared/pending-form";
 import { SubmitButton } from "@/components/shared/submit-button";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -57,7 +66,7 @@ export function CampaignFormDialog({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{editing ? "Edit campaign" : "New campaign"}</DialogTitle>
           <DialogDescription>Empty scope fields include every branch, department, and category.</DialogDescription>
@@ -66,62 +75,64 @@ export function CampaignFormDialog({
           action={editing ? updateCampaignAction : createCampaignAction}
           successMessage={editing ? "Campaign updated." : false}
           onSuccess={() => setOpen(false)}
-          className="grid min-w-0 gap-3 sm:grid-cols-2"
+          className="flex min-h-0 min-w-0 flex-1 flex-col"
         >
           {campaign ? <input type="hidden" name="campaignId" value={campaign.id} /> : null}
-          <div className="space-y-1 sm:col-span-2">
-            <Label htmlFor="name">Name</Label>
-            <Input id="name" name="name" required minLength={2} defaultValue={campaign?.name} />
-          </div>
-          <div className="space-y-1 sm:col-span-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea id="description" name="description" defaultValue={campaign?.description} />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="startDate">Start</Label>
-            <Input id="startDate" name="startDate" type="date" required defaultValue={campaign?.startDate} />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="endDate">End</Label>
-            <Input id="endDate" name="endDate" type="date" required defaultValue={campaign?.endDate} />
-          </div>
-          <div className="sm:col-span-2">
-            <OptionalReferenceSelect
-              name="regionFilter"
-              label="Filter branches by region"
-              options={regions}
-              value={regionId || "NONE"}
-              onValueChange={(value) => setRegionId(value === "NONE" ? "" : value)}
-            />
-          </div>
-          <div className="sm:col-span-2">
-            <MultiReferenceSelect name="branchIds" label="Branches" options={visibleBranches} defaultValue={campaign?.branchIds} emptyLabel="All branches" />
-          </div>
-          <div className="sm:col-span-2">
-            <MultiReferenceSelect
-              name="departmentIds"
-              label="Departments"
-              options={departments}
-              defaultValue={campaign?.departmentIds}
-              emptyLabel="All departments"
-            />
-          </div>
-          <div className="sm:col-span-2">
-            <MultiReferenceSelect
-              name="categoryIds"
-              label="Categories"
-              options={categories}
-              defaultValue={campaign?.categoryIds}
-              emptyLabel="All categories"
-            />
-          </div>
-          <div className="sm:col-span-2">
+          <DialogBody className="grid min-w-0 gap-3 pb-2 sm:grid-cols-2">
+            <div className="space-y-1 sm:col-span-2">
+              <Label htmlFor="name">Name</Label>
+              <Input id="name" name="name" required minLength={2} defaultValue={campaign?.name} />
+            </div>
+            <div className="space-y-1 sm:col-span-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea id="description" name="description" defaultValue={campaign?.description} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="startDate">Start</Label>
+              <Input id="startDate" name="startDate" type="date" required defaultValue={campaign?.startDate} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="endDate">End</Label>
+              <Input id="endDate" name="endDate" type="date" required defaultValue={campaign?.endDate} />
+            </div>
+            <div className="sm:col-span-2">
+              <OptionalReferenceSelect
+                name="regionFilter"
+                label="Filter branches by region"
+                options={regions}
+                value={regionId || "NONE"}
+                onValueChange={(value) => setRegionId(value === "NONE" ? "" : value)}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <MultiReferenceSelect name="branchIds" label="Branches" options={visibleBranches} defaultValue={campaign?.branchIds} emptyLabel="All branches" />
+            </div>
+            <div className="sm:col-span-2">
+              <MultiReferenceSelect
+                name="departmentIds"
+                label="Departments"
+                options={departments}
+                defaultValue={campaign?.departmentIds}
+                emptyLabel="All departments"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <MultiReferenceSelect
+                name="categoryIds"
+                label="Categories"
+                options={categories}
+                defaultValue={campaign?.categoryIds}
+                emptyLabel="All categories"
+              />
+            </div>
+          </DialogBody>
+          <DialogFooter>
             <SubmitButton
               idleLabel={editing ? "Save draft" : "Create draft"}
               pendingLabel="Saving..."
-              className="w-full cursor-pointer bg-navy-900 hover:bg-navy-950"
+              className="w-full cursor-pointer bg-navy-900 hover:bg-navy-950 sm:w-auto"
             />
-          </div>
+          </DialogFooter>
         </PendingForm>
       </DialogContent>
     </Dialog>

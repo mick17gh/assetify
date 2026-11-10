@@ -105,7 +105,7 @@ export function QrLocationScanner({
     setScannerMode(null);
   }
 
-  const selectedAsset = options.assets.find((item) => item.id === assetId);
+  const selectedAsset = options.assetSeed.find((item) => item.id === assetId);
 
   return (
     <div className="space-y-4">

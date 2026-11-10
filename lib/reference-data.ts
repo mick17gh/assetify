@@ -13,10 +13,11 @@ export const getReferenceDataForSession = cache(async (session: AppSession) => {
       select: { id: true, name: true, code: true, regionId: true },
     }),
     db.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
-    db.vendor.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    db.vendor.findMany({ orderBy: { updatedAt: "desc" }, take: 50, select: { id: true, name: true } }),
     db.user.findMany({
       where: { organizationId: orgId, isActive: true, ...branchFilter },
-      orderBy: { name: "asc" },
+      orderBy: { updatedAt: "desc" },
+      take: 50,
       select: { id: true, name: true, email: true },
     }),
     db.department.findMany({

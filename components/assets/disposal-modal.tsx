@@ -7,7 +7,15 @@ import { EnumSelect } from "@/components/shared/enum-select";
 import { SetupTextField } from "@/components/settings/setup-create-modal";
 import { SubmitButton } from "@/components/shared/submit-button";
 import { PendingForm } from "@/components/shared/pending-form";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -50,40 +58,48 @@ export function DisposalModal({
           action={recordAssetDisposalAction}
           onSuccess={() => setOpen(false)}
           successMessage="Asset disposal recorded."
-          className="space-y-3"
+          className="flex min-h-0 flex-1 flex-col"
         >
           <input type="hidden" name="assetId" value={assetId} />
-          <EnumSelect
-            name="method"
-            label="Disposal method"
-            labelKey="disposalMethod"
-            values={DISPOSAL_METHOD}
-            value={method}
-            onValueChange={setMethod}
-            required
-          />
-          <SetupTextField name="disposalDate" label="Disposal date" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} />
-          <SetupTextField name="reason" label="Reason" required />
-          <div className="space-y-1">
-            <Label htmlFor="evidence">Evidence</Label>
-            <Input id="evidence" name="evidence" type="file" />
-          </div>
-          {method === DISPOSAL_METHOD.SOLD ? (
-            <>
-              <p className="text-sm text-navy-900/70">
-                Recommended sale price: <strong>GHS {recommendedSalePrice.toLocaleString()}</strong>
-              </p>
-              <SetupTextField
-                name="salePrice"
-                label="Sale price (GHS)"
-                required
-                defaultValue={recommendedSalePrice.toFixed(2)}
-              />
-              <SetupTextField name="buyerName" label="Buyer name" required />
-              <SetupTextField name="buyerContact" label="Buyer contact" />
-            </>
-          ) : null}
-          <SubmitButton idleLabel="Confirm disposal" pendingLabel="Processing..." className="w-full cursor-pointer bg-red-600 hover:bg-red-700" />
+          <DialogBody className="space-y-3 pb-2">
+            <EnumSelect
+              name="method"
+              label="Disposal method"
+              labelKey="disposalMethod"
+              values={DISPOSAL_METHOD}
+              value={method}
+              onValueChange={setMethod}
+              required
+            />
+            <SetupTextField name="disposalDate" label="Disposal date" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} />
+            <SetupTextField name="reason" label="Reason" required />
+            <div className="space-y-1">
+              <Label htmlFor="evidence">Evidence</Label>
+              <Input id="evidence" name="evidence" type="file" />
+            </div>
+            {method === DISPOSAL_METHOD.SOLD ? (
+              <>
+                <p className="text-sm text-navy-900/70">
+                  Recommended sale price: <strong>GHS {recommendedSalePrice.toLocaleString()}</strong>
+                </p>
+                <SetupTextField
+                  name="salePrice"
+                  label="Sale price (GHS)"
+                  required
+                  defaultValue={recommendedSalePrice.toFixed(2)}
+                />
+                <SetupTextField name="buyerName" label="Buyer name" required />
+                <SetupTextField name="buyerContact" label="Buyer contact" />
+              </>
+            ) : null}
+          </DialogBody>
+          <DialogFooter>
+            <SubmitButton
+              idleLabel="Confirm disposal"
+              pendingLabel="Processing..."
+              className="w-full cursor-pointer bg-red-600 hover:bg-red-700 sm:w-auto"
+            />
+          </DialogFooter>
         </PendingForm>
       </DialogContent>
     </Dialog>

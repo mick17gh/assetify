@@ -5,6 +5,7 @@ import { enumFromConst } from "./helpers";
 export const createMaintenanceSchema = z.object({
   assetId: z.string().cuid(),
   description: z.string().min(3).max(2000),
+  notes: z.string().max(4000).optional().or(z.literal("")),
   serviceDate: z.string().min(1),
   cost: z.string().regex(REGEX.CURRENCY).optional().or(z.literal("")),
   vendorName: z.string().max(120).optional(),

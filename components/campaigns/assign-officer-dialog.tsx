@@ -3,19 +3,30 @@
 import { useState } from "react";
 import { UserPlus } from "lucide-react";
 import { assignOfficerAction } from "@/app/(dashboard)/campaigns/actions";
-import { OptionalReferenceSelect, ReferenceSelect, type ReferenceOption } from "@/components/shared/reference-selects";
+import { UserLookupSelect } from "@/components/shared/entity-lookups";
+import { OptionalReferenceSelect, type ReferenceOption } from "@/components/shared/reference-selects";
 import { PendingForm } from "@/components/shared/pending-form";
 import { SubmitButton } from "@/components/shared/submit-button";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import type { PickerOption } from "@/lib/lookups/types";
 
 export function AssignOfficerDialog({
   campaignId,
-  officers,
+  officerSeed,
   branches,
 }: {
   campaignId: string;
-  officers: ReferenceOption[];
+  officerSeed: PickerOption[];
   branches: ReferenceOption[];
 }) {
   const [open, setOpen] = useState(false);
@@ -37,12 +48,20 @@ export function AssignOfficerDialog({
           action={assignOfficerAction}
           successMessage="Officer assigned."
           onSuccess={() => setOpen(false)}
-          className="space-y-3"
+          className="flex min-h-0 flex-1 flex-col"
         >
-          <input type="hidden" name="campaignId" value={campaignId} />
-          <ReferenceSelect name="userId" label="Officer" options={officers} required />
-          <OptionalReferenceSelect name="branchId" label="Branch" options={branches} />
-          <SubmitButton idleLabel="Assign" pendingLabel="Assigning..." className="w-full cursor-pointer bg-navy-900 hover:bg-navy-950" />
+          <DialogBody className="space-y-3 pb-2">
+            <input type="hidden" name="campaignId" value={campaignId} />
+            <UserLookupSelect name="userId" label="Officer" seed={officerSeed} required />
+            <OptionalReferenceSelect name="branchId" label="Branch" options={branches} />
+          </DialogBody>
+          <DialogFooter>
+            <SubmitButton
+              idleLabel="Assign"
+              pendingLabel="Assigning..."
+              className="w-full cursor-pointer bg-navy-900 hover:bg-navy-950 sm:w-auto"
+            />
+          </DialogFooter>
         </PendingForm>
       </DialogContent>
     </Dialog>

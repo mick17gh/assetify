@@ -1,6 +1,9 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { QrLocationScanner } from "@/components/locations/qr-location-scanner";
 import { PageHeader } from "@/components/shared/page-header";
+import { Button } from "@/components/ui/button";
 import { APP_ROUTES, PERMISSION_KEYS } from "@/constants";
 import { hasPermission } from "@/lib/permissions";
 import { loadMovementFormOptionsForSession } from "@/lib/qr/asset-scan-profile";
@@ -53,7 +56,15 @@ export default async function LocationScanPage({ searchParams }: { searchParams:
   if (!movementFormOptions) notFound();
 
   return (
-    <div className="space-y-5">
+    <div>
+      <div className="mb-3">
+        <Button variant="ghost" asChild className="cursor-pointer px-0 text-navy-800 hover:bg-transparent">
+          <Link href={APP_ROUTES.LOCATIONS} prefetch>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Locations
+          </Link>
+        </Button>
+      </div>
       <PageHeader title="QR Location Scan" description="Scan asset and location tags, then confirm movement updates." />
       <QrLocationScanner
         options={movementFormOptions}

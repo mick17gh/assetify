@@ -16,6 +16,7 @@ export const createMovementSchema = z
     assignmentType: enumFromConst(ASSIGNMENT_TYPE).optional().or(z.literal("")),
     expectedReturnDate: z.string().optional(),
     acknowledgementMethod: enumFromConst(ACKNOWLEDGEMENT_METHOD).optional().or(z.literal("")),
+    acknowledgementDeferred: z.string().optional(),
     acknowledgementAccepted: z.string().optional(),
     acknowledgementPin: z.string().optional(),
     acknowledgementNote: z.string().max(200).optional(),
@@ -25,17 +26,34 @@ export const createMovementSchema = z
     if (!data.assignmentType) {
       ctx.addIssue({ code: "custom", message: "Assignment type is required.", path: ["assignmentType"] });
     }
+    const deferred = data.acknowledgementDeferred === "true";
+    if (deferred) return;
     if (!data.acknowledgementMethod) {
-      ctx.addIssue({ code: "custom", message: "The assignee must acknowledge the assignment.", path: ["acknowledgementMethod"] });
+      ctx.addIssue({
+        code: "custom",
+        message: "The assignee must acknowledge now, or defer acceptance to their inbox.",
+        path: ["acknowledgementMethod"],
+      });
       return;
     }
     if (data.acknowledgementMethod === ACKNOWLEDGEMENT_METHOD.CHECKBOX && data.acknowledgementAccepted !== "true") {
-      ctx.addIssue({ code: "custom", message: "The assignee must accept custody before this assignment is saved.", path: ["acknowledgementAccepted"] });
+      ctx.addIssue({
+        code: "custom",
+        message: "The assignee must accept custody before this assignment is saved.",
+        path: ["acknowledgementAccepted"],
+      });
     }
     if (data.acknowledgementMethod === ACKNOWLEDGEMENT_METHOD.PIN && (data.acknowledgementPin ?? "").trim().length < 4) {
       ctx.addIssue({ code: "custom", message: "Enter the assignee PIN to accept custody.", path: ["acknowledgementPin"] });
     }
-    if (data.acknowledgementMethod === ACKNOWLEDGEMENT_METHOD.SIGNATURE && (data.acknowledgementNote ?? "").trim().length < 2) {
-      ctx.addIssue({ code: "custom", message: "A signature name is required to accept custody.", path: ["acknowledgementNote"] });
+    if (
+      data.acknowledgementMethod === ACKNOWLEDGEMENT_METHOD.SIGNATURE &&
+      (data.acknowledgementNote ?? "").trim().length < 2
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "A signature name is required to accept custody.",
+        path: ["acknowledgementNote"],
+      });
     }
   });

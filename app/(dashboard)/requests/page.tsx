@@ -85,9 +85,9 @@ export default async function AssetRequestsPage({ searchParams }: { searchParams
         isActive: true,
         ...(session.branchId && !isAdmin ? { branchId: session.branchId } : {}),
       },
-      orderBy: { name: "asc" },
+      orderBy: { updatedAt: "desc" },
       select: { id: true, name: true, categoryId: true },
-      take: 500,
+      take: 50,
     }),
   ]);
 
@@ -101,8 +101,8 @@ export default async function AssetRequestsPage({ searchParams }: { searchParams
             <AssetRequestForm
               categories={reference.categories}
               departments={reference.departments.map((d) => ({ id: d.id, label: d.name }))}
-              assets={assetsForRequest}
-              custodians={reference.custodians}
+              assetSeed={assetsForRequest}
+              custodianSeed={reference.custodians}
             />
           ) : null
         }

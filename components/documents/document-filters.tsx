@@ -2,23 +2,25 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { DOCUMENT_TYPE, ENUM_LABELS } from "@/constants";
-import type { ReferenceOption } from "@/components/shared/reference-selects";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AssetLookupPicker } from "@/components/shared/entity-lookups";
+import { InlineCombobox, type ReferenceOption } from "@/components/shared/reference-selects";
+import type { PickerOption } from "@/lib/lookups/types";
 import { getQueryNavigationTarget } from "@/lib/filters/query";
 import { clearPaginationParams } from "@/lib/pagination/page";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function DocumentFilters({
   branches,
-  assets,
+  assetSeed,
 }: {
   branches: ReferenceOption[];
-  assets: ReferenceOption[];
+  assetSeed: PickerOption[];
 }) {
   const router = useRouter();
   const params = useSearchParams();
   const type = params.get("type") ?? "ALL";
-  const asset = params.get("asset") ?? "ALL";
-  const branch = params.get("branch") ?? "ALL";
+  const asset = params.get("asset") ?? "";
+  const branch = params.get("branch") ?? "";
   const typeLabels = ENUM_LABELS.documentType;
 
   function updateQuery(mutate: (next: URLSearchParams) => void) {
@@ -53,48 +55,33 @@ export function DocumentFilters({
           ))}
         </SelectContent>
       </Select>
-      <Select
+      <AssetLookupPicker
         value={asset}
+        seed={assetSeed}
+        allowNone
+        noneLabel="All assets"
+        placeholder="All assets"
+        className="h-9 w-full sm:w-[220px]"
         onValueChange={(value) => {
           updateQuery((next) => {
-            if (value === "ALL") next.delete("asset");
+            if (!value) next.delete("asset");
             else next.set("asset", value);
           });
         }}
-      >
-        <SelectTrigger className="h-9 w-full min-w-0 cursor-pointer border-navy-200 sm:w-[200px]">
-          <SelectValue placeholder="All assets" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="ALL">All assets</SelectItem>
-          {assets.map((item) => (
-            <SelectItem key={item.id} value={item.id}>
-              {item.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Select
+      />
+      <InlineCombobox
         value={branch}
+        options={branches}
+        allowNone
+        placeholder="All branches"
+        className="h-9 w-full sm:w-[180px]"
         onValueChange={(value) => {
           updateQuery((next) => {
-            if (value === "ALL") next.delete("branch");
+            if (!value) next.delete("branch");
             else next.set("branch", value);
           });
         }}
-      >
-        <SelectTrigger className="h-9 w-full min-w-0 cursor-pointer border-navy-200 sm:w-[180px]">
-          <SelectValue placeholder="All branches" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="ALL">All branches</SelectItem>
-          {branches.map((item) => (
-            <SelectItem key={item.id} value={item.id}>
-              {item.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      />
     </>
   );
 }

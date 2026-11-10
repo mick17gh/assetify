@@ -16,6 +16,7 @@ import { resolvePagePaginationFromParams } from "@/lib/pagination/page";
 import { hasPermission } from "@/lib/permissions";
 import { requireOrganizationId } from "@/lib/scoping";
 import { getRequiredSession } from "@/lib/session";
+import { getRecentUsersForPicker } from "@/lib/users/picker-search";
 
 export default async function ExceptionsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const session = await getRequiredSession();
@@ -65,11 +66,7 @@ export default async function ExceptionsPage({ searchParams }: { searchParams: P
       take,
     }),
     db.assetException.count({ where }),
-    db.user.findMany({
-      where: { organizationId, isActive: true },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true },
-    }),
+    getRecentUsersForPicker({ organizationId }),
   ]);
 
   const query = new URLSearchParams();
@@ -78,7 +75,7 @@ export default async function ExceptionsPage({ searchParams }: { searchParams: P
   if (assignee) query.set("assignee", assignee);
   if (q) query.set("q", q);
   const closeHref = query.size ? `/exceptions?${query.toString()}` : "/exceptions";
-  const assignees = users.map((user) => ({ id: user.id, label: user.name }));
+  const assignees = users;
 
   const selected = selectedId
     ? await db.assetException.findFirst({
@@ -99,7 +96,7 @@ export default async function ExceptionsPage({ searchParams }: { searchParams: P
       />
       <Card className="border-navy-200 shadow-sm">
         <CardContent className="pt-6">
-          <TableToolbar searchPlaceholder="Search by asset or description" filters={<ExceptionFilters assignees={assignees} />} />
+          <TableToolbar searchPlaceholder="Search by asset or description" filters={<ExceptionFilters assigneeSeed={assignees} />} />
           <Table>
             <TableHeader>
               <TableRow>
@@ -146,7 +143,7 @@ export default async function ExceptionsPage({ searchParams }: { searchParams: P
         <ExceptionDetailSheet
           canWrite={canWrite}
           closeHref={closeHref}
-          users={assignees}
+          userSeed={assignees}
           exception={{
             id: selected.id,
             typeLabel: ENUM_LABELS.exceptionType[selected.type] ?? selected.type,

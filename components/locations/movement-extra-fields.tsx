@@ -8,6 +8,7 @@ import { ACKNOWLEDGEMENT_METHOD, ASSIGNMENT_TYPE, MOVEMENT_TYPE, TRANSFER_REASON
 
 export function MovementExtraFields({ movementType }: { movementType: string }) {
   const [method, setMethod] = useState("");
+  const [defer, setDefer] = useState(false);
   const staff = movementType === MOVEMENT_TYPE.STAFF_ASSIGNMENT;
 
   return (
@@ -17,28 +18,54 @@ export function MovementExtraFields({ movementType }: { movementType: string }) 
         <>
           <EnumSelect name="assignmentType" label="Assignment type" labelKey="assignmentType" values={ASSIGNMENT_TYPE} required />
           <SetupTextField name="expectedReturnDate" label="Expected return" type="date" />
-          <EnumSelect
-            name="acknowledgementMethod"
-            label="Assignee acknowledgement"
-            labelKey="acknowledgementMethod"
-            values={ACKNOWLEDGEMENT_METHOD}
-            value={method}
-            onValueChange={setMethod}
-            required
-          />
-          {method === ACKNOWLEDGEMENT_METHOD.CHECKBOX ? (
-            <label className="flex items-center gap-2 text-sm text-navy-900">
-              <input type="checkbox" name="acknowledgementAccepted" value="true" required className="h-4 w-4" />
-              Assignee accepts custody
-            </label>
-          ) : null}
-          {method === ACKNOWLEDGEMENT_METHOD.PIN ? (
-            <SetupTextField name="acknowledgementPin" label="Assignee PIN" required minLength={4} type="password" />
-          ) : null}
-          {method === ACKNOWLEDGEMENT_METHOD.SIGNATURE ? (
-            <SetupTextField name="acknowledgementNote" label="Signature name" required minLength={2} />
-          ) : null}
-          {!method ? <Label className="text-xs text-navy-900/60">The assignee must accept before this assignment is saved.</Label> : null}
+          <label className="flex items-center gap-2 text-sm text-navy-900">
+            <input
+              type="checkbox"
+              name="acknowledgementDeferred"
+              value="true"
+              checked={defer}
+              onChange={(event) => {
+                setDefer(event.target.checked);
+                if (event.target.checked) setMethod("");
+              }}
+              className="h-4 w-4"
+            />
+            Defer acknowledgement to assignee inbox
+          </label>
+          {!defer ? (
+            <>
+              <EnumSelect
+                name="acknowledgementMethod"
+                label="Assignee acknowledgement"
+                labelKey="acknowledgementMethod"
+                values={ACKNOWLEDGEMENT_METHOD}
+                value={method}
+                onValueChange={setMethod}
+                required
+              />
+              {method === ACKNOWLEDGEMENT_METHOD.CHECKBOX ? (
+                <label className="flex items-center gap-2 text-sm text-navy-900">
+                  <input type="checkbox" name="acknowledgementAccepted" value="true" required className="h-4 w-4" />
+                  Assignee accepts custody
+                </label>
+              ) : null}
+              {method === ACKNOWLEDGEMENT_METHOD.PIN ? (
+                <SetupTextField name="acknowledgementPin" label="Assignee PIN" required minLength={4} type="password" />
+              ) : null}
+              {method === ACKNOWLEDGEMENT_METHOD.SIGNATURE ? (
+                <SetupTextField name="acknowledgementNote" label="Signature name" required minLength={2} />
+              ) : null}
+              {!method ? (
+                <Label className="text-xs text-navy-900/60">
+                  Accept now, or defer so the assignee must confirm later.
+                </Label>
+              ) : null}
+            </>
+          ) : (
+            <Label className="text-xs text-navy-900/60">
+              Assignment is saved with pending acknowledgement. The assignee must accept from Acknowledgements.
+            </Label>
+          )}
         </>
       ) : null}
     </>

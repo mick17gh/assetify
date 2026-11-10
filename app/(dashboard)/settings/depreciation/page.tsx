@@ -1,17 +1,18 @@
 import { Suspense } from "react";
 import { PageHeader, pageActionGroupClass } from "@/components/shared/page-header";
 import { SetupTableShell } from "@/components/shared/setup-table-shell";
-import { SetupCreateModal, SetupTextField } from "@/components/settings/setup-create-modal";
+import { SetupCreateModal } from "@/components/settings/setup-create-modal";
 import { SetupRowActions } from "@/components/settings/setup-row-actions";
+import { DepreciationMethodFields } from "@/components/settings/declining-rate-field";
 import { ReferenceSelect } from "@/components/shared/reference-selects";
-import { EnumSelect } from "@/components/shared/enum-select";
 import { PageLoading } from "@/components/shared/page-loading";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { db } from "@/lib/db";
-import { DEPRECIATION_METHOD, PAGINATION } from "@/constants";
+import { ENUM_LABELS, PAGINATION } from "@/constants";
 import { getRequiredSession } from "@/lib/session";
 import { getOptionalQuery, SearchParams } from "@/lib/filters/query";
 import { resolvePagePaginationFromParams } from "@/lib/pagination/page";
+import { PeriodDepreciationRunCard } from "@/components/settings/period-depreciation-run";
 import {
   createDepreciationPolicyAction,
   deleteDepreciationPolicyAction,
@@ -31,7 +32,7 @@ async function DepreciationContent({ searchParams }: { searchParams: Promise<Sea
     ...(q ? { category: { name: { contains: q, mode: "insensitive" as const } } } : {}),
   };
 
-  const [categories, rows, totalCount] = await Promise.all([
+  const [categories, rows, totalCount, recentRuns] = await Promise.all([
     db.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
     db.depreciationPolicy.findMany({
       where,
@@ -41,24 +42,32 @@ async function DepreciationContent({ searchParams }: { searchParams: Promise<Sea
       take,
     }),
     db.depreciationPolicy.count({ where }),
+    session.organizationId
+      ? db.depreciationRun.findMany({
+          where: { organizationId: session.organizationId },
+          orderBy: { runAt: "desc" },
+          take: 5,
+          include: { _count: { select: { lines: true } } },
+        })
+      : Promise.resolve([]),
   ]);
   const categoryOptions = categories.map((c) => ({ id: c.id, label: c.name }));
 
   return (
     <>
+      <PeriodDepreciationRunCard
+        recentRuns={recentRuns.map((run) => ({
+          id: run.id,
+          period: `${run.periodStart.toLocaleDateString()} – ${run.periodEnd.toLocaleDateString()}`,
+          runAt: run.runAt.toLocaleString(),
+          lineCount: run._count.lines,
+          notes: run.notes,
+        }))}
+      />
       <div className={`${pageActionGroupClass} mb-4 sm:ml-auto`}>
         <SetupCreateModal title="Create depreciation policy" triggerLabel="Add Policy" action={createDepreciationPolicyAction}>
           <ReferenceSelect name="categoryId" label="Category" options={categoryOptions} required />
-          <EnumSelect
-            name="method"
-            label="Method"
-            labelKey="depreciationMethod"
-            values={DEPRECIATION_METHOD}
-            defaultValue={DEPRECIATION_METHOD.STRAIGHT_LINE}
-            required
-          />
-          <SetupTextField name="usefulLifeYears" label="Useful life (years)" type="number" required defaultValue="5" />
-          <SetupTextField name="salvagePercent" label="Salvage %" type="number" required defaultValue="10" />
+          <DepreciationMethodFields />
         </SetupCreateModal>
       </div>
       <SetupTableShell
@@ -74,6 +83,7 @@ async function DepreciationContent({ searchParams }: { searchParams: Promise<Sea
               <TableHead>Method</TableHead>
               <TableHead>Life (yrs)</TableHead>
               <TableHead>Salvage %</TableHead>
+              <TableHead>DB rate %</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -81,9 +91,12 @@ async function DepreciationContent({ searchParams }: { searchParams: Promise<Sea
             {rows.map((row) => (
               <TableRow key={row.id}>
                 <TableCell>{row.category.name}</TableCell>
-                <TableCell>{row.method}</TableCell>
+                <TableCell>{ENUM_LABELS.depreciationMethod[row.method] ?? row.method}</TableCell>
                 <TableCell>{row.usefulLifeYears}</TableCell>
                 <TableCell>{Number(row.salvagePercent)}</TableCell>
+                <TableCell>
+                  {row.decliningRatePercent != null ? Number(row.decliningRatePercent) : "—"}
+                </TableCell>
                 <TableCell className="text-right">
                   <SetupRowActions
                     recordId={row.id}
@@ -93,16 +106,14 @@ async function DepreciationContent({ searchParams }: { searchParams: Promise<Sea
                     editFields={
                       <>
                         <ReferenceSelect name="categoryId" label="Category" options={categoryOptions} defaultValue={row.categoryId} required />
-                        <EnumSelect
-                          name="method"
-                          label="Method"
-                          labelKey="depreciationMethod"
-                          values={DEPRECIATION_METHOD}
-                          defaultValue={row.method}
-                          required
+                        <DepreciationMethodFields
+                          defaultMethod={row.method}
+                          defaultUsefulLife={String(row.usefulLifeYears)}
+                          defaultSalvage={String(Number(row.salvagePercent))}
+                          defaultDecliningRate={
+                            row.decliningRatePercent != null ? String(Number(row.decliningRatePercent)) : "40"
+                          }
                         />
-                        <SetupTextField name="usefulLifeYears" label="Life (years)" type="number" required defaultValue={String(row.usefulLifeYears)} />
-                        <SetupTextField name="salvagePercent" label="Salvage %" type="number" required defaultValue={String(Number(row.salvagePercent))} />
                       </>
                     }
                   />
@@ -121,7 +132,7 @@ export default function DepreciationSettingsPage({ searchParams }: { searchParam
     <div>
       <PageHeader
         title="Depreciation Policies"
-        description="Define straight-line depreciation rules per asset category."
+        description="Define depreciation method, useful life, and salvage rules per asset category."
       />
       <Suspense fallback={<PageLoading rows={5} />}>
         <DepreciationContent searchParams={searchParams} />

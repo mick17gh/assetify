@@ -31,7 +31,9 @@ import {
   depreciationPolicySchema,
   updateDepreciationPolicySchema,
 } from "@/lib/validation/depreciation";
-import { parseOptionalCuid } from "@/lib/validation/helpers";
+import { periodDepreciationRunSchema } from "@/lib/validation/asset";
+import { postPeriodDepreciationRun } from "@/lib/depreciation-period";
+import { formatZodError, parseOptionalCuid } from "@/lib/validation/helpers";
 
 function orgId(session: Awaited<ReturnType<typeof getRequiredSession>>) {
   if (!session.organizationId) throw new Error(ERROR_MESSAGES.FORBIDDEN);
@@ -464,7 +466,14 @@ export async function createDepreciationPolicyAction(formData: FormData) {
   if (!parsed.success) throw new Error(ERROR_MESSAGES.INVALID_INPUT);
 
   await db.depreciationPolicy.create({
-    data: { ...parsed.data, organizationId: orgId(session) },
+    data: {
+      categoryId: parsed.data.categoryId,
+      method: parsed.data.method,
+      usefulLifeYears: parsed.data.usefulLifeYears,
+      salvagePercent: parsed.data.salvagePercent,
+      decliningRatePercent: parsed.data.decliningRatePercent ?? null,
+      organizationId: orgId(session),
+    },
   });
 
   await writeAuditLog({
@@ -490,6 +499,7 @@ export async function updateDepreciationPolicyAction(formData: FormData) {
       method: parsed.data.method,
       usefulLifeYears: parsed.data.usefulLifeYears,
       salvagePercent: parsed.data.salvagePercent,
+      decliningRatePercent: parsed.data.decliningRatePercent ?? null,
     },
   });
 
@@ -514,4 +524,44 @@ export async function deleteDepreciationPolicyAction(formData: FormData) {
     where: { id: parsed.data.id, organizationId: orgId(session) },
   });
   revalidatePath(APP_ROUTES.SETTINGS_DEPRECIATION);
+}
+
+export async function runPeriodDepreciationAction(formData: FormData) {
+  const session = await getRequiredSession();
+  assertPermission(session.role, PERMISSION_KEYS.POLICY_MANAGE);
+  if (!session.organizationId) throw new Error(ERROR_MESSAGES.FORBIDDEN);
+
+  const parsed = periodDepreciationRunSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) throw new Error(formatZodError(parsed.error));
+
+  const periodStart = new Date(`${parsed.data.periodStart}T00:00:00.000Z`);
+  const periodEnd = new Date(`${parsed.data.periodEnd}T23:59:59.999Z`);
+  if (Number.isNaN(periodStart.getTime()) || Number.isNaN(periodEnd.getTime()) || periodEnd < periodStart) {
+    throw new Error("Enter a valid period start and end.");
+  }
+
+  const result = await postPeriodDepreciationRun({
+    organizationId: session.organizationId,
+    periodStart,
+    periodEnd,
+    runByUserId: session.userId,
+    notes: parsed.data.notes,
+  });
+
+  await writeAuditLog({
+    actorUserId: session.userId,
+    organizationId: session.organizationId,
+    action: "depreciation.run.post",
+    entityType: "DepreciationRun",
+    entityId: result.runId,
+    metadata: {
+      lineCount: result.lineCount,
+      totalExpense: result.totalExpense,
+      periodStart: periodStart.toISOString(),
+      periodEnd: periodEnd.toISOString(),
+    },
+  });
+
+  revalidatePath(APP_ROUTES.SETTINGS_DEPRECIATION);
+  revalidatePath(APP_ROUTES.REPORTS);
 }

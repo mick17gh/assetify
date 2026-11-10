@@ -3,7 +3,15 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SubmitButton } from "@/components/shared/submit-button";
@@ -34,9 +42,16 @@ export function SetupCreateModal({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <PendingForm action={action} onSuccess={() => setOpen(false)} successMessage="Saved." className="min-w-0 space-y-3">
-          {children}
-          <SubmitButton idleLabel="Save" pendingLabel="Saving..." className="w-full cursor-pointer" />
+        <PendingForm
+          action={action}
+          onSuccess={() => setOpen(false)}
+          successMessage="Saved."
+          className="flex min-h-0 flex-1 flex-col"
+        >
+          <DialogBody className="space-y-3 pb-2">{children}</DialogBody>
+          <DialogFooter>
+            <SubmitButton idleLabel="Save" pendingLabel="Saving..." className="w-full cursor-pointer sm:w-auto" />
+          </DialogFooter>
         </PendingForm>
       </DialogContent>
     </Dialog>

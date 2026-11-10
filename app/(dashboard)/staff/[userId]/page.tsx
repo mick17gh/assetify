@@ -1,17 +1,18 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import { PageHeader } from "@/components/shared/page-header";
+import { ArrowLeft, Briefcase, Building2, Hash, Mail, Shield } from "lucide-react";
 import { DetailTabsLoading } from "@/components/shared/detail-page-loading";
 import { StaffActivityPanel } from "@/components/staff/staff-activity-panel";
+import { StaffProfileHeader } from "@/components/staff/staff-profile-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { APP_ROUTES } from "@/constants";
+import { APP_ROUTES, ENUM_LABELS } from "@/constants";
 import { db } from "@/lib/db";
 import { getRequiredSession } from "@/lib/session";
 import { getUserScopeWhere, getAssetScopeWhere } from "@/lib/scoping";
+import { cn } from "@/lib/utils";
 
 export default async function StaffDetailPage({ params }: { params: Promise<{ userId: string }> }) {
   const [{ userId }, session] = await Promise.all([params, getRequiredSession()]);
@@ -34,6 +35,27 @@ export default async function StaffDetailPage({ params }: { params: Promise<{ us
   if (!member) notFound();
 
   const assetIds = member.assignedAssets.map((asset) => asset.id);
+
+  const [pendingAckCount, movementCount] = await Promise.all([
+    db.assignmentAcknowledgement.count({
+      where: {
+        userId: member.id,
+        status: "PENDING",
+        asset: assetScope,
+      },
+    }),
+    db.assetMovement.count({
+      where: {
+        OR: [
+          { toCustodianId: member.id },
+          { fromCustodianId: member.id },
+          ...(assetIds.length ? [{ assetId: { in: assetIds } }] : []),
+        ],
+        asset: assetScope,
+      },
+    }),
+  ]);
+
   const allocatedAssets = member.assignedAssets.map((asset) => ({
     id: asset.id,
     ain: asset.ain,
@@ -42,6 +64,12 @@ export default async function StaffDetailPage({ params }: { params: Promise<{ us
     branch: asset.branch.name,
     location: `${asset.room?.name ?? "N/A"} / ${asset.shelf?.name ?? "N/A"}`,
   }));
+
+  const roleLabel = ENUM_LABELS.userRole[member.role] ?? member.role;
+  const branch = member.branch?.name ?? "—";
+  const department = member.staffProfile?.department ?? "—";
+  const title = member.staffProfile?.title ?? "—";
+  const employeeCode = member.staffProfile?.employeeCode ?? "—";
 
   return (
     <div>
@@ -53,10 +81,23 @@ export default async function StaffDetailPage({ params }: { params: Promise<{ us
           </Link>
         </Button>
       </div>
-      <PageHeader
-        title={member.name}
-        description={`Staff profile and asset custody overview for ${member.email}`}
-      />
+
+      <div className="mb-5">
+        <StaffProfileHeader
+          name={member.name}
+          email={member.email}
+          roleLabel={roleLabel}
+          isActive={member.isActive}
+          branch={branch}
+          department={department}
+          title={title}
+          employeeCode={employeeCode}
+          allocatedCount={member.assignedAssets.length}
+          pendingAckCount={pendingAckCount}
+          movementCount={movementCount}
+        />
+      </div>
+
       <div className="grid gap-5 xl:grid-cols-[1.7fr_1fr]">
         <Suspense fallback={<DetailTabsLoading />}>
           <StaffActivityPanel
@@ -68,23 +109,37 @@ export default async function StaffDetailPage({ params }: { params: Promise<{ us
         </Suspense>
 
         <Card className="h-fit border-navy-200 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-base text-navy-950">Staff Profile</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base text-navy-950">Profile details</CardTitle>
+            <p className="text-xs text-navy-900/55">Directory and employment information</p>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            <ProfileField label="Email" value={member.email} />
-            <ProfileField label="Role" value={member.role} />
-            <ProfileField label="Branch" value={member.branch?.name ?? "—"} />
-            <ProfileField label="Employee code" value={member.staffProfile?.employeeCode ?? "—"} />
-            <ProfileField label="Title" value={member.staffProfile?.title ?? "—"} />
-            <ProfileField label="Department" value={member.staffProfile?.department ?? "—"} />
-            <div className="rounded-lg border border-navy-100 bg-navy-50/50 p-3">
-              <p className="text-xs text-navy-900/60">Allocated assets</p>
-              <p className="text-2xl font-semibold text-navy-900">{member.assignedAssets.length}</p>
+          <CardContent className="space-y-2.5 text-sm">
+            <ProfileField icon={Mail} label="Email" value={member.email} />
+            <ProfileField icon={Shield} label="Role" value={roleLabel} />
+            <ProfileField icon={Building2} label="Branch" value={branch} />
+            <ProfileField icon={Hash} label="Employee code" value={employeeCode} />
+            <ProfileField icon={Briefcase} label="Title" value={title} />
+            <ProfileField icon={Building2} label="Department" value={department} />
+
+            <div className="mt-2 rounded-xl border border-navy-100 bg-gradient-to-br from-navy-50 to-white p-3.5">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs text-navy-900/60">Custody load</p>
+                  <p className="mt-0.5 text-2xl font-semibold tabular-nums text-navy-950">
+                    {member.assignedAssets.length}
+                  </p>
+                  <p className="text-xs text-navy-900/55">assets currently assigned</p>
+                </div>
+                <Badge
+                  className={cn(
+                    "hover:bg-inherit",
+                    member.isActive ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-zinc-600",
+                  )}
+                >
+                  {member.isActive ? "Active" : "Inactive"}
+                </Badge>
+              </div>
             </div>
-            <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
-              {member.isActive ? "Active" : "Inactive"}
-            </Badge>
           </CardContent>
         </Card>
       </div>
@@ -92,11 +147,24 @@ export default async function StaffDetailPage({ params }: { params: Promise<{ us
   );
 }
 
-function ProfileField({ label, value }: { label: string; value: string }) {
+function ProfileField({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string;
+  value: string;
+  icon: React.ComponentType<{ className?: string }>;
+}) {
   return (
-    <div className="grid grid-cols-[120px_1fr] gap-2 rounded-lg border border-navy-100 bg-white p-2.5">
-      <p className="text-xs text-navy-900/60">{label}</p>
-      <p className="font-medium text-navy-950">{value}</p>
+    <div className="flex items-start gap-3 rounded-xl border border-navy-100 bg-white p-3">
+      <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-navy-50 text-navy-700">
+        <Icon className="h-3.5 w-3.5" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-[11px] font-medium uppercase tracking-wide text-navy-900/50">{label}</p>
+        <p className="truncate font-medium text-navy-950">{value}</p>
+      </div>
     </div>
   );
 }

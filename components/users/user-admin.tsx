@@ -10,7 +10,15 @@ import { SetupTextField } from "@/components/settings/setup-create-modal";
 import { SubmitButton } from "@/components/shared/submit-button";
 import { PendingForm } from "@/components/shared/pending-form";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export function UserAdmin({ branches }: { branches: ReferenceOption[] }) {
   const [open, setOpen] = useState(false);
@@ -31,14 +39,18 @@ export function UserAdmin({ branches }: { branches: ReferenceOption[] }) {
           action={createUserAction}
           onSuccess={() => setOpen(false)}
           successMessage="User created."
-          className="space-y-3"
+          className="flex min-h-0 flex-1 flex-col"
         >
-          <SetupTextField name="name" label="Name" required />
-          <SetupTextField name="email" label="Email" type="email" required />
-          <SetupTextField name="password" label="Temporary password" type="password" required />
-          <EnumSelect name="role" label="Role" labelKey="userRole" values={USER_ROLES} defaultValue={USER_ROLES.STAFF} required />
-          <ReferenceSelect name="branchId" label="Branch" options={branches} />
-          <SubmitButton idleLabel="Create user" pendingLabel="Creating..." className="w-full cursor-pointer" />
+          <DialogBody className="space-y-3 pb-2">
+            <SetupTextField name="name" label="Name" required />
+            <SetupTextField name="email" label="Email" type="email" required />
+            <SetupTextField name="password" label="Temporary password" type="password" required />
+            <EnumSelect name="role" label="Role" labelKey="userRole" values={USER_ROLES} defaultValue={USER_ROLES.STAFF} required />
+            <ReferenceSelect name="branchId" label="Branch" options={branches} />
+          </DialogBody>
+          <DialogFooter>
+            <SubmitButton idleLabel="Create user" pendingLabel="Creating..." className="w-full cursor-pointer sm:w-auto" />
+          </DialogFooter>
         </PendingForm>
       </DialogContent>
     </Dialog>
